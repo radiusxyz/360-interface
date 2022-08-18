@@ -1,6 +1,5 @@
 import { BigNumber } from '@ethersproject/bignumber'
 import { Signature, splitSignature } from '@ethersproject/bytes'
-import { NonceManager } from '@ethersproject/experimental'
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
@@ -22,6 +21,7 @@ interface EncryptResponse {
   message_length: number
   cipher_text: string
   proof: string
+  nonce: string
 }
 
 interface VdfResponse {
@@ -98,8 +98,6 @@ export default function useSendSwapTransaction(
         const { deadline, amountIn, amountoutMin, path } = resolvedCalls[0]
 
         const signer = library.getSigner()
-        const nonceManager = new NonceManager(signer)
-        const nonce = await nonceManager.getTransactionCount()
         const swapRouterAddress = SWAP_ROUTER_ADDRESSES[chainId]
 
         const signAddress = await signer.getAddress()
@@ -135,7 +133,9 @@ export default function useSendSwapTransaction(
 
         // const encryptData = await poseidonEncrypt(vdfData.sym_key, vdfData.commitment, `${path[0]},${path[1]}`)
 
-        const encryptData = await poseidonEncryptWithoutProof(`${path[0]},${path[1]}`)
+        console.log('vdfData.sym_key1', vdfData.sym_key)
+        const encryptData = await poseidonEncryptWithoutProof(vdfData.sym_key, `${path[0]},${path[1]}`)
+        console.log('vdfData.sym_key2', vdfData.sym_key)
 
         console.log(encryptData)
 
@@ -146,7 +146,7 @@ export default function useSendSwapTransaction(
 
         const encryptedPath = {
           message_length: encryptData.message_length,
-          nonce: `${nonce}`,
+          nonce: encryptData.nonce,
           commitment: vdfData.commitment,
           cipher_text: [encryptData.cipher_text],
           r1: vdfData.r1,
@@ -234,11 +234,11 @@ async function poseidonEncrypt(symKey: string, commitment: string, plainText: st
   return data
 }
 
-async function poseidonEncryptWithoutProof(plainText: string): Promise<EncryptResponse> {
-  console.log(plainText)
+async function poseidonEncryptWithoutProof(symKey: string, plainText: string): Promise<EncryptResponse> {
+  console.log(symKey, plainText)
   const poseidon = await import('poseidon')
   const data = await poseidon
-    .encrypt_without_proof(plainText)
+    .encrypt_without_proof(symKey, plainText)
     .then((res) => {
       console.log(res)
       return res
