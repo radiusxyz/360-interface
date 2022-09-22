@@ -9,26 +9,25 @@ import {
   setVdfParam,
   setVdfSnarkParam,
   setZkpParameters,
-  VdfParam,
 } from './reducer'
 
-export function useVdfParam(): VdfParam | null {
+export function useVdfParam(): boolean {
   return useAppSelector((state) => state.parameters.vdfParam)
 }
 
-export function useVdfSnarkParam(): string {
+export function useVdfSnarkParam(): boolean {
   return useAppSelector((state) => state.parameters.vdfSnarkParam)
 }
 
-export function useEncryptionParam(): string {
+export function useEncryptionParam(): boolean {
   return useAppSelector((state) => state.parameters.encryptionParam)
 }
 
-export function useEncryptionProverKey(): string {
+export function useEncryptionProverKey(): boolean {
   return useAppSelector((state) => state.parameters.encryptionProverKey)
 }
 
-export function useEncryptionVerifierData(): string {
+export function useEncryptionVerifierData(): boolean {
   return useAppSelector((state) => state.parameters.encryptionVerifierData)
 }
 
@@ -36,12 +35,12 @@ export function useParameters(): ParameterState {
   return useAppSelector((state) => state.parameters)
 }
 
-export function useVdfParamManager(): [VdfParam | null, (newParam: VdfParam) => void] {
+export function useVdfParamManager(): [boolean, (newParam: boolean) => void] {
   const dispatch = useAppDispatch()
   const vdfParam = useVdfParam()
 
   const updateVdfParam = useCallback(
-    (newParam: VdfParam) => {
+    (newParam: boolean) => {
       dispatch(setVdfParam({ newParam }))
     },
     [dispatch]
@@ -50,12 +49,12 @@ export function useVdfParamManager(): [VdfParam | null, (newParam: VdfParam) => 
   return [vdfParam, updateVdfParam]
 }
 
-export function useVdfSnarkParamManager(): [string, (newParam: string) => void] {
+export function useVdfSnarkParamManager(): [boolean, (newParam: boolean) => void] {
   const dispatch = useAppDispatch()
   const vdfSnarkParam = useVdfSnarkParam()
 
   const updateVdfSnarkParam = useCallback(
-    (newParam: string) => {
+    (newParam: boolean) => {
       dispatch(setVdfSnarkParam({ newParam }))
     },
     [dispatch]
@@ -64,12 +63,12 @@ export function useVdfSnarkParamManager(): [string, (newParam: string) => void] 
   return [vdfSnarkParam, updateVdfSnarkParam]
 }
 
-export function useEncryptionParamManager(): [string, (newParam: string) => void] {
+export function useEncryptionParamManager(): [boolean, (newParam: boolean) => void] {
   const dispatch = useAppDispatch()
   const encryptionParam = useEncryptionParam()
 
   const updateEncryptionParam = useCallback(
-    (newParam: string) => {
+    (newParam: boolean) => {
       dispatch(setEncryptionParam({ newParam }))
     },
     [dispatch]
@@ -78,12 +77,12 @@ export function useEncryptionParamManager(): [string, (newParam: string) => void
   return [encryptionParam, updateEncryptionParam]
 }
 
-export function useEncryptionProverKeyManager(): [string, (newParam: string) => void] {
+export function useEncryptionProverKeyManager(): [boolean, (newParam: boolean) => void] {
   const dispatch = useAppDispatch()
   const encryptionProverKey = useEncryptionProverKey()
 
   const updateEncryptionProverKey = useCallback(
-    (newParam: string) => {
+    (newParam: boolean) => {
       dispatch(setEncryptionProverKey({ newParam }))
     },
     [dispatch]
@@ -92,12 +91,12 @@ export function useEncryptionProverKeyManager(): [string, (newParam: string) => 
   return [encryptionProverKey, updateEncryptionProverKey]
 }
 
-export function useEncryptionVerifierDataManager(): [string, (newParam: string) => void] {
+export function useEncryptionVerifierDataManager(): [boolean, (newParam: boolean) => void] {
   const dispatch = useAppDispatch()
   const encryptionVerifierData = useEncryptionVerifierData()
 
   const updateEncryptionVerifierData = useCallback(
-    (newParam: string) => {
+    (newParam: boolean) => {
       dispatch(setEncryptionVerifierData({ newParam }))
     },
     [dispatch]
