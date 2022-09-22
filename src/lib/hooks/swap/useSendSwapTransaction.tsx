@@ -100,7 +100,6 @@ export default function useSendSwapTransaction(
   parameters: ParameterState,
   sigHandler: () => void
 ): { callback: null | (() => Promise<RadiusSwapResponse>) } {
-  console.log(parameters)
   const dispatch = useAppDispatch()
 
   return useMemo(() => {
