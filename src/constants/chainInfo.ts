@@ -6,7 +6,7 @@ import polygonMaticLogo from 'assets/svg/polygon-matic-logo.svg'
 import ms from 'ms.macro'
 
 import { SupportedChainId, SupportedL1ChainId, SupportedL2ChainId } from './chains'
-import { ARBITRUM_LIST, OPTIMISM_LIST } from './lists'
+import { ARBITRUM_LIST, MUMBAI_LIST, OPTIMISM_LIST } from './lists'
 
 export enum NetworkType {
   L1,
@@ -158,7 +158,8 @@ export const CHAIN_INFO: ChainInfoMap = {
     nativeCurrency: { name: 'Polygon Matic', symbol: 'MATIC', decimals: 18 },
   },
   [SupportedChainId.POLYGON_MUMBAI]: {
-    networkType: NetworkType.L1,
+    networkType: NetworkType.L2,
+    defaultListUrl: MUMBAI_LIST,
     blockWaitMsBeforeWarning: ms`10m`,
     bridge: 'https://wallet.polygon.technology/bridge',
     docs: 'https://polygon.io/',

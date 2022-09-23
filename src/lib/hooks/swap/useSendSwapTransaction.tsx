@@ -180,15 +180,17 @@ export default function useSendSwapTransaction(
 
         console.log(vdfData)
 
-        const encryptData = await poseidonEncrypt(
-          encryptionParam,
-          encryptionProverKey,
-          encryptionVerifierData,
-          vdfData.s2_string,
-          vdfData.s2_field_hex,
-          vdfData.commitment_hex,
-          `${path[0]},${path[1]}`
-        )
+        // const encryptData = await poseidonEncrypt(
+        //   encryptionParam,
+        //   encryptionProverKey,
+        //   encryptionVerifierData,
+        //   vdfData.s2_string,
+        //   vdfData.s2_field_hex,
+        //   vdfData.commitment_hex,
+        //   `${path[0]},${path[1]}`
+        // )
+
+        const encryptData = await poseidonEncryptWithoutProof(vdfData.s2_string, `${path[0]},${path[1]}`)
 
         console.log(encryptData)
 
@@ -352,6 +354,23 @@ async function poseidonEncrypt(
   const poseidon = await import('wasm-encryptor-zkp')
   const data = await poseidon
     .encrypt(param, proverKey, verifierData, s2_string, s2_field_hex, commitment, plainText)
+    .then((res) => {
+      console.log(res)
+      return res
+    })
+    .catch((error) => {
+      console.error(error)
+      return error
+    })
+
+  return data
+}
+
+async function poseidonEncryptWithoutProof(s2_string: string, plainText: string): Promise<EncryptResponse> {
+  console.log(s2_string, plainText)
+  const poseidon = await import('wasm-encryptor-zkp')
+  const data = await poseidon
+    .encrypt_without_proof(s2_string, plainText)
     .then((res) => {
       console.log(res)
       return res

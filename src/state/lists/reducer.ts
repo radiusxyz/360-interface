@@ -89,7 +89,7 @@ export default createReducer(initialState, (builder) =>
                 patch: 1,
               },
               name: 'Optimism Kovan',
-              logoURI: 'https://ethereum-optimism.github.io/optimism.svg',
+              // logoURI: 'https://ethereum-optimism.github.io/optimism.svg',
               keywords: ['scaling', 'layer2', 'infrastructure'],
               timestamp: '2022-08-27T08:03:56.744Z',
               tokens: [
@@ -123,6 +123,49 @@ export default createReducer(initialState, (builder) =>
             loadingRequestId: null,
             error: null,
           }
+        } else if (url === 'https://api-polygon-tokens.polygon.technology/tokenlists/testnet.tokenlist.json') {
+          state.byUrl[url] = {
+            current: {
+              version: {
+                major: 1,
+                minor: 1,
+                patch: 0,
+              },
+              name: 'Polygon Testnet List',
+              // logoURI: 'https://wallet-asset.matic.network/img/tokens/matic.svg',
+              keywords: ['polygon', 'default', 'tokens'],
+              timestamp: '2022-09-14T11:59:02.763Z',
+              tokens: [
+                {
+                  chainId: 80001,
+                  name: 'Ether - PoS',
+                  symbol: 'ETH',
+                  decimals: 18,
+                  address: '0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa',
+                  logoURI: 'https://wallet-asset.matic.network/img/tokens/eth.svg',
+                  tags: ['erc20', 'pos', 'swapable'],
+                  extensions: {
+                    rootAddress: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+                  },
+                },
+                {
+                  chainId: 80001,
+                  name: 'Matic',
+                  symbol: 'MATIC',
+                  decimals: 18,
+                  address: '0x0000000000000000000000000000000000001010',
+                  logoURI: 'https://wallet-asset.matic.network/img/tokens/matic.svg',
+                  tags: ['erc20', 'plasma', 'swapable'],
+                  extensions: {
+                    rootAddress: '0x499d11E0b6eAC7c0593d8Fb292DCBbF815Fb29Ae',
+                  },
+                },
+              ],
+            },
+            pendingUpdate: null,
+            loadingRequestId: null,
+            error: null,
+          }
         } else {
           state.byUrl[url] = {
             current: tokenList,
@@ -148,7 +191,7 @@ export default createReducer(initialState, (builder) =>
               patch: 1,
             },
             name: 'Optimism Kovan',
-            logoURI: 'https://ethereum-optimism.github.io/optimism.svg',
+            // logoURI: 'https://ethereum-optimism.github.io/optimism.svg',
             keywords: ['scaling', 'layer2', 'infrastructure'],
             timestamp: '2022-08-27T08:03:56.744Z',
             tokens: [
@@ -172,6 +215,49 @@ export default createReducer(initialState, (builder) =>
                 logoURI: 'https://raw.githubusercontent.com/radiusxyz/tex-interface/main/src/assets/images/radius.jpg',
                 extensions: {
                   optimismBridgeAddress: '0xE9e84b42E53A8784dF45c761aCE4d1cf4f948Eb3',
+                },
+              },
+            ],
+          },
+          pendingUpdate: null,
+          loadingRequestId: null,
+          error: null,
+        }
+      } else if (url === 'https://api-polygon-tokens.polygon.technology/tokenlists/testnet.tokenlist.json') {
+        state.byUrl[url] = {
+          current: {
+            name: 'Polygon Testnet List',
+            version: {
+              major: 1,
+              minor: 1,
+              patch: 0,
+            },
+            // logoURI: 'https://wallet-asset.matic.network/img/tokens/matic.svg',
+            keywords: ['polygon', 'default', 'tokens'],
+            timestamp: '2022-09-14T11:59:02.763Z',
+            tokens: [
+              {
+                chainId: 80001,
+                name: 'Gold',
+                symbol: 'GLD',
+                decimals: 18,
+                address: '0xaA4649f32D31bed03795430690A65ebC9dAa9CE9',
+                logoURI: 'https://raw.githubusercontent.com/radiusxyz/tex-interface/main/src/assets/images/radius.jpg',
+                tags: ['erc20', 'pos', 'swapable'],
+                extensions: {
+                  rootAddress: '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',
+                },
+              },
+              {
+                chainId: 80001,
+                name: 'Silver',
+                symbol: 'SLVR',
+                decimals: 18,
+                address: '0x8354927d459558BaeA22A7DE6cF9D073D14417F4',
+                logoURI: 'https://raw.githubusercontent.com/radiusxyz/tex-interface/main/src/assets/images/radius.jpg',
+                tags: ['erc20', 'plasma', 'swapable'],
+                extensions: {
+                  rootAddress: '0x499d11E0b6eAC7c0593d8Fb292DCBbF815Fb29Ae',
                 },
               },
             ],
