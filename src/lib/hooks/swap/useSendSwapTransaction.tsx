@@ -8,6 +8,7 @@ import { Trade as V3Trade } from '@uniswap/v3-sdk'
 import { domain, DOMAIN_TYPE, SWAP_TYPE } from 'constants/eip712'
 import { solidityKeccak256 } from 'ethers/lib/utils'
 import { SwapCall } from 'hooks/useSwapCallArguments'
+import localForage from 'localforage'
 import { useMemo } from 'react'
 import { useAppDispatch } from 'state/hooks'
 import {
@@ -99,7 +100,6 @@ export default function useSendSwapTransaction(
   parameters: ParameterState,
   sigHandler: () => void
 ): { callback: null | (() => Promise<RadiusSwapResponse>) } {
-  console.log(parameters)
   const dispatch = useAppDispatch()
 
   return useMemo(() => {
@@ -108,38 +108,39 @@ export default function useSendSwapTransaction(
     }
     return {
       callback: async function onSwap(): Promise<RadiusSwapResponse> {
-        let vdfParam = {} as VdfParam
-        let vdfSnarkParam = ''
-        let encryptionParam = ''
-        let encryptionProverKey = ''
-        let encryptionVerifierData = ''
+        let vdfParam: VdfParam | null = await localForage.getItem('vdf_param')
+        let vdfSnarkParam: string | null = await localForage.getItem('vdf_snark_param')
+        let encryptionParam: string | null = await localForage.getItem('encryption_param')
+        let encryptionProverKey: string | null = await localForage.getItem('encryption_prover_key')
+        let encryptionVerifierData: string | null = await localForage.getItem('encryption_verifier_data')
 
-        if (!parameters.vdfParam) {
-          vdfParam = await fetchVdfParam((newParam: VdfParam) => {
+        // if save flag is false or getItem result is null
+        if (!parameters.vdfParam || !vdfParam) {
+          vdfParam = await fetchVdfParam((newParam: boolean) => {
             dispatch(setVdfParam({ newParam }))
           })
         }
 
-        if (!parameters.vdfSnarkParam) {
-          vdfSnarkParam = await fetchVdfSnarkParam((newParam: string) => {
+        if (!parameters.vdfSnarkParam || !vdfSnarkParam) {
+          vdfSnarkParam = await fetchVdfSnarkParam((newParam: boolean) => {
             dispatch(setVdfSnarkParam({ newParam }))
           })
         }
 
-        if (!parameters.encryptionParam) {
-          encryptionParam = await fetchEncryptionParam((newParam: string) => {
+        if (!parameters.encryptionParam || !encryptionParam) {
+          encryptionParam = await fetchEncryptionParam((newParam: boolean) => {
             dispatch(setEncryptionParam({ newParam }))
           })
         }
 
-        if (!parameters.encryptionProverKey) {
-          encryptionProverKey = await fetchEncryptionProverKey((newParam: string) => {
+        if (!parameters.encryptionProverKey || !encryptionProverKey) {
+          encryptionProverKey = await fetchEncryptionProverKey((newParam: boolean) => {
             dispatch(setEncryptionProverKey({ newParam }))
           })
         }
 
-        if (!parameters.encryptionVerifierData) {
-          encryptionVerifierData = await fetchEncryptionVerifierData((newParam: string) => {
+        if (!parameters.encryptionVerifierData || !encryptionVerifierData) {
+          encryptionVerifierData = await fetchEncryptionVerifierData((newParam: boolean) => {
             dispatch(setEncryptionVerifierData({ newParam }))
           })
         }
@@ -175,14 +176,14 @@ export default function useSendSwapTransaction(
 
         sigHandler()
 
-        const vdfData = await getVdfProof(parameters.vdfParam || vdfParam, parameters.vdfSnarkParam || vdfSnarkParam)
+        const vdfData = await getVdfProof(vdfParam, vdfSnarkParam)
 
         console.log(vdfData)
 
         const encryptData = await poseidonEncrypt(
-          parameters.encryptionParam || encryptionParam,
-          parameters.encryptionProverKey || encryptionProverKey,
-          parameters.encryptionVerifierData || encryptionVerifierData,
+          encryptionParam,
+          encryptionProverKey,
+          encryptionVerifierData,
           vdfData.s2_string,
           vdfData.s2_field_hex,
           vdfData.commitment_hex,
@@ -231,62 +232,67 @@ export default function useSendSwapTransaction(
   }, [trade, library, account, chainId, parameters, swapCalls, sigHandler, dispatch])
 }
 
-async function fetchVdfParam(callback: (res: VdfParam) => void) {
+async function fetchVdfParam(callback: (res: boolean) => void): Promise<VdfParam> {
   return await fetch('http://147.46.240.248:40002/zkp/getVdfParams', {
     method: 'GET',
   })
     .then((res) => res.json())
     .then((res) => {
       console.log(res)
-      callback(res)
+      localForage.setItem('vdf_param', res)
+      callback(true)
       return res
     })
 }
 
-async function fetchVdfSnarkParam(callback: (res: string) => void) {
+async function fetchVdfSnarkParam(callback: (res: boolean) => void): Promise<string> {
   return await fetch('http://147.46.240.248:40002/zkp/getVdfSnarkParams', {
     method: 'GET',
   }).then(async (res) => {
     const bytes = await res.arrayBuffer()
     const uint8bytes = new Uint8Array(bytes)
     const string = Buffer.from(uint8bytes).toString('hex')
-    callback(string)
+    localForage.setItem('vdf_snark_param', string)
+    callback(true)
     return string
   })
 }
 
-async function fetchEncryptionParam(callback: (res: string) => void) {
+async function fetchEncryptionParam(callback: (res: boolean) => void): Promise<string> {
   return await fetch('http://147.46.240.248:40002/zkp/getEncryptionParams', {
     method: 'GET',
   }).then(async (res) => {
     const bytes = await res.arrayBuffer()
     const uint8bytes = new Uint8Array(bytes)
     const string = Buffer.from(uint8bytes).toString('hex')
-    callback(string)
+    localForage.setItem('encryption_param', string)
+    callback(true)
     return string
   })
 }
 
-async function fetchEncryptionProverKey(callback: (res: string) => void) {
+async function fetchEncryptionProverKey(callback: (res: boolean) => void): Promise<string> {
   return await fetch('http://147.46.240.248:40002/zkp/getEncryptionProverKey', {
     method: 'GET',
   }).then(async (res) => {
     const bytes = await res.arrayBuffer()
     const uint8bytes = new Uint8Array(bytes)
     const string = Buffer.from(uint8bytes).toString('hex')
-    callback(string)
+    localForage.setItem('encryption_prover_key', string)
+    callback(true)
     return string
   })
 }
 
-async function fetchEncryptionVerifierData(callback: (res: string) => void) {
+async function fetchEncryptionVerifierData(callback: (res: boolean) => void): Promise<string> {
   return await fetch('http://147.46.240.248:40002/zkp/getEncryptionVerifierData', {
     method: 'GET',
   }).then(async (res) => {
     const bytes = await res.arrayBuffer()
     const uint8bytes = new Uint8Array(bytes)
     const string = Buffer.from(uint8bytes).toString('hex')
-    callback(string)
+    localForage.setItem('encryption_verifier_data', string)
+    callback(true)
     return string
   })
 }

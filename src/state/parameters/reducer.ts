@@ -12,38 +12,38 @@ export interface VdfParam {
 }
 
 export interface ParameterState {
-  readonly vdfParam: VdfParam | null
-  readonly vdfSnarkParam: string
-  readonly encryptionParam: string
-  readonly encryptionProverKey: string
-  readonly encryptionVerifierData: string
+  readonly vdfParam: boolean
+  readonly vdfSnarkParam: boolean
+  readonly encryptionParam: boolean
+  readonly encryptionProverKey: boolean
+  readonly encryptionVerifierData: boolean
 }
 
 const initialState: ParameterState = {
-  vdfParam: null,
-  vdfSnarkParam: '',
-  encryptionParam: '',
-  encryptionProverKey: '',
-  encryptionVerifierData: '',
+  vdfParam: false,
+  vdfSnarkParam: false,
+  encryptionParam: false,
+  encryptionProverKey: false,
+  encryptionVerifierData: false,
 }
 
 const parameterSlice = createSlice({
   name: 'parameters',
   initialState,
   reducers: {
-    setVdfParam(state, action: { payload: { newParam: VdfParam } }) {
+    setVdfParam(state, action: { payload: { newParam: boolean } }) {
       state.vdfParam = action.payload.newParam
     },
-    setVdfSnarkParam(state, action: { payload: { newParam: string } }) {
+    setVdfSnarkParam(state, action: { payload: { newParam: boolean } }) {
       state.vdfSnarkParam = action.payload.newParam
     },
-    setEncryptionParam(state, action: { payload: { newParam: string } }) {
+    setEncryptionParam(state, action: { payload: { newParam: boolean } }) {
       state.encryptionParam = action.payload.newParam
     },
-    setEncryptionProverKey(state, action: { payload: { newParam: string } }) {
+    setEncryptionProverKey(state, action: { payload: { newParam: boolean } }) {
       state.encryptionProverKey = action.payload.newParam
     },
-    setEncryptionVerifierData(state, action: { payload: { newParam: string } }) {
+    setEncryptionVerifierData(state, action: { payload: { newParam: boolean } }) {
       state.encryptionVerifierData = action.payload.newParam
     },
     setZkpParameters(state, action: { payload: { newParam: ParameterState } }) {

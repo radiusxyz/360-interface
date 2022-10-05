@@ -12,6 +12,7 @@ import { useSwapCallback } from 'hooks/useSwapCallback'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import JSBI from 'jsbi'
 import { RadiusSwapResponse } from 'lib/hooks/swap/useSendSwapTransaction'
+import localForage from 'localforage'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { ArrowDown, CheckCircle, HelpCircle } from 'react-feather'
 import ReactGA from 'react-ga4'
@@ -137,7 +138,8 @@ export default function Swap({ history }: RouteComponentProps) {
           .then((res) => res.json())
           .then((res) => {
             console.log(res)
-            updateVdfParam(res)
+            localForage.setItem('vdf_param', res)
+            updateVdfParam(true)
           })
           .catch((error) => {
             console.log(error)
@@ -167,7 +169,8 @@ export default function Swap({ history }: RouteComponentProps) {
               console.log(string)
               const rebyte = Buffer.from(string, 'hex')
               console.log(rebyte)
-              updateVdfSnarkParam(string)
+              localForage.setItem('vdf_snark_param', string)
+              updateVdfSnarkParam(true)
             }
           })
           .catch((error) => {
@@ -197,7 +200,8 @@ export default function Swap({ history }: RouteComponentProps) {
               console.log(string)
               const rebyte = Buffer.from(string, 'hex')
               console.log(rebyte)
-              updateEncryptionParam(string)
+              localForage.setItem('encryption_param', string)
+              updateEncryptionParam(true)
             }
           })
           .catch((error) => {
@@ -227,7 +231,8 @@ export default function Swap({ history }: RouteComponentProps) {
               console.log(string)
               const rebyte = Buffer.from(string, 'hex')
               console.log(rebyte)
-              updateEncryptionProverKey(string)
+              localForage.setItem('encryption_prover_key', string)
+              updateEncryptionProverKey(true)
             }
           })
           .catch((error) => {
@@ -257,7 +262,8 @@ export default function Swap({ history }: RouteComponentProps) {
               console.log(string)
               const rebyte = Buffer.from(string, 'hex')
               console.log(rebyte)
-              updateEncryptionVerifierData(string)
+              localForage.setItem('encryption_verifier_data', string)
+              updateEncryptionVerifierData(true)
             }
           })
           .catch((error) => {
