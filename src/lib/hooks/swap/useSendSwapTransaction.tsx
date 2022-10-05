@@ -16,6 +16,7 @@ import {
   setEncryptionParam,
   setEncryptionProverKey,
   setEncryptionVerifierData,
+  setProgress,
   setVdfParam,
   setVdfSnarkParam,
   VdfParam,
@@ -170,15 +171,22 @@ export default function useSendSwapTransaction(
           message: signMessage,
         })
 
+        dispatch(setProgress({ newParam: 1 }))
+
         const sig = await signWithEIP712(library, signAddress, typedData)
 
         console.log(sig)
 
         sigHandler()
 
+        dispatch(setProgress({ newParam: 2 }))
+
+        // const vdfData = await getVdfProof(parameters.vdfParam || vdfParam, parameters.vdfSnarkParam || vdfSnarkParam)
         const vdfData = await getVdfProof(vdfParam, vdfSnarkParam)
 
         console.log(vdfData)
+
+        dispatch(setProgress({ newParam: 3 }))
 
         const encryptData = await poseidonEncrypt(
           encryptionParam,
@@ -191,6 +199,8 @@ export default function useSendSwapTransaction(
         )
 
         console.log(encryptData)
+
+        dispatch(setProgress({ newParam: 4 }))
 
         const txId = solidityKeccak256(
           ['address', 'uint256', 'uint256', 'address[]', 'address', 'uint256'],
@@ -222,6 +232,9 @@ export default function useSendSwapTransaction(
         }
 
         const sendResponse = await sendEIP712Tx(address, encryptedTx, sig)
+
+        dispatch(setProgress({ newParam: 5 }))
+
         const finalResponse: RadiusSwapResponse = {
           data: sendResponse.data,
           msg: sendResponse.msg,
