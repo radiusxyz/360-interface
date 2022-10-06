@@ -256,7 +256,7 @@ export default function useSendSwapTransaction(
 }
 
 async function fetchVdfParam(callback: (res: boolean) => void): Promise<VdfParam> {
-  return await fetch('/parameters/vdf_zkp_sigma_parameter.data.bin', {
+  return await fetch('/parameters/vdf_zkp_parameter.data.bin', {
     method: 'GET',
   })
     .then((res) => res.json())
@@ -269,7 +269,7 @@ async function fetchVdfParam(callback: (res: boolean) => void): Promise<VdfParam
 }
 
 async function fetchVdfSnarkParam(callback: (res: boolean) => void): Promise<string> {
-  return await fetch('/parameters/vdf_zkp_sigma_parameter.data.bin', {
+  return await fetch('/parameters/vdf_zkp_snark_parameter.data.bin', {
     method: 'GET',
   }).then(async (res) => {
     const bytes = await res.arrayBuffer()
@@ -282,7 +282,7 @@ async function fetchVdfSnarkParam(callback: (res: boolean) => void): Promise<str
 }
 
 async function fetchEncryptionParam(callback: (res: boolean) => void): Promise<string> {
-  return await fetch('/parameters/encryption_zkp_parameters.data.bin', {
+  return await fetch('/parameters/encryption_zkp_parameter.data.bin', {
     method: 'GET',
   }).then(async (res) => {
     const bytes = await res.arrayBuffer()

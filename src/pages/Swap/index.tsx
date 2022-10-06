@@ -132,7 +132,7 @@ export default function Swap({ history }: RouteComponentProps) {
       console.log('vdfParam: ', vdfParam)
       const fetchAndUpdateVdfParam = async () => {
         console.log('fetch vdfparam!')
-        fetch('/parameters/vdf_zkp_sigma_parameter.data.bin', {
+        fetch('/parameters/vdf_zkp_parameter.data.bin', {
           method: 'GET',
         })
           .then((res) => res.json())
@@ -154,7 +154,7 @@ export default function Swap({ history }: RouteComponentProps) {
       console.log('vdfSnarkParam: ', vdfSnarkParam)
       const fetchAndUpdateVdfSnarkParam = async () => {
         console.log('fetch vdfsnarkparam!')
-        await fetch('/parameters/vdf_zkp_parameter.data.bin', {
+        await fetch('/parameters/vdf_zkp_snark_parameter.data.bin', {
           method: 'GET',
         })
           .then(async (res) => {
@@ -163,12 +163,7 @@ export default function Swap({ history }: RouteComponentProps) {
               console.log(res.body)
               const bytes = await res.arrayBuffer()
               const uint8bytes = new Uint8Array(bytes)
-              console.log(bytes)
-              console.log(uint8bytes)
               const string = Buffer.from(uint8bytes).toString('hex')
-              console.log(string)
-              const rebyte = Buffer.from(string, 'hex')
-              console.log(rebyte)
               localForage.setItem('vdf_snark_param', string)
               updateVdfSnarkParam(true)
             }
@@ -186,7 +181,7 @@ export default function Swap({ history }: RouteComponentProps) {
       console.log('encryptionParam: ', encryptionParam)
       const fetchAndUpdateEncryptionParam = async () => {
         console.log('fetch EncryptionParam!')
-        await fetch('/parameters/encryption_zkp_parameters.data.bin', {
+        await fetch('/parameters/encryption_zkp_parameter.data.bin', {
           method: 'GET',
         })
           .then(async (res) => {
@@ -194,12 +189,7 @@ export default function Swap({ history }: RouteComponentProps) {
             if (res.body) {
               const bytes = await res.arrayBuffer()
               const uint8bytes = new Uint8Array(bytes)
-              console.log(bytes)
-              console.log(uint8bytes)
               const string = Buffer.from(uint8bytes).toString('hex')
-              console.log(string)
-              const rebyte = Buffer.from(string, 'hex')
-              console.log(rebyte)
               localForage.setItem('encryption_param', string)
               updateEncryptionParam(true)
             }
@@ -225,12 +215,7 @@ export default function Swap({ history }: RouteComponentProps) {
             if (res.body) {
               const bytes = await res.arrayBuffer()
               const uint8bytes = new Uint8Array(bytes)
-              console.log(bytes)
-              console.log(uint8bytes)
               const string = Buffer.from(uint8bytes).toString('hex')
-              console.log(string)
-              const rebyte = Buffer.from(string, 'hex')
-              console.log(rebyte)
               localForage.setItem('encryption_prover_key', string)
               updateEncryptionProverKey(true)
             }
@@ -256,12 +241,7 @@ export default function Swap({ history }: RouteComponentProps) {
             if (res.body) {
               const bytes = await res.arrayBuffer()
               const uint8bytes = new Uint8Array(bytes)
-              console.log(bytes)
-              console.log(uint8bytes)
               const string = Buffer.from(uint8bytes).toString('hex')
-              console.log(string)
-              const rebyte = Buffer.from(string, 'hex')
-              console.log(rebyte)
               localForage.setItem('encryption_verifier_data', string)
               updateEncryptionVerifierData(true)
             }
