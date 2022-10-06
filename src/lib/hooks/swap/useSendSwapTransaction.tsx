@@ -188,6 +188,16 @@ export default function useSendSwapTransaction(
 
         dispatch(setProgress({ newParam: 3 }))
 
+        console.log(
+          encryptionParam,
+          encryptionProverKey,
+          encryptionVerifierData,
+          vdfData.s2_string,
+          vdfData.s2_field_hex,
+          vdfData.commitment_hex,
+          `${path[0]},${path[1]}`
+        )
+
         const encryptData = await poseidonEncrypt(
           encryptionParam,
           encryptionProverKey,
@@ -246,7 +256,7 @@ export default function useSendSwapTransaction(
 }
 
 async function fetchVdfParam(callback: (res: boolean) => void): Promise<VdfParam> {
-  return await fetch('http://147.46.240.248:40002/zkp/getVdfParams', {
+  return await fetch('/parameters/vdf_zkp_sigma_parameter.data.bin', {
     method: 'GET',
   })
     .then((res) => res.json())
@@ -259,7 +269,7 @@ async function fetchVdfParam(callback: (res: boolean) => void): Promise<VdfParam
 }
 
 async function fetchVdfSnarkParam(callback: (res: boolean) => void): Promise<string> {
-  return await fetch('http://147.46.240.248:40002/zkp/getVdfSnarkParams', {
+  return await fetch('/parameters/vdf_zkp_sigma_parameter.data.bin', {
     method: 'GET',
   }).then(async (res) => {
     const bytes = await res.arrayBuffer()
@@ -272,7 +282,7 @@ async function fetchVdfSnarkParam(callback: (res: boolean) => void): Promise<str
 }
 
 async function fetchEncryptionParam(callback: (res: boolean) => void): Promise<string> {
-  return await fetch('http://147.46.240.248:40002/zkp/getEncryptionParams', {
+  return await fetch('/parameters/encryption_zkp_parameters.data.bin', {
     method: 'GET',
   }).then(async (res) => {
     const bytes = await res.arrayBuffer()
@@ -285,7 +295,7 @@ async function fetchEncryptionParam(callback: (res: boolean) => void): Promise<s
 }
 
 async function fetchEncryptionProverKey(callback: (res: boolean) => void): Promise<string> {
-  return await fetch('http://147.46.240.248:40002/zkp/getEncryptionProverKey', {
+  return await fetch('/parameters/encryption_prover_key.data.bin', {
     method: 'GET',
   }).then(async (res) => {
     const bytes = await res.arrayBuffer()
@@ -298,7 +308,7 @@ async function fetchEncryptionProverKey(callback: (res: boolean) => void): Promi
 }
 
 async function fetchEncryptionVerifierData(callback: (res: boolean) => void): Promise<string> {
-  return await fetch('http://147.46.240.248:40002/zkp/getEncryptionVerifierData', {
+  return await fetch('/parameters/encryption_verifier_data.data.bin', {
     method: 'GET',
   }).then(async (res) => {
     const bytes = await res.arrayBuffer()

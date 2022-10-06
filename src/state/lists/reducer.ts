@@ -1,8 +1,7 @@
 import { createReducer } from '@reduxjs/toolkit'
 import { getVersionUpgrade, TokenList, VersionUpgrade } from '@uniswap/token-lists'
 
-import { DEFAULT_ACTIVE_LIST_URLS } from '../../constants/lists'
-import { DEFAULT_LIST_OF_LISTS } from '../../constants/lists'
+import { DEFAULT_ACTIVE_LIST_URLS, DEFAULT_LIST_OF_LISTS, OPTIMISM_LIST, RADIUS_LIST } from '../../constants/lists'
 import { updateVersion } from '../global/actions'
 import { acceptListUpdate, addList, disableList, enableList, fetchTokenList, removeList } from './actions'
 
@@ -80,7 +79,50 @@ export default createReducer(initialState, (builder) =>
           state.activeListUrls?.push(url)
         }
 
-        if (url === 'https://static.optimism.io/optimism.tokenlist.json') {
+        if (url === RADIUS_LIST) {
+          state.byUrl[url] = {
+            current: {
+              version: {
+                major: 1,
+                minor: 1,
+                patch: 1,
+              },
+              name: 'Polygon Mumbai',
+              logoURI: 'https://ethereum-optimism.github.io/optimism.svg',
+              keywords: ['scaling', 'layer2', 'infrastructure'],
+              timestamp: '2022-08-27T08:03:56.744Z',
+              tokens: [
+                {
+                  chainId: 80001,
+                  address: '0x2EEc957b6d670D0207c99A986436B1b9BB76175D',
+                  name: 'Gold',
+                  symbol: 'GLD',
+                  decimals: 18,
+                  logoURI:
+                    'https://raw.githubusercontent.com/radiusxyz/tex-interface/main/src/assets/images/radius.jpg',
+                  extensions: {
+                    optimismBridgeAddress: '0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1',
+                  },
+                },
+                {
+                  chainId: 80001,
+                  address: '0xFb3DB2c5Eeae38128613bFC5f26DA373B593a855',
+                  name: 'Silver',
+                  symbol: 'SLVR',
+                  decimals: 18,
+                  logoURI:
+                    'https://raw.githubusercontent.com/radiusxyz/tex-interface/main/src/assets/images/radius.jpg',
+                  extensions: {
+                    optimismBridgeAddress: '0xE9e84b42E53A8784dF45c761aCE4d1cf4f948Eb3',
+                  },
+                },
+              ],
+            },
+            pendingUpdate: null,
+            loadingRequestId: null,
+            error: null,
+          }
+        } else if (url === OPTIMISM_LIST) {
           state.byUrl[url] = {
             current: {
               version: {
@@ -139,7 +181,48 @@ export default createReducer(initialState, (builder) =>
         return
       }
 
-      if (url === 'https://static.optimism.io/optimism.tokenlist.json') {
+      if (url === RADIUS_LIST) {
+        state.byUrl[url] = {
+          current: {
+            version: {
+              major: 1,
+              minor: 1,
+              patch: 1,
+            },
+            name: 'Polygon Mumbai',
+            logoURI: 'https://ethereum-optimism.github.io/optimism.svg',
+            keywords: ['scaling', 'layer2', 'infrastructure'],
+            timestamp: '2022-08-27T08:03:56.744Z',
+            tokens: [
+              {
+                chainId: 80001,
+                address: '0x2EEc957b6d670D0207c99A986436B1b9BB76175D',
+                name: 'Gold',
+                symbol: 'GLD',
+                decimals: 18,
+                logoURI: 'https://raw.githubusercontent.com/radiusxyz/tex-interface/main/src/assets/images/radius.jpg',
+                extensions: {
+                  polygonBridgeAddress: '0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1',
+                },
+              },
+              {
+                chainId: 80001,
+                address: '0xFb3DB2c5Eeae38128613bFC5f26DA373B593a855',
+                name: 'Silver',
+                symbol: 'SLVR',
+                decimals: 18,
+                logoURI: 'https://raw.githubusercontent.com/radiusxyz/tex-interface/main/src/assets/images/radius.jpg',
+                extensions: {
+                  polygonBridgeAddress: '0xE9e84b42E53A8784dF45c761aCE4d1cf4f948Eb3',
+                },
+              },
+            ],
+          },
+          pendingUpdate: null,
+          loadingRequestId: null,
+          error: null,
+        }
+      } else if (url === OPTIMISM_LIST) {
         state.byUrl[url] = {
           current: {
             version: {

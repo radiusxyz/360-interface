@@ -67,6 +67,20 @@ export const T2_OPTIMISTIC_KOVAN = new Token(
   'T2',
   'Test token-2'
 )
+export const GLD_POLYGON_MUMBAI = new Token(
+  SupportedChainId.POLYGON_MUMBAI,
+  '0x2EEc957b6d670D0207c99A986436B1b9BB76175D',
+  18,
+  'GLD',
+  'Gold'
+)
+export const SLVR_POLYGON_MUMBAI = new Token(
+  SupportedChainId.POLYGON_MUMBAI,
+  '0xFb3DB2c5Eeae38128613bFC5f26DA373B593a855',
+  18,
+  'SLVR',
+  'Silver'
+)
 export const GLD_OPTIMISTIC_KOVAN = new Token(
   SupportedChainId.OPTIMISTIC_KOVAN,
   '0x6C3D016A3Bd72D49BF1C4bDFe601e2C37700a01A',
