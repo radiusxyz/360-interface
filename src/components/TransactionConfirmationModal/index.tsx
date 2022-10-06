@@ -139,19 +139,7 @@ function TransactionSubmittedContent({
         )}
         <div style={{ margin: 20 }}>
           <Text fontWeight={500} fontSize={20} textAlign="center">
-            <Trans>
-              1. Transaction Encryption (
-              {progress === 1
-                ? 'signed'
-                : progress === 2
-                ? 'got vdf proof'
-                : progress === 3
-                ? 'encrypted'
-                : progress === 4
-                ? 'sent to operator'
-                : '?'}
-              )
-            </Trans>
+            <Trans>1. Transaction Encryption</Trans>
           </Text>
           <Text fontWeight={500} fontSize={20} textAlign="center">
             <Trans>
