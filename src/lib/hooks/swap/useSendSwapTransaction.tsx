@@ -392,7 +392,7 @@ async function sendEIP712Tx(
   encryptedTx: EncryptedTx,
   signature: Signature
 ): Promise<RadiusSwapResponse> {
-  const sendResponse = await fetch('http://147.46.240.248:40002/txs/send/EIP712Tx', {
+  const sendResponse = await fetch('http://147.46.240.248:40002/tx', {
     method: 'POST',
     headers,
     body: JSON.stringify({
