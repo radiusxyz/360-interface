@@ -1,6 +1,9 @@
 import { BigNumber } from '@ethersproject/bignumber'
 import { Signature, splitSignature } from '@ethersproject/bytes'
+import { Contract } from '@ethersproject/contracts'
+import { keccak256 } from '@ethersproject/keccak256'
 import { JsonRpcProvider } from '@ethersproject/providers'
+import { serialize } from '@ethersproject/transactions'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'
@@ -22,6 +25,9 @@ import {
   VdfParam,
 } from 'state/parameters/reducer'
 import { swapErrorToUserReadableMessage } from 'utils/swapErrorToUserReadableMessage'
+
+import TEX_RECORDER from '../../../abis/tex-recorder.json'
+import { RECORDER_ADDRESS } from '../../../constants/addresses'
 
 type AnyTrade =
   | V2Trade<Currency, Currency, TradeType>
@@ -101,6 +107,7 @@ export default function useSendSwapTransaction(
   parameters: ParameterState,
   sigHandler: () => void
 ): { callback: null | (() => Promise<RadiusSwapResponse>) } {
+  // console.log(parameters)
   const dispatch = useAppDispatch()
 
   return useMemo(() => {
@@ -179,6 +186,66 @@ export default function useSendSwapTransaction(
 
         sigHandler()
 
+        const txId = solidityKeccak256(
+          ['address', 'uint256', 'uint256', 'address[]', 'address', 'uint256'],
+          [account.toLowerCase(), `${amountIn}`, `${amountoutMin}`, path, account.toLowerCase(), `${deadline}`]
+        )
+
+        const recorderContract = new Contract(RECORDER_ADDRESS[chainId], TEX_RECORDER.abi, signer)
+        const params = [txId]
+        const action = 'cancelTx'
+        const unsignedTx = await recorderContract.populateTransaction[action](...params)
+        console.log('unsignedTx', unsignedTx)
+
+        // const gasPrice = await signer.getGasPrice()
+        const nonce = await signer.provider.getTransactionCount(signAddress)
+
+        unsignedTx.gasLimit = BigNumber.from('50000')
+        // unsignedTx.gasPrice = BigNumber.from('1000000000')
+        unsignedTx.maxFeePerGas = BigNumber.from('5000')
+        unsignedTx.maxPriorityFeePerGas = BigNumber.from('5000')
+        unsignedTx.nonce = nonce
+        console.log('unsignedTx2', unsignedTx)
+
+        const tx = {
+          nonce: unsignedTx.nonce,
+          gasLimit: unsignedTx.gasLimit.toHexString(),
+          // gasPrice: unsignedTx.gasPrice.toHexString(),
+          maxFeePerGas: unsignedTx.maxFeePerGas.toHexString(),
+          maxPriorityFeePerGas: unsignedTx.maxPriorityFeePerGas.toHexString(),
+          to: unsignedTx.to,
+          data: unsignedTx.data,
+          chainId,
+          type: 2,
+        }
+
+        console.log('tx', tx)
+
+        const sign = await signer.provider
+          .send('eth_sign', [signAddress, keccak256(serialize(tx))])
+          .then((response) => {
+            console.log(response)
+            const sig = splitSignature(response)
+            return sig
+          })
+          .catch((error) => {
+            // if the user rejected the sign, pass this along
+            if (error?.code === 401) {
+              throw new Error(`Sign rejected.`)
+            } else {
+              // otherwise, the error was unexpected and we need to convey that
+              console.error(`Sign failed`, error, signAddress, typedData)
+
+              throw new Error(`Sign failed: ${swapErrorToUserReadableMessage(error)}`)
+            }
+          })
+        console.log(sign)
+
+        const cancelTx = serialize(tx, sign)
+
+        console.log('cancelTx', cancelTx)
+        console.log(signer, signAddress)
+
         dispatch(setProgress({ newParam: 2 }))
 
         // const vdfData = await getVdfProof(parameters.vdfParam || vdfParam, parameters.vdfSnarkParam || vdfSnarkParam)
@@ -201,11 +268,6 @@ export default function useSendSwapTransaction(
         console.log(encryptData)
 
         dispatch(setProgress({ newParam: 4 }))
-
-        const txId = solidityKeccak256(
-          ['address', 'uint256', 'uint256', 'address[]', 'address', 'uint256'],
-          [account.toLowerCase(), `${amountIn}`, `${amountoutMin}`, path, account.toLowerCase(), `${deadline}`]
-        )
 
         const encryptedPath = {
           message_length: encryptData.message_length,
@@ -231,7 +293,7 @@ export default function useSendSwapTransaction(
           txId,
         }
 
-        const sendResponse = await sendEIP712Tx(address, encryptedTx, sig)
+        const sendResponse = await sendEIP712Tx(chainId, address, encryptedTx, sig, cancelTx, library)
 
         dispatch(setProgress({ newParam: 5 }))
 
@@ -378,10 +440,22 @@ async function poseidonEncrypt(
 }
 
 async function sendEIP712Tx(
+  chainId: number,
   routerAddress: string,
   encryptedTx: EncryptedTx,
-  signature: Signature
+  signature: Signature,
+  cancelTx: string,
+  library: JsonRpcProvider | undefined
 ): Promise<RadiusSwapResponse> {
+  const recorderContract = new Contract(RECORDER_ADDRESS[chainId], TEX_RECORDER.abi, library)
+
+  const timeLimit = setTimeout(async () => {
+    const res = await library?.getSigner().provider.sendTransaction(cancelTx)
+    console.log(res)
+  }, 5000)
+
+  console.log('set timeout')
+
   const sendResponse = await fetch('http://147.46.240.248:40002/txs/send/EIP712Tx', {
     method: 'POST',
     headers,
@@ -397,8 +471,18 @@ async function sendEIP712Tx(
     }),
   })
     .then((res) => res.json())
-    .then((res) => {
+    .then(async (res) => {
       console.log(res)
+
+      let txId = ''
+      while (txId === '') {
+        const txIds = await recorderContract?.roundTxIdList(res.data.round)
+        txId = txIds[res.data.order]
+      }
+      if (txId === encryptedTx.txId) {
+        clearTimeout(timeLimit)
+      }
+
       return res
     })
     .catch((error) => {
