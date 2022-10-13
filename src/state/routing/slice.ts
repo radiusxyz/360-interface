@@ -69,10 +69,8 @@ export const routingApi = createApi({
             result = await getClientSideQuote(args, params, { protocols })
           } else {
             const chainId = args.tokenInChainId
-            const chainName = CHAIN_INFO[chainId].label
             const query = qs.stringify({
               ...DEFAULT_QUERY_PARAMS,
-              blockchainName: chainName,
               chainId,
               inputTokenAddress: tokenInAddress,
               outputTokenAddress: tokenOutAddress,
