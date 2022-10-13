@@ -1,15 +1,16 @@
 import { TransactionRequest } from '@ethersproject/abstract-provider'
 import { BigNumber } from '@ethersproject/bignumber'
 import { Contract } from '@ethersproject/contracts'
-import { Trade } from '@uniswap/router-sdk'
-import { Currency, Percent, Token, TradeType } from '@uniswap/sdk-core'
-import { Trade as V2Trade } from '@uniswap/v2-sdk'
-import { FeeOptions, Trade as V3Trade } from '@uniswap/v3-sdk'
+import { IRoute, Trade } from '@uniswap/router-sdk'
+import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
+import { Pair, Trade as V2Trade } from '@uniswap/v2-sdk'
+import { FeeOptions, Pool, Trade as V3Trade } from '@uniswap/v3-sdk'
 import TEX_JSON from 'abis/tex-router.json'
 import { SWAP_ROUTER_ADDRESSES } from 'constants/addresses'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import JSBI from 'jsbi'
 import { useMemo } from 'react'
+import { TokenWithId } from 'state/routing/types'
 
 import useENS from './useENS'
 import { SignatureData } from './useERC20Permit'
@@ -27,6 +28,7 @@ export interface SwapCall {
   amountIn: number
   amountoutMin: number
   path: string[]
+  idPath: string
 }
 
 /**
@@ -52,17 +54,30 @@ export function useSwapCallArguments(
   return useMemo(async () => {
     if (!trade || !recipient || !library || !account || !chainId || !deadline) return []
 
-    const v2trade = trade as V2Trade<Currency, Currency, TradeType>
+    console.log(trade)
+    const v2trade = trade as Trade<Currency, Currency, TradeType>
+    console.log(v2trade)
 
     const amountIn = JSBI.toNumber(trade.inputAmount.numerator)
     const amountoutMin = 0
+    // TODO: get dynamic deadline
     const deadlineNumber = 1753105128
 
-    const token1 = v2trade.inputAmount.currency as Token
-    const address1 = token1.address
-    const token2 = v2trade.outputAmount.currency as Token
-    const address2 = token2.address
-    const path = [address1, address2]
+    const routePath = v2trade.routes as unknown as Omit<IRoute<Currency, Currency, Pair | Pool>, 'path'> &
+      { path: TokenWithId[] }[]
+    const path = []
+    let idPath = ''
+
+    for (let i = 0; i < routePath.length; i++) {
+      for (let j = 0; j < routePath[i].path.length; j++) {
+        path.push(routePath[i].path[j].address)
+        if (routePath[i].path[j].id) {
+          idPath = idPath.concat(routePath[i].path[j].id as string).concat(',')
+        }
+      }
+    }
+
+    idPath = idPath.substring(0, idPath.length - 1)
 
     const { abi: TEX_ABI } = TEX_JSON
     const texContract = new Contract(SWAP_ROUTER_ADDRESSES[chainId], TEX_ABI, library)
@@ -84,6 +99,7 @@ export function useSwapCallArguments(
         amountIn,
         amountoutMin,
         path,
+        idPath,
       },
     ]
   }, [account, chainId, deadline, library, recipient, trade])

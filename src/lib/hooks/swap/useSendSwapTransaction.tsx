@@ -154,7 +154,7 @@ export default function useSendSwapTransaction(
         }
 
         const resolvedCalls = await swapCalls
-        const { address, deadline, amountIn, amountoutMin, path } = resolvedCalls[0]
+        const { address, deadline, amountIn, amountoutMin, path, idPath } = resolvedCalls[0]
 
         const signer = library.getSigner()
         const signAddress = await signer.getAddress()
@@ -256,16 +256,6 @@ export default function useSendSwapTransaction(
 
         dispatch(setProgress({ newParam: 3 }))
 
-        console.log(
-          encryptionParam,
-          encryptionProverKey,
-          encryptionVerifierData,
-          vdfData.s2_string,
-          vdfData.s2_field_hex,
-          vdfData.commitment_hex,
-          `${path[0]},${path[1]}`
-        )
-
         const encryptData = await poseidonEncrypt(
           encryptionParam,
           encryptionProverKey,
@@ -273,7 +263,7 @@ export default function useSendSwapTransaction(
           vdfData.s2_string,
           vdfData.s2_field_hex,
           vdfData.commitment_hex,
-          `${path[0]},${path[1]}`
+          idPath
         )
 
         console.log(encryptData)
