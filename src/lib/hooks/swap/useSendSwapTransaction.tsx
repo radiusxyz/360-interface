@@ -4,6 +4,10 @@ import { Contract } from '@ethersproject/contracts'
 import { keccak256 } from '@ethersproject/keccak256'
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { serialize } from '@ethersproject/transactions'
+import TEX_RECORDER from '@radiusxyz/tex-contracts/artifacts/contracts/Tex/Recorder.sol/Recorder.json'
+// import TEX_RECORDER from '../../../abis/tex-recorder.json'
+// import { RECORDER_ADDRESS } from '../../../constants/addresses'
+import contractsAddress from '@radiusxyz/tex-contracts/contracts.json'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'
@@ -25,9 +29,6 @@ import {
   VdfParam,
 } from 'state/parameters/reducer'
 import { swapErrorToUserReadableMessage } from 'utils/swapErrorToUserReadableMessage'
-
-import TEX_RECORDER from '../../../abis/tex-recorder.json'
-import { RECORDER_ADDRESS } from '../../../constants/addresses'
 
 type AnyTrade =
   | V2Trade<Currency, Currency, TradeType>
@@ -192,7 +193,7 @@ export default function useSendSwapTransaction(
         )
 
         // TODO: fix RECORDER_ADDRESS[chainId] error
-        const recorderContract = new Contract(RECORDER_ADDRESS[80001], TEX_RECORDER.abi, signer)
+        const recorderContract = new Contract(contractsAddress.recorder, TEX_RECORDER.abi, signer)
         const params = [txId]
         const action = 'cancelTx'
         const unsignedTx = await recorderContract.populateTransaction[action](...params)
@@ -458,8 +459,7 @@ async function sendEIP712Tx(
   cancelTx: string,
   library: JsonRpcProvider | undefined
 ): Promise<RadiusSwapResponse> {
-  // TODO: fix RECORDER_ADDRESS[chainId] error
-  const recorderContract = new Contract(RECORDER_ADDRESS[80001], TEX_RECORDER.abi, library)
+  const recorderContract = new Contract(contractsAddress.recorder, TEX_RECORDER.abi, library)
 
   const timeLimit = setTimeout(async () => {
     const res = await library?.getSigner().provider.sendTransaction(cancelTx)
@@ -488,8 +488,9 @@ async function sendEIP712Tx(
 
       let txId = ''
       while (txId === '') {
-        const txIds = await recorderContract?.roundTxIdList(res.data.round)
-        txId = txIds[res.data.order]
+        const txIds = await recorderContract?.roundTxIdList(res.round)
+        console.log(txIds, res, res.round)
+        txId = txIds[res.order]
       }
       if (txId === encryptedTx.txId) {
         clearTimeout(timeLimit)
