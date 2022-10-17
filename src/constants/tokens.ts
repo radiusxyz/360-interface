@@ -1,3 +1,4 @@
+import contracts from '@radiusxyz/tex-contracts/contracts.json'
 import { Currency, Ether, NativeCurrency, Token, WETH9 } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
 
@@ -67,34 +68,10 @@ export const T2_OPTIMISTIC_KOVAN = new Token(
   'T2',
   'Test token-2'
 )
-export const GLD_POLYGON_MUMBAI = new Token(
-  SupportedChainId.POLYGON_MUMBAI,
-  '0x2EEc957b6d670D0207c99A986436B1b9BB76175D',
-  18,
-  'GLD',
-  'Gold'
-)
-export const SLVR_POLYGON_MUMBAI = new Token(
-  SupportedChainId.POLYGON_MUMBAI,
-  '0xFb3DB2c5Eeae38128613bFC5f26DA373B593a855',
-  18,
-  'SLVR',
-  'Silver'
-)
-export const GLD_OPTIMISTIC_KOVAN = new Token(
-  SupportedChainId.OPTIMISTIC_KOVAN,
-  '0x6C3D016A3Bd72D49BF1C4bDFe601e2C37700a01A',
-  18,
-  'GLD',
-  'Gold'
-)
-export const SLVR_OPTIMISTIC_KOVAN = new Token(
-  SupportedChainId.OPTIMISTIC_KOVAN,
-  '0xE9e84b42E53A8784dF45c761aCE4d1cf4f948Eb3',
-  18,
-  'SLVR',
-  'Silver'
-)
+export const GLD_POLYGON_MUMBAI = new Token(SupportedChainId.POLYGON_MUMBAI, contracts.gld, 18, 'GLD', 'Gold')
+export const SLVR_POLYGON_MUMBAI = new Token(SupportedChainId.POLYGON_MUMBAI, contracts.slvr, 18, 'SLVR', 'Silver')
+export const GLD_OPTIMISTIC_KOVAN = new Token(SupportedChainId.OPTIMISTIC_KOVAN, contracts.gld, 18, 'GLD', 'Gold')
+export const SLVR_OPTIMISTIC_KOVAN = new Token(SupportedChainId.OPTIMISTIC_KOVAN, contracts.slvr, 18, 'SLVR', 'Silver')
 export const USDC_ARBITRUM = new Token(
   SupportedChainId.ARBITRUM_ONE,
   '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8',
@@ -301,7 +278,7 @@ export const SWISE = new Token(
 )
 export const WETH_POLYGON_MUMBAI = new Token(
   SupportedChainId.POLYGON_MUMBAI,
-  '0xa6fa4fb5f76172d178d61b04b0ecd319c5d1c0aa',
+  contracts.weth,
   18,
   'WETH',
   'Wrapped Ether'
@@ -321,13 +298,7 @@ export const rMATIC_POLYGON_MUMBAI = new Token(
   'rMATIC'
 )
 
-export const WETH_POLYGON = new Token(
-  SupportedChainId.POLYGON,
-  '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
-  18,
-  'WETH',
-  'Wrapped Ether'
-)
+export const WETH_POLYGON = new Token(SupportedChainId.POLYGON, contracts.weth, 18, 'WETH', 'Wrapped Ether')
 export const UNI: { [chainId: number]: Token } = {
   [SupportedChainId.MAINNET]: new Token(SupportedChainId.MAINNET, UNI_ADDRESS[1], 18, 'UNI', 'Uniswap'),
   [SupportedChainId.RINKEBY]: new Token(SupportedChainId.RINKEBY, UNI_ADDRESS[4], 18, 'UNI', 'Uniswap'),
