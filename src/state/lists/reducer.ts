@@ -1,4 +1,5 @@
-import contracts from '@radiusxyz/tex-contracts/contracts.json'
+// import contracts from '@radiusxyz/tex-contracts/contracts.json'
+import tokens from '@radiusxyz/tex-contracts-migration/tokens.json'
 import { createReducer } from '@reduxjs/toolkit'
 import { getVersionUpgrade, TokenList, VersionUpgrade } from '@uniswap/token-lists'
 
@@ -92,32 +93,7 @@ export default createReducer(initialState, (builder) =>
               logoURI: 'https://ethereum-optimism.github.io/optimism.svg',
               keywords: ['scaling', 'layer2', 'infrastructure'],
               timestamp: '2022-08-27T08:03:56.744Z',
-              tokens: [
-                {
-                  chainId: 80001,
-                  address: contracts.gld,
-                  name: 'Gold',
-                  symbol: 'GLD',
-                  decimals: 18,
-                  logoURI:
-                    'https://raw.githubusercontent.com/radiusxyz/tex-interface/main/src/assets/images/radius.jpg',
-                  extensions: {
-                    optimismBridgeAddress: '0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1',
-                  },
-                },
-                {
-                  chainId: 80001,
-                  address: contracts.slvr,
-                  name: 'Silver',
-                  symbol: 'SLVR',
-                  decimals: 18,
-                  logoURI:
-                    'https://raw.githubusercontent.com/radiusxyz/tex-interface/main/src/assets/images/radius.jpg',
-                  extensions: {
-                    optimismBridgeAddress: '0xE9e84b42E53A8784dF45c761aCE4d1cf4f948Eb3',
-                  },
-                },
-              ],
+              tokens,
             },
             pendingUpdate: null,
             loadingRequestId: null,
@@ -135,32 +111,7 @@ export default createReducer(initialState, (builder) =>
               logoURI: 'https://ethereum-optimism.github.io/optimism.svg',
               keywords: ['scaling', 'layer2', 'infrastructure'],
               timestamp: '2022-08-27T08:03:56.744Z',
-              tokens: [
-                {
-                  chainId: 69,
-                  address: contracts.gld,
-                  name: 'Gold',
-                  symbol: 'GLD',
-                  decimals: 18,
-                  logoURI:
-                    'https://raw.githubusercontent.com/radiusxyz/tex-interface/main/src/assets/images/radius.jpg',
-                  extensions: {
-                    optimismBridgeAddress: '0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1',
-                  },
-                },
-                {
-                  chainId: 69,
-                  address: contracts.slvr,
-                  name: 'Silver',
-                  symbol: 'SLVR',
-                  decimals: 18,
-                  logoURI:
-                    'https://raw.githubusercontent.com/radiusxyz/tex-interface/main/src/assets/images/radius.jpg',
-                  extensions: {
-                    optimismBridgeAddress: '0xE9e84b42E53A8784dF45c761aCE4d1cf4f948Eb3',
-                  },
-                },
-              ],
+              tokens,
             },
             pendingUpdate: null,
             loadingRequestId: null,
@@ -194,30 +145,7 @@ export default createReducer(initialState, (builder) =>
             logoURI: 'https://ethereum-optimism.github.io/optimism.svg',
             keywords: ['scaling', 'layer2', 'infrastructure'],
             timestamp: '2022-08-27T08:03:56.744Z',
-            tokens: [
-              {
-                chainId: 80001,
-                address: contracts.gld,
-                name: 'Gold',
-                symbol: 'GLD',
-                decimals: 18,
-                logoURI: 'https://raw.githubusercontent.com/radiusxyz/tex-interface/main/src/assets/images/radius.jpg',
-                extensions: {
-                  polygonBridgeAddress: '0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1',
-                },
-              },
-              {
-                chainId: 80001,
-                address: contracts.slvr,
-                name: 'Silver',
-                symbol: 'SLVR',
-                decimals: 18,
-                logoURI: 'https://raw.githubusercontent.com/radiusxyz/tex-interface/main/src/assets/images/radius.jpg',
-                extensions: {
-                  polygonBridgeAddress: '0xE9e84b42E53A8784dF45c761aCE4d1cf4f948Eb3',
-                },
-              },
-            ],
+            tokens,
           },
           pendingUpdate: null,
           loadingRequestId: null,
@@ -235,30 +163,7 @@ export default createReducer(initialState, (builder) =>
             logoURI: 'https://ethereum-optimism.github.io/optimism.svg',
             keywords: ['scaling', 'layer2', 'infrastructure'],
             timestamp: '2022-08-27T08:03:56.744Z',
-            tokens: [
-              {
-                chainId: 69,
-                address: contracts.gld,
-                name: 'Gold',
-                symbol: 'GLD',
-                decimals: 18,
-                logoURI: 'https://raw.githubusercontent.com/radiusxyz/tex-interface/main/src/assets/images/radius.jpg',
-                extensions: {
-                  optimismBridgeAddress: '0x99C9fc46f92E8a1c0deC1b1747d010903E884bE1',
-                },
-              },
-              {
-                chainId: 69,
-                address: contracts.slvr,
-                name: 'Silver',
-                symbol: 'SLVR',
-                decimals: 18,
-                logoURI: 'https://raw.githubusercontent.com/radiusxyz/tex-interface/main/src/assets/images/radius.jpg',
-                extensions: {
-                  optimismBridgeAddress: '0xE9e84b42E53A8784dF45c761aCE4d1cf4f948Eb3',
-                },
-              },
-            ],
+            tokens,
           },
           pendingUpdate: null,
           loadingRequestId: null,

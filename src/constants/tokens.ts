@@ -1,4 +1,4 @@
-import contracts from '@radiusxyz/tex-contracts/contracts.json'
+import contracts from '@radiusxyz/tex-contracts-migration/contracts.json'
 import { Currency, Ether, NativeCurrency, Token, WETH9 } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
 

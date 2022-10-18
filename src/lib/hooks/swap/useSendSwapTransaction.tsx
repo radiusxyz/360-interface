@@ -4,10 +4,11 @@ import { Contract } from '@ethersproject/contracts'
 import { keccak256 } from '@ethersproject/keccak256'
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { serialize } from '@ethersproject/transactions'
-import TEX_RECORDER from '@radiusxyz/tex-contracts/artifacts/contracts/Tex/Recorder.sol/Recorder.json'
+import RECORDER_ABI from '@radiusxyz/tex-contracts-migration/artifacts/contracts/Tex/Recorder.sol/Recorder.json'
+import ROUTER_ABI from '@radiusxyz/tex-contracts-migration/artifacts/contracts/Tex/TexRouter02.sol/TexRouter02.json'
 // import TEX_RECORDER from '../../../abis/tex-recorder.json'
 // import { RECORDER_ADDRESS } from '../../../constants/addresses'
-import contractsAddress from '@radiusxyz/tex-contracts/contracts.json'
+import contractsAddress from '@radiusxyz/tex-contracts-migration/contracts.json'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'
@@ -60,6 +61,7 @@ interface EncryptedTx {
   amountOutMin: string
   path: Path
   to: string
+  nonce: number
   deadline: number
   txId: string
 }
@@ -160,12 +162,18 @@ export default function useSendSwapTransaction(
         const signer = library.getSigner()
         const signAddress = await signer.getAddress()
 
+        const routerContract = new Contract(contractsAddress.router, ROUTER_ABI.abi, signer)
+
+        const _txNonce = await routerContract.nonces(signAddress)
+        const txNonce = BigNumber.from(_txNonce).toNumber()
+
         const signMessage = {
           txOwner: signAddress,
           amountIn: `${amountIn}`,
           amountOutMin: `${amountoutMin}`,
           path,
           to: signAddress,
+          nonce: txNonce,
           deadline,
         }
 
@@ -193,9 +201,9 @@ export default function useSendSwapTransaction(
         )
 
         // TODO: fix RECORDER_ADDRESS[chainId] error
-        const recorderContract = new Contract(contractsAddress.recorder, TEX_RECORDER.abi, signer)
+        const recorderContract = new Contract(contractsAddress.recorder, RECORDER_ABI.abi, signer)
         const params = [txId]
-        const action = 'cancelTx'
+        const action = 'cancelTxId'
         const unsignedTx = await recorderContract.populateTransaction[action](...params)
         console.log('unsignedTx', unsignedTx)
 
@@ -301,6 +309,7 @@ export default function useSendSwapTransaction(
           amountOutMin: `${amountoutMin}`,
           path: encryptedPath,
           to: signAddress,
+          nonce: txNonce,
           deadline,
           txId,
         }
@@ -459,7 +468,7 @@ async function sendEIP712Tx(
   cancelTx: string,
   library: JsonRpcProvider | undefined
 ): Promise<RadiusSwapResponse> {
-  const recorderContract = new Contract(contractsAddress.recorder, TEX_RECORDER.abi, library)
+  const recorderContract = new Contract(contractsAddress.recorder, RECORDER_ABI.abi, library)
 
   const timeLimit = setTimeout(async () => {
     const res = await library?.getSigner().provider.sendTransaction(cancelTx)
@@ -468,7 +477,9 @@ async function sendEIP712Tx(
 
   console.log('set timeout')
 
-  const sendResponse = await fetch('http://147.46.240.248:40002/tx', {
+  const srv = process.env.TEX_SERVICE === undefined ? '147.46.240.248:40002' : process.env.TEX_SERVICE
+
+  const sendResponse = await fetch(`http://${srv}/tx`, {
     method: 'POST',
     headers,
     body: JSON.stringify({
