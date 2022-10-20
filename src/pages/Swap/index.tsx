@@ -458,10 +458,11 @@ export default function Swap({ history }: RouteComponentProps) {
     })
     swapCallback()
       .then((res) => {
+        console.log('end callback', res)
         setSwapState({
           attemptingTxn: false,
           tradeToConfirm,
-          showConfirm,
+          showConfirm: false,
           swapErrorMessage: undefined,
           txHash: 'test',
           swapResponse: res,

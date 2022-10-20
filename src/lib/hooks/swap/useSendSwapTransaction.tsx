@@ -3,6 +3,7 @@ import { Signature, splitSignature } from '@ethersproject/bytes'
 import { Contract } from '@ethersproject/contracts'
 import { keccak256 } from '@ethersproject/keccak256'
 import { JsonRpcProvider } from '@ethersproject/providers'
+import { recoverAddress } from '@ethersproject/transactions'
 import { serialize } from '@ethersproject/transactions'
 import RECORDER_ABI from '@radiusxyz/tex-contracts-migration/artifacts/contracts/Tex/Recorder.sol/Recorder.json'
 import ROUTER_ABI from '@radiusxyz/tex-contracts-migration/artifacts/contracts/Tex/TexRouter02.sol/TexRouter02.json'
@@ -14,7 +15,7 @@ import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'
 import { Trade as V3Trade } from '@uniswap/v3-sdk'
 import { domain, DOMAIN_TYPE, SWAP_TYPE } from 'constants/eip712'
-import { solidityKeccak256 } from 'ethers/lib/utils'
+import { hashMessage, solidityKeccak256 } from 'ethers/lib/utils'
 import { SwapCall } from 'hooks/useSwapCallArguments'
 import localForage from 'localforage'
 import { useMemo } from 'react'
@@ -55,7 +56,7 @@ interface VdfResponse {
   commitment_hex: string
 }
 
-interface EncryptedTx {
+interface EncryptedSwapTx {
   txOwner: string
   amountIn: string
   amountOutMin: string
@@ -82,7 +83,7 @@ interface Path {
 
 export interface RadiusSwapRequest {
   sig: Signature
-  encryptedTx: EncryptedTx
+  encryptedSwapTx: EncryptedSwapTx
 }
 
 export interface RadiusSwapResponse {
@@ -303,7 +304,7 @@ export default function useSendSwapTransaction(
           encryption_proof: encryptData.proof,
         }
 
-        const encryptedTx: EncryptedTx = {
+        const encryptedSwapTx: EncryptedSwapTx = {
           txOwner: signAddress,
           amountIn: `${amountIn}`,
           amountOutMin: `${amountoutMin}`,
@@ -314,9 +315,11 @@ export default function useSendSwapTransaction(
           txId,
         }
 
-        const sendResponse = await sendEIP712Tx(chainId, address, encryptedTx, sig, cancelTx, library)
+        const sendResponse = await sendEIP712Tx(chainId, address, encryptedSwapTx, sig, cancelTx, library)
 
         dispatch(setProgress({ newParam: 5 }))
+
+        console.log('sendResponse', sendResponse)
 
         const finalResponse: RadiusSwapResponse = {
           data: sendResponse.data,
@@ -463,7 +466,7 @@ async function poseidonEncrypt(
 async function sendEIP712Tx(
   chainId: number,
   routerAddress: string,
-  encryptedTx: EncryptedTx,
+  encryptedSwapTx: EncryptedSwapTx,
   signature: Signature,
   cancelTx: string,
   library: JsonRpcProvider | undefined
@@ -485,7 +488,7 @@ async function sendEIP712Tx(
     body: JSON.stringify({
       txType: 'swap',
       routerAddress,
-      encryptedTx,
+      encryptedSwapTx,
       signature: {
         r: `${signature.r}`,
         s: `${signature.s}`,
@@ -493,21 +496,28 @@ async function sendEIP712Tx(
       },
     }),
   })
-    .then((res) => res.json())
+    .then(async (res) => res.json())
     .then(async (res) => {
-      console.log(res)
+      console.log('jsoned response', res)
 
-      let txId = ''
-      while (txId === '') {
-        const txIds = await recorderContract?.roundTxIdList(res.round)
-        console.log(txIds, res, res.round)
-        txId = txIds[res.order]
+      const signature = {
+        r: res.signature.r,
+        s: res.signature.s,
+        v: res.signature.v,
       }
-      if (txId === encryptedTx.txId) {
+
+      delete res.signature
+
+      const verifySigner = recoverAddress(hashMessage(JSON.stringify(res)), signature)
+
+      if (verifySigner === '0x01D5fb852a8107be2cad72dFf64020b22639e18B') {
         clearTimeout(timeLimit)
       }
 
-      return res
+      return {
+        data: res,
+        msg: '화이팅!!!!',
+      }
     })
     .catch((error) => {
       console.error(error)
