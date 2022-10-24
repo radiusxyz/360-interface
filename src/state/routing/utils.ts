@@ -3,7 +3,7 @@ import { Pair, Route as V2Route } from '@uniswap/v2-sdk'
 import { FeeAmount, Pool, Route as V3Route } from '@uniswap/v3-sdk'
 
 import { nativeOnChain } from '../../constants/tokens'
-import { GetQuoteResult, InterfaceTrade, V2PoolInRoute, V3PoolInRoute } from './types'
+import { GetQuoteResult, InterfaceTrade, TokenWithId, V2PoolInRoute, V3PoolInRoute } from './types'
 
 /**
  * Transforms a Routing API quote into an array of routes that can be used to create
@@ -79,8 +79,14 @@ export function transformRoutesToTrade<TTradeType extends TradeType>(
   })
 }
 
-const parseToken = ({ address, chainId, decimals, symbol }: GetQuoteResult['route'][0][0]['tokenIn']): Token => {
-  return new Token(chainId, address, parseInt(decimals.toString()), symbol)
+const parseToken = ({
+  address,
+  chainId,
+  decimals,
+  symbol,
+  id,
+}: GetQuoteResult['route'][0][0]['tokenIn']): TokenWithId => {
+  return new TokenWithId(chainId, address, parseInt(decimals.toString()), symbol, id)
 }
 
 const parsePool = ({ fee, sqrtRatioX96, liquidity, tickCurrent, tokenIn, tokenOut }: V3PoolInRoute): Pool =>
