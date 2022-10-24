@@ -1,11 +1,8 @@
-# TEX Interface (originally forked from Uniswap)
-
-TEX: Traders’ Decentralized Exchange
+# 360 Interface (originally forked from Uniswap)
 
 An MEV-resistant DEX for swapping tokens without "hidden" slippages
 
 ![](TEXDemo.gif)
-
 
 ## Development
 

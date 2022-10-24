@@ -1,3 +1,4 @@
+import contracts from '@radiusxyz/tex-contracts/contracts.json'
 import { createReducer } from '@reduxjs/toolkit'
 import { getVersionUpgrade, TokenList, VersionUpgrade } from '@uniswap/token-lists'
 
@@ -94,7 +95,7 @@ export default createReducer(initialState, (builder) =>
               tokens: [
                 {
                   chainId: 80001,
-                  address: '0x2EEc957b6d670D0207c99A986436B1b9BB76175D',
+                  address: contracts.gld,
                   name: 'Gold',
                   symbol: 'GLD',
                   decimals: 18,
@@ -106,7 +107,7 @@ export default createReducer(initialState, (builder) =>
                 },
                 {
                   chainId: 80001,
-                  address: '0xFb3DB2c5Eeae38128613bFC5f26DA373B593a855',
+                  address: contracts.slvr,
                   name: 'Silver',
                   symbol: 'SLVR',
                   decimals: 18,
@@ -137,7 +138,7 @@ export default createReducer(initialState, (builder) =>
               tokens: [
                 {
                   chainId: 69,
-                  address: '0x6C3D016A3Bd72D49BF1C4bDFe601e2C37700a01A',
+                  address: contracts.gld,
                   name: 'Gold',
                   symbol: 'GLD',
                   decimals: 18,
@@ -149,7 +150,7 @@ export default createReducer(initialState, (builder) =>
                 },
                 {
                   chainId: 69,
-                  address: '0xE9e84b42E53A8784dF45c761aCE4d1cf4f948Eb3',
+                  address: contracts.slvr,
                   name: 'Silver',
                   symbol: 'SLVR',
                   decimals: 18,
@@ -196,7 +197,7 @@ export default createReducer(initialState, (builder) =>
             tokens: [
               {
                 chainId: 80001,
-                address: '0x2EEc957b6d670D0207c99A986436B1b9BB76175D',
+                address: contracts.gld,
                 name: 'Gold',
                 symbol: 'GLD',
                 decimals: 18,
@@ -207,7 +208,7 @@ export default createReducer(initialState, (builder) =>
               },
               {
                 chainId: 80001,
-                address: '0xFb3DB2c5Eeae38128613bFC5f26DA373B593a855',
+                address: contracts.slvr,
                 name: 'Silver',
                 symbol: 'SLVR',
                 decimals: 18,
@@ -237,7 +238,7 @@ export default createReducer(initialState, (builder) =>
             tokens: [
               {
                 chainId: 69,
-                address: '0x6C3D016A3Bd72D49BF1C4bDFe601e2C37700a01A',
+                address: contracts.gld,
                 name: 'Gold',
                 symbol: 'GLD',
                 decimals: 18,
@@ -248,7 +249,7 @@ export default createReducer(initialState, (builder) =>
               },
               {
                 chainId: 69,
-                address: '0xE9e84b42E53A8784dF45c761aCE4d1cf4f948Eb3',
+                address: contracts.slvr,
                 name: 'Silver',
                 symbol: 'SLVR',
                 decimals: 18,
