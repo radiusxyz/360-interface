@@ -168,6 +168,8 @@ export default function useSendSwapTransaction(
         const _txNonce = await routerContract.nonces(signAddress)
         const txNonce = BigNumber.from(_txNonce).toNumber()
 
+        console.log('nonce from contract', txNonce)
+
         const signMessage = {
           txOwner: signAddress,
           amountIn: `${amountIn}`,
@@ -197,8 +199,16 @@ export default function useSendSwapTransaction(
         sigHandler()
 
         const txId = solidityKeccak256(
-          ['address', 'uint256', 'uint256', 'address[]', 'address', 'uint256'],
-          [account.toLowerCase(), `${amountIn}`, `${amountoutMin}`, path, account.toLowerCase(), `${deadline}`]
+          ['address', 'uint256', 'uint256', 'address[]', 'address', 'uint256', 'uint256'],
+          [
+            account.toLowerCase(),
+            `${amountIn}`,
+            `${amountoutMin}`,
+            path,
+            account.toLowerCase(),
+            `${txNonce}`,
+            `${deadline}`,
+          ]
         )
 
         // TODO: fix RECORDER_ADDRESS[chainId] error
@@ -471,8 +481,6 @@ async function sendEIP712Tx(
   cancelTx: string,
   library: JsonRpcProvider | undefined
 ): Promise<RadiusSwapResponse> {
-  const recorderContract = new Contract(contractsAddress.recorder, RECORDER_ABI.abi, library)
-
   const timeLimit = setTimeout(async () => {
     const res = await library?.getSigner().provider.sendTransaction(cancelTx)
     console.log(res)
@@ -486,7 +494,7 @@ async function sendEIP712Tx(
     method: 'POST',
     headers,
     body: JSON.stringify({
-      txType: 'swap',
+      chainId,
       routerAddress,
       encryptedSwapTx,
       signature: {
@@ -511,6 +519,7 @@ async function sendEIP712Tx(
       const verifySigner = recoverAddress(hashMessage(JSON.stringify(res)), signature)
 
       if (verifySigner === '0x01D5fb852a8107be2cad72dFf64020b22639e18B') {
+        console.log('clear cancel tx')
         clearTimeout(timeLimit)
       }
 
