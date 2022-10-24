@@ -19,6 +19,13 @@ import localForage from 'localforage'
 import { useMemo } from 'react'
 import { useAppDispatch } from 'state/hooks'
 import {
+  fetchEncryptionParam,
+  fetchEncryptionProverKey,
+  fetchEncryptionVerifierData,
+  fetchVdfParam,
+  fetchVdfSnarkParam,
+} from 'state/parameters/fetch'
+import {
   ParameterState,
   setEncryptionParam,
   setEncryptionProverKey,
@@ -28,7 +35,6 @@ import {
   setVdfSnarkParam,
   VdfParam,
 } from 'state/parameters/reducer'
-import { fetchVdfParam, fetchVdfSnarkParam } from 'state/parameters/update'
 import { swapErrorToUserReadableMessage } from 'utils/swapErrorToUserReadableMessage'
 import { poseidonEncrypt } from 'wasm/encrypt'
 import { getVdfProof } from 'wasm/vdf'
@@ -292,7 +298,6 @@ export default function useSendSwapTransaction(
     }
   }, [trade, library, account, chainId, parameters, swapCalls, sigHandler, dispatch])
 }
-
 
 async function signWithEIP712(library: JsonRpcProvider, signAddress: string, typedData: string): Promise<Signature> {
   console.log(signAddress, typedData)
