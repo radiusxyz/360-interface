@@ -488,7 +488,7 @@ async function sendEIP712Tx(
 
   console.log('set timeout')
 
-  const srv = process.env.TEX_SERVICE === undefined ? 'api.theradius.xyz' : process.env.TEX_SERVICE
+  const srv = 'api.theradius.xyz'
 
   const sendResponse = await fetch(`http://${srv}/tx`, {
     method: 'POST',
