@@ -490,7 +490,7 @@ async function sendEIP712Tx(
 
   const srv = 'api.theradius.xyz'
 
-  const sendResponse = await fetch(`http://${srv}/tx`, {
+  const sendResponse = await fetch(`https://${srv}/tx`, {
     method: 'POST',
     headers,
     body: JSON.stringify({
