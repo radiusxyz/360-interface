@@ -1,4 +1,4 @@
-import contracts from '@radiusxyz/tex-contracts/contracts.json'
+import contracts from '@radiusxyz/tex-contracts-migration/contracts.json'
 
 import { constructSameAddressMap } from '../utils/constructSameAddressMap'
 import { SupportedChainId } from './chains'

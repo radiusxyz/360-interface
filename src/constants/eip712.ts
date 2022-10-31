@@ -13,6 +13,7 @@ export const SWAP_TYPE = [
   { name: 'amountOutMin', type: 'uint256' },
   { name: 'path', type: 'address[]' },
   { name: 'to', type: 'address' },
+  { name: 'nonce', type: 'uint256' },
   { name: 'deadline', type: 'uint256' },
 ]
 

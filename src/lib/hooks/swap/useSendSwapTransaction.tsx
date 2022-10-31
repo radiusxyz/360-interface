@@ -3,17 +3,19 @@ import { Signature, splitSignature } from '@ethersproject/bytes'
 import { Contract } from '@ethersproject/contracts'
 import { keccak256 } from '@ethersproject/keccak256'
 import { JsonRpcProvider } from '@ethersproject/providers'
+import { recoverAddress } from '@ethersproject/transactions'
 import { serialize } from '@ethersproject/transactions'
-import TEX_RECORDER from '@radiusxyz/tex-contracts/artifacts/contracts/Tex/Recorder.sol/Recorder.json'
+import RECORDER_ABI from '@radiusxyz/tex-contracts-migration/artifacts/contracts/Tex/Recorder.sol/Recorder.json'
+import ROUTER_ABI from '@radiusxyz/tex-contracts-migration/artifacts/contracts/Tex/TexRouter02.sol/TexRouter02.json'
 // import TEX_RECORDER from '../../../abis/tex-recorder.json'
 // import { RECORDER_ADDRESS } from '../../../constants/addresses'
-import contractsAddress from '@radiusxyz/tex-contracts/contracts.json'
+import contractsAddress from '@radiusxyz/tex-contracts-migration/contracts.json'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'
 import { Trade as V3Trade } from '@uniswap/v3-sdk'
 import { domain, DOMAIN_TYPE, SWAP_TYPE } from 'constants/eip712'
-import { solidityKeccak256 } from 'ethers/lib/utils'
+import { hashMessage, solidityKeccak256 } from 'ethers/lib/utils'
 import { SwapCall } from 'hooks/useSwapCallArguments'
 import localForage from 'localforage'
 import { useMemo } from 'react'
@@ -44,12 +46,32 @@ type AnyTrade =
   | V3Trade<Currency, Currency, TradeType>
   | Trade<Currency, Currency, TradeType>
 
-interface EncryptedTx {
+interface EncryptResponse {
+  message_length: number
+  cipher_text: string
+  proof: string
+  nonce: string
+}
+
+interface VdfResponse {
+  r1: string
+  r3: string
+  s1: string
+  s3: string
+  k: string
+  vdf_snark_proof: string
+  s2_string: string
+  s2_field_hex: string
+  commitment_hex: string
+}
+
+interface EncryptedSwapTx {
   txOwner: string
   amountIn: string
   amountOutMin: string
   path: Path
   to: string
+  nonce: number
   deadline: number
   txId: string
 }
@@ -70,7 +92,7 @@ interface Path {
 
 export interface RadiusSwapRequest {
   sig: Signature
-  encryptedTx: EncryptedTx
+  encryptedSwapTx: EncryptedSwapTx
 }
 
 export interface RadiusSwapResponse {
@@ -150,12 +172,20 @@ export default function useSendSwapTransaction(
         const signer = library.getSigner()
         const signAddress = await signer.getAddress()
 
+        const routerContract = new Contract(contractsAddress.router, ROUTER_ABI.abi, signer)
+
+        const _txNonce = await routerContract.nonces(signAddress)
+        const txNonce = BigNumber.from(_txNonce).toNumber()
+
+        console.log('nonce from contract', txNonce)
+
         const signMessage = {
           txOwner: signAddress,
           amountIn: `${amountIn}`,
           amountOutMin: `${amountoutMin}`,
           path,
           to: signAddress,
+          nonce: txNonce,
           deadline,
         }
 
@@ -178,14 +208,22 @@ export default function useSendSwapTransaction(
         sigHandler()
 
         const txId = solidityKeccak256(
-          ['address', 'uint256', 'uint256', 'address[]', 'address', 'uint256'],
-          [account.toLowerCase(), `${amountIn}`, `${amountoutMin}`, path, account.toLowerCase(), `${deadline}`]
+          ['address', 'uint256', 'uint256', 'address[]', 'address', 'uint256', 'uint256'],
+          [
+            account.toLowerCase(),
+            `${amountIn}`,
+            `${amountoutMin}`,
+            path,
+            account.toLowerCase(),
+            `${txNonce}`,
+            `${deadline}`,
+          ]
         )
 
         // TODO: fix RECORDER_ADDRESS[chainId] error
-        const recorderContract = new Contract(contractsAddress.recorder, TEX_RECORDER.abi, signer)
+        const recorderContract = new Contract(contractsAddress.recorder, RECORDER_ABI.abi, signer)
         const params = [txId]
-        const action = 'cancelTx'
+        const action = 'cancelTxId'
         const unsignedTx = await recorderContract.populateTransaction[action](...params)
         console.log('unsignedTx', unsignedTx)
 
@@ -275,19 +313,22 @@ export default function useSendSwapTransaction(
           encryption_proof: encryptData.proof,
         }
 
-        const encryptedTx: EncryptedTx = {
+        const encryptedSwapTx: EncryptedSwapTx = {
           txOwner: signAddress,
           amountIn: `${amountIn}`,
           amountOutMin: `${amountoutMin}`,
           path: encryptedPath,
           to: signAddress,
+          nonce: txNonce,
           deadline,
           txId,
         }
 
-        const sendResponse = await sendEIP712Tx(chainId, address, encryptedTx, sig, cancelTx, library)
+        const sendResponse = await sendEIP712Tx(chainId, address, encryptedSwapTx, sig, cancelTx, library)
 
         dispatch(setProgress({ newParam: 5 }))
+
+        console.log('sendResponse', sendResponse)
 
         const finalResponse: RadiusSwapResponse = {
           data: sendResponse.data,
@@ -327,13 +368,11 @@ async function signWithEIP712(library: JsonRpcProvider, signAddress: string, typ
 async function sendEIP712Tx(
   chainId: number,
   routerAddress: string,
-  encryptedTx: EncryptedTx,
+  encryptedSwapTx: EncryptedSwapTx,
   signature: Signature,
   cancelTx: string,
   library: JsonRpcProvider | undefined
 ): Promise<RadiusSwapResponse> {
-  const recorderContract = new Contract(contractsAddress.recorder, TEX_RECORDER.abi, library)
-
   const timeLimit = setTimeout(async () => {
     const res = await library?.getSigner().provider.sendTransaction(cancelTx)
     console.log(res)
@@ -341,13 +380,15 @@ async function sendEIP712Tx(
 
   console.log('set timeout')
 
-  const sendResponse = await fetch('http://147.46.240.248:40002/tx', {
+  const srv = 'api.theradius.xyz'
+
+  const sendResponse = await fetch(`https://${srv}/tx`, {
     method: 'POST',
     headers,
     body: JSON.stringify({
-      txType: 'swap',
+      chainId,
       routerAddress,
-      encryptedTx,
+      encryptedSwapTx,
       signature: {
         r: `${signature.r}`,
         s: `${signature.s}`,
@@ -355,21 +396,29 @@ async function sendEIP712Tx(
       },
     }),
   })
-    .then((res) => res.json())
+    .then(async (res) => res.json())
     .then(async (res) => {
-      console.log(res)
+      console.log('jsoned response', res)
 
-      let txId = ''
-      while (txId === '') {
-        const txIds = await recorderContract?.roundTxIdList(res.round)
-        console.log(txIds, res, res.round)
-        txId = txIds[res.order]
+      const signature = {
+        r: res.signature.r,
+        s: res.signature.s,
+        v: res.signature.v,
       }
-      if (txId === encryptedTx.txId) {
+
+      delete res.signature
+
+      const verifySigner = recoverAddress(hashMessage(JSON.stringify(res)), signature)
+
+      if (verifySigner === '0x01D5fb852a8107be2cad72dFf64020b22639e18B') {
+        console.log('clear cancel tx')
         clearTimeout(timeLimit)
       }
 
-      return res
+      return {
+        data: res,
+        msg: '화이팅!!!!',
+      }
     })
     .catch((error) => {
       console.error(error)
