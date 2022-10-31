@@ -21,6 +21,13 @@ import localForage from 'localforage'
 import { useMemo } from 'react'
 import { useAppDispatch } from 'state/hooks'
 import {
+  fetchEncryptionParam,
+  fetchEncryptionProverKey,
+  fetchEncryptionVerifierData,
+  fetchVdfParam,
+  fetchVdfSnarkParam,
+} from 'state/parameters/fetch'
+import {
   ParameterState,
   setEncryptionParam,
   setEncryptionProverKey,
@@ -31,6 +38,8 @@ import {
   VdfParam,
 } from 'state/parameters/reducer'
 import { swapErrorToUserReadableMessage } from 'utils/swapErrorToUserReadableMessage'
+import { poseidonEncrypt } from 'wasm/encrypt'
+import { getVdfProof } from 'wasm/vdf'
 
 type AnyTrade =
   | V2Trade<Currency, Currency, TradeType>
@@ -158,7 +167,7 @@ export default function useSendSwapTransaction(
         }
 
         const resolvedCalls = await swapCalls
-        const { address, deadline, amountIn, amountoutMin, path } = resolvedCalls[0]
+        const { address, deadline, amountIn, amountoutMin, path, idPath } = resolvedCalls[0]
 
         const signer = library.getSigner()
         const signAddress = await signer.getAddress()
@@ -276,16 +285,6 @@ export default function useSendSwapTransaction(
 
         dispatch(setProgress({ newParam: 3 }))
 
-        console.log(
-          encryptionParam,
-          encryptionProverKey,
-          encryptionVerifierData,
-          vdfData.s2_string,
-          vdfData.s2_field_hex,
-          vdfData.commitment_hex,
-          `${path[0]},${path[1]}`
-        )
-
         const encryptData = await poseidonEncrypt(
           encryptionParam,
           encryptionProverKey,
@@ -293,7 +292,7 @@ export default function useSendSwapTransaction(
           vdfData.s2_string,
           vdfData.s2_field_hex,
           vdfData.commitment_hex,
-          `${path[0]},${path[1]}`
+          idPath
         )
 
         console.log(encryptData)
@@ -341,71 +340,6 @@ export default function useSendSwapTransaction(
   }, [trade, library, account, chainId, parameters, swapCalls, sigHandler, dispatch])
 }
 
-async function fetchVdfParam(callback: (res: boolean) => void): Promise<VdfParam> {
-  return await fetch('/parameters/vdf_zkp_parameter.data.bin', {
-    method: 'GET',
-  })
-    .then((res) => res.json())
-    .then((res) => {
-      console.log(res)
-      localForage.setItem('vdf_param', res)
-      callback(true)
-      return res
-    })
-}
-
-async function fetchVdfSnarkParam(callback: (res: boolean) => void): Promise<string> {
-  return await fetch('/parameters/vdf_zkp_snark_parameter.data.bin', {
-    method: 'GET',
-  }).then(async (res) => {
-    const bytes = await res.arrayBuffer()
-    const uint8bytes = new Uint8Array(bytes)
-    const string = Buffer.from(uint8bytes).toString('hex')
-    localForage.setItem('vdf_snark_param', string)
-    callback(true)
-    return string
-  })
-}
-
-async function fetchEncryptionParam(callback: (res: boolean) => void): Promise<string> {
-  return await fetch('/parameters/encryption_zkp_parameter.data.bin', {
-    method: 'GET',
-  }).then(async (res) => {
-    const bytes = await res.arrayBuffer()
-    const uint8bytes = new Uint8Array(bytes)
-    const string = Buffer.from(uint8bytes).toString('hex')
-    localForage.setItem('encryption_param', string)
-    callback(true)
-    return string
-  })
-}
-
-async function fetchEncryptionProverKey(callback: (res: boolean) => void): Promise<string> {
-  return await fetch('/parameters/encryption_prover_key.data.bin', {
-    method: 'GET',
-  }).then(async (res) => {
-    const bytes = await res.arrayBuffer()
-    const uint8bytes = new Uint8Array(bytes)
-    const string = Buffer.from(uint8bytes).toString('hex')
-    localForage.setItem('encryption_prover_key', string)
-    callback(true)
-    return string
-  })
-}
-
-async function fetchEncryptionVerifierData(callback: (res: boolean) => void): Promise<string> {
-  return await fetch('/parameters/encryption_verifier_data.data.bin', {
-    method: 'GET',
-  }).then(async (res) => {
-    const bytes = await res.arrayBuffer()
-    const uint8bytes = new Uint8Array(bytes)
-    const string = Buffer.from(uint8bytes).toString('hex')
-    localForage.setItem('encryption_verifier_data', string)
-    callback(true)
-    return string
-  })
-}
-
 async function signWithEIP712(library: JsonRpcProvider, signAddress: string, typedData: string): Promise<Signature> {
   console.log(signAddress, typedData)
   const signer = library.getSigner()
@@ -429,48 +363,6 @@ async function signWithEIP712(library: JsonRpcProvider, signAddress: string, typ
     })
 
   return sig
-}
-
-async function getVdfProof(vdfParam: VdfParam, vdfSnarkParam: string): Promise<VdfResponse> {
-  console.log('CALL WASM!', vdfParam, vdfSnarkParam)
-  const vdf = await import('wasm-vdf-zkp')
-  const data = await vdf
-    .get_vdf_proof(vdfParam, vdfSnarkParam)
-    .then((res) => {
-      console.log(res)
-      return res
-    })
-    .catch((error) => {
-      console.error(error)
-      return error
-    })
-
-  return data
-}
-
-async function poseidonEncrypt(
-  param: string,
-  proverKey: string,
-  verifierData: string,
-  s2_string: string,
-  s2_field_hex: string,
-  commitment: string,
-  plainText: string
-): Promise<EncryptResponse> {
-  console.log(s2_string, commitment, plainText)
-  const poseidon = await import('wasm-encryptor-zkp')
-  const data = await poseidon
-    .encrypt(param, proverKey, verifierData, s2_string, s2_field_hex, commitment, plainText)
-    .then((res) => {
-      console.log(res)
-      return res
-    })
-    .catch((error) => {
-      console.error(error)
-      return error
-    })
-
-  return data
 }
 
 async function sendEIP712Tx(

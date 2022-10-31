@@ -3,6 +3,10 @@ import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
 import { routeAmountsToString, SwapRoute } from '@uniswap/smart-order-router'
 import { GetQuoteResult, V2PoolInRoute, V3PoolInRoute } from 'state/routing/types'
 
+import { RouteWithValidQuote } from './types'
+
+export type SwapRouteWithTokenId = Omit<SwapRoute, 'route'> & { route: RouteWithValidQuote[] }
+
 // from routing-api (https://github.com/Uniswap/routing-api/blob/main/lib/handlers/quote/quote.ts#L243-L311)
 export function transformSwapRouteToGetQuoteResult(
   type: 'exactIn' | 'exactOut',
@@ -17,7 +21,7 @@ export function transformSwapRouteToGetQuoteResult(
     gasPriceWei,
     methodParameters,
     blockNumber,
-  }: SwapRoute
+  }: SwapRouteWithTokenId
 ): GetQuoteResult {
   const routeResponse: Array<V3PoolInRoute[] | V2PoolInRoute[]> = []
 
@@ -49,12 +53,14 @@ export function transformSwapRouteToGetQuoteResult(
             decimals: tokenIn.decimals,
             address: tokenIn.address,
             symbol: tokenIn.symbol,
+            id: tokenIn.id,
           },
           tokenOut: {
             chainId: tokenOut.chainId,
             decimals: tokenOut.decimals,
             address: tokenOut.address,
             symbol: tokenOut.symbol,
+            id: tokenOut.id,
           },
           fee: nextPool.fee.toString(),
           liquidity: nextPool.liquidity.toString(),
@@ -94,12 +100,14 @@ export function transformSwapRouteToGetQuoteResult(
             decimals: tokenIn.decimals,
             address: tokenIn.address,
             symbol: tokenIn.symbol,
+            id: tokenIn.id,
           },
           tokenOut: {
             chainId: tokenOut.chainId,
             decimals: tokenOut.decimals,
             address: tokenOut.address,
             symbol: tokenOut.symbol,
+            id: tokenOut.id,
           },
           reserve0: {
             token: {
@@ -107,6 +115,7 @@ export function transformSwapRouteToGetQuoteResult(
               decimals: reserve0.currency.wrapped.decimals,
               address: reserve0.currency.wrapped.address,
               symbol: reserve0.currency.wrapped.symbol,
+              id: tokenIn.id,
             },
             quotient: reserve0.quotient.toString(),
           },
@@ -116,6 +125,7 @@ export function transformSwapRouteToGetQuoteResult(
               decimals: reserve1.currency.wrapped.decimals,
               address: reserve1.currency.wrapped.address,
               symbol: reserve1.currency.wrapped.symbol,
+              id: tokenOut.id,
             },
             quotient: reserve1.quotient.toString(),
           },

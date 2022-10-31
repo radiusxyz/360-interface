@@ -13,7 +13,7 @@ export enum TradeState {
 
 // from https://github.com/Uniswap/routing-api/blob/main/lib/handlers/schema.ts
 
-export type TokenInRoute = Pick<Token, 'address' | 'chainId' | 'symbol' | 'decimals'>
+export type TokenInRoute = Pick<TokenWithId, 'address' | 'chainId' | 'symbol' | 'decimals' | 'id'>
 
 export type V3PoolInRoute = {
   type: 'v3-pool'
@@ -94,5 +94,22 @@ export class InterfaceTrade<
   }) {
     super(routes)
     this.gasUseEstimateUSD = gasUseEstimateUSD
+  }
+}
+
+export class TokenWithId extends Token {
+  id: string | undefined
+  constructor(
+    chainId: number,
+    address: string,
+    decimals: number,
+    symbol?: string,
+    id?: string | undefined,
+    name?: string
+  ) {
+    super(chainId, address, decimals, symbol, name)
+    if (id) {
+      this.id = id
+    }
   }
 }

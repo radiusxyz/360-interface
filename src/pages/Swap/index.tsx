@@ -12,12 +12,18 @@ import { useSwapCallback } from 'hooks/useSwapCallback'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import JSBI from 'jsbi'
 import { RadiusSwapResponse } from 'lib/hooks/swap/useSendSwapTransaction'
-import localForage from 'localforage'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { ArrowDown, CheckCircle, HelpCircle } from 'react-feather'
 import ReactGA from 'react-ga4'
 import { RouteComponentProps } from 'react-router-dom'
 import { Text } from 'rebass'
+import {
+  fetchEncryptionParam,
+  fetchEncryptionProverKey,
+  fetchEncryptionVerifierData,
+  fetchVdfParam,
+  fetchVdfSnarkParam,
+} from 'state/parameters/fetch'
 import {
   useEncryptionParamManager,
   useEncryptionProverKeyManager,
@@ -129,128 +135,41 @@ export default function Swap({ history }: RouteComponentProps) {
 
   useEffect(() => {
     if (!vdfParam) {
-      console.log('vdfParam: ', vdfParam)
-      const fetchAndUpdateVdfParam = async () => {
-        console.log('fetch vdfparam!')
-        fetch('/parameters/vdf_zkp_parameter.data.bin', {
-          method: 'GET',
-        })
-          .then((res) => res.json())
-          .then((res) => {
-            console.log(res)
-            localForage.setItem('vdf_param', res)
-            updateVdfParam(true)
-          })
-          .catch((error) => {
-            console.log(error)
-          })
-      }
-      fetchAndUpdateVdfParam()
+      fetchVdfParam((newParam: boolean) => {
+        updateVdfParam(newParam)
+      })
     }
   }, [vdfParam, updateVdfParam])
 
   useEffect(() => {
     if (!vdfSnarkParam) {
-      console.log('vdfSnarkParam: ', vdfSnarkParam)
-      const fetchAndUpdateVdfSnarkParam = async () => {
-        console.log('fetch vdfsnarkparam!')
-        await fetch('/parameters/vdf_zkp_snark_parameter.data.bin', {
-          method: 'GET',
-        })
-          .then(async (res) => {
-            console.log(res)
-            if (res.body) {
-              console.log(res.body)
-              const bytes = await res.arrayBuffer()
-              const uint8bytes = new Uint8Array(bytes)
-              const string = Buffer.from(uint8bytes).toString('hex')
-              localForage.setItem('vdf_snark_param', string)
-              updateVdfSnarkParam(true)
-            }
-          })
-          .catch((error) => {
-            console.log(error)
-          })
-      }
-      fetchAndUpdateVdfSnarkParam()
+      fetchVdfSnarkParam((newParam: boolean) => {
+        updateVdfSnarkParam(newParam)
+      })
     }
   }, [updateVdfSnarkParam, vdfSnarkParam])
 
   useEffect(() => {
     if (!encryptionParam) {
-      console.log('encryptionParam: ', encryptionParam)
-      const fetchAndUpdateEncryptionParam = async () => {
-        console.log('fetch EncryptionParam!')
-        await fetch('/parameters/encryption_zkp_parameter.data.bin', {
-          method: 'GET',
-        })
-          .then(async (res) => {
-            console.log(res)
-            if (res.body) {
-              const bytes = await res.arrayBuffer()
-              const uint8bytes = new Uint8Array(bytes)
-              const string = Buffer.from(uint8bytes).toString('hex')
-              localForage.setItem('encryption_param', string)
-              updateEncryptionParam(true)
-            }
-          })
-          .catch((error) => {
-            console.log(error)
-          })
-      }
-      fetchAndUpdateEncryptionParam()
+      fetchEncryptionParam((newParam: boolean) => {
+        updateEncryptionParam(newParam)
+      })
     }
   }, [encryptionParam, updateEncryptionParam])
 
   useEffect(() => {
     if (!encryptionProverKey) {
-      console.log('encryptionProverKey: ', encryptionProverKey)
-      const fetchAndUpdateEncryptionProverKey = async () => {
-        console.log('fetch EncryptionProverKey!')
-        await fetch('/parameters/encryption_prover_key.data.bin', {
-          method: 'GET',
-        })
-          .then(async (res) => {
-            console.log(res)
-            if (res.body) {
-              const bytes = await res.arrayBuffer()
-              const uint8bytes = new Uint8Array(bytes)
-              const string = Buffer.from(uint8bytes).toString('hex')
-              localForage.setItem('encryption_prover_key', string)
-              updateEncryptionProverKey(true)
-            }
-          })
-          .catch((error) => {
-            console.log(error)
-          })
-      }
-      fetchAndUpdateEncryptionProverKey()
+      fetchEncryptionProverKey((newParam: boolean) => {
+        updateEncryptionProverKey(newParam)
+      })
     }
   }, [encryptionProverKey, updateEncryptionProverKey])
 
   useEffect(() => {
     if (!encryptionVerifierData) {
-      console.log('encryptionVerifierData: ', encryptionVerifierData)
-      const fetchAndUpdateEncryptionVerifierData = async () => {
-        console.log('fetch EncryptionVerifierData!')
-        await fetch('/parameters/encryption_verifier_data.data.bin', {
-          method: 'GET',
-        })
-          .then(async (res) => {
-            console.log(res)
-            if (res.body) {
-              const bytes = await res.arrayBuffer()
-              const uint8bytes = new Uint8Array(bytes)
-              const string = Buffer.from(uint8bytes).toString('hex')
-              localForage.setItem('encryption_verifier_data', string)
-              updateEncryptionVerifierData(true)
-            }
-          })
-          .catch((error) => {
-            console.log(error)
-          })
-      }
-      fetchAndUpdateEncryptionVerifierData()
+      fetchEncryptionVerifierData((newParam: boolean) => {
+        updateEncryptionVerifierData(newParam)
+      })
     }
   }, [encryptionVerifierData, updateEncryptionVerifierData])
 
@@ -836,4 +755,7 @@ export default function Swap({ history }: RouteComponentProps) {
       )}
     </>
   )
+}
+function dispatch(arg0: any) {
+  throw new Error('Function not implemented.')
 }
