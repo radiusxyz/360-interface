@@ -80,6 +80,9 @@ export default function PopupItem({
     popupContent = <TransactionPopup hash={hash} />
   } else if ('failedSwitchNetwork' in content) {
     popupContent = <FailedNetworkSwitchPopup chainId={content.failedSwitchNetwork} />
+  } else if ('message' in content) {
+    const { message } = content
+    popupContent = message
   }
 
   const faderStyle = useSpring({
