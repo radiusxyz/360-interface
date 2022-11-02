@@ -158,6 +158,7 @@ export default function useSendSwapTransaction(
 
         const routerContract = new Contract(contractsAddress.router, ROUTER_ABI.abi, signer)
 
+        // TODO: 한 round에 2개의 tx를 날리면 contract에서 가져오지 않고 nonce값을 ++ 해야 한다.
         const _txNonce = await routerContract.nonces(signAddress)
         const txNonce = BigNumber.from(_txNonce).toNumber()
 
@@ -214,6 +215,7 @@ export default function useSendSwapTransaction(
         // const gasPrice = await signer.getGasPrice()
         const nonce = await signer.provider.getTransactionCount(signAddress)
 
+        // TODO: get Gas Data from gas tracker
         unsignedTx.gasLimit = BigNumber.from('50000')
         // unsignedTx.gasPrice = BigNumber.from('1000000000')
         unsignedTx.maxFeePerGas = BigNumber.from('5000')
@@ -328,12 +330,11 @@ export default function useSendSwapTransaction(
 }
 
 async function signWithEIP712(library: JsonRpcProvider, signAddress: string, typedData: string): Promise<Signature> {
-  console.log(signAddress, typedData)
   const signer = library.getSigner()
   const sig = await signer.provider
     .send('eth_signTypedData_v4', [signAddress, typedData])
     .then((response) => {
-      console.log(response)
+      console.log('signed', response)
       const sig = splitSignature(response)
       return sig
     })
@@ -397,10 +398,13 @@ async function sendEIP712Tx(
 
       const verifySigner = recoverAddress(hashMessage(JSON.stringify(res)), signature)
 
+      // TODO: get signer address from contract
       if (verifySigner === '0x01D5fb852a8107be2cad72dFf64020b22639e18B') {
         console.log('clear cancel tx')
         clearTimeout(timeLimit)
       }
+
+      // TODO: mmr verifying needed
 
       return {
         data: res,

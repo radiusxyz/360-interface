@@ -62,9 +62,6 @@ export default createReducer(initialState, (builder) =>
       const current = state.byUrl[url]?.current
       const loadingRequestId = state.byUrl[url]?.loadingRequestId
 
-      console.log('current', current)
-      console.log('loadingRequestId', loadingRequestId)
-
       // no-op if update does nothing
       if (current) {
         const upgradeType = getVersionUpgrade(current.version, tokenList.version)
@@ -83,9 +80,6 @@ export default createReducer(initialState, (builder) =>
         if (DEFAULT_ACTIVE_LIST_URLS.includes(url)) {
           state.activeListUrls?.push(url)
         }
-
-        console.log('url', url)
-        console.log(tokens)
 
         if (url === RADIUS_LIST) {
           state.byUrl[url] = {
@@ -138,9 +132,6 @@ export default createReducer(initialState, (builder) =>
         // no-op since it's not the latest request
         return
       }
-
-      console.log('url', url)
-      console.log(tokens)
 
       if (url === RADIUS_LIST) {
         state.byUrl[url] = {

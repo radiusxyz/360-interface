@@ -1,4 +1,5 @@
 import { Trans } from '@lingui/macro'
+import contractsAddress from '@radiusxyz/tex-contracts-migration/contracts.json'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, CurrencyAmount, Token, TradeType } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'
@@ -387,6 +388,7 @@ export default function Swap({ history }: RouteComponentProps) {
     swapCallback()
       .then((res) => {
         console.log('end callback', res)
+        console.log('tradeToConfirm', tradeToConfirm)
         setSwapState({
           attemptingTxn: false,
           tradeToConfirm,
@@ -412,41 +414,63 @@ export default function Swap({ history }: RouteComponentProps) {
           ].join('/'),
         })
 
-        const hash = '0x27ca7cdb2ca7617c1b4cd50928477e63ed89538b20fc0339c37b228469448b6f'
-        console.log(allTransactions, approvalOptimizedTrade?.inputAmount?.currency?.wrapped.address)
+        setTimeout(() => {
+          const getTxIdPolling = setInterval(async () => {
+            // TODO: get srv from env
+            const srv = 'api.theradius.xyz'
+            console.log(
+              `https://${srv}/tx?chainId=${chainId}&routerAddress=${contractsAddress.router}&round=${res.data.round}`
+            )
+            const roundResponse = await fetch(
+              `https://${srv}/tx?chainId=${chainId}&routerAddress=${contractsAddress.router}&round=${res.data.round}`
+            )
+            console.log('roundResponse', roundResponse)
+            if (roundResponse.ok) {
+              roundResponse.json().then((json) => {
+                console.log(json)
+                if (json?.txHash) {
+                  clearInterval(getTxIdPolling)
 
-        if (!allTransactions[hash]) {
-          dispatch(
-            addTransaction({
-              hash,
-              from: account,
-              info: {
-                type: TransactionType.SWAP,
-                spender: '0x0',
-                tokenAddress: '0x0',
-                inputCurrencyId: approvalOptimizedTrade?.inputAmount?.currency?.wrapped.address,
-                outputCurrencyId: approvalOptimizedTrade?.outputAmount?.currency?.wrapped.address,
-                inputCurrencyAmountRaw: '100',
-                outputCurrencyAmountRaw: '120',
-                expectedOutputCurrencyAmountRaw: '123',
-                minimumOutputCurrencyAmountRaw: '321',
-                expectedInputCurrencyAmountRaw: '222',
-                maximumInputCurrencyAmountRaw: '333',
-              },
-              chainId,
-            })
-          )
+                  if (!allTransactions[json.txHash]) {
+                    // TODO: get trade amount from data
+                    // let input = approvalOptimizedTrade?.inputAmount?.numerator
+                    // let output = approvalOptimizedTrade?.outputAmount?.numerator
+                    // input = !input ? 0 : input
+                    // output = !output ? 0 : output
 
-          dispatch(
-            addPopup({
-              content: {
-                txn: { hash },
-              },
-              key: `this-is-popup`,
-              removeAfterMs: null,
-            })
-          )
-        }
+                    dispatch(
+                      addTransaction({
+                        hash: json.txHash,
+                        from: account,
+                        info: {
+                          type: TransactionType.SWAP,
+                          inputCurrencyId: approvalOptimizedTrade?.inputAmount?.currency?.wrapped.address,
+                          outputCurrencyId: approvalOptimizedTrade?.outputAmount?.currency?.wrapped.address,
+                          expectedOutputCurrencyAmountRaw: '100000000',
+                          expectedInputCurrencyAmountRaw: '4000000000000000000',
+                        },
+                        chainId,
+                      })
+                    )
+
+                    dispatch(
+                      addPopup({
+                        content: {
+                          txn: { hash: json.txHash },
+                        },
+                        key: `this-is-popup`,
+                        removeAfterMs: null,
+                      })
+                    )
+                  }
+                }
+              })
+            }
+          }, 2000)
+          setTimeout(() => {
+            clearInterval(getTxIdPolling)
+          }, 30000)
+        }, 10000)
       })
       .catch((error) => {
         setSwapState({

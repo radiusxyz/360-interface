@@ -54,9 +54,7 @@ export function useSwapCallArguments(
   return useMemo(async () => {
     if (!trade || !recipient || !library || !account || !chainId || !deadline) return []
 
-    console.log(trade)
     const v2trade = trade as Trade<Currency, Currency, TradeType>
-    console.log(v2trade)
 
     const amountIn = JSBI.toNumber(trade.inputAmount.numerator)
     const amountOut = 0
