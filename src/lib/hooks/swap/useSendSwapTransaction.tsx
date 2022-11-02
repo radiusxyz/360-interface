@@ -212,7 +212,7 @@ export default function useSendSwapTransaction(
         sigHandler()
 
         const txId = solidityKeccak256(
-          ['address', 'bytes32', 'uint256', 'uint256', 'address[]', 'address', 'uint256', 'uint256'],
+          ['address', 'bytes4', 'uint256', 'uint256', 'address[]', 'address', 'uint256', 'uint256'],
           [
             account.toLowerCase(),
             swapExactTokensForTokens,
