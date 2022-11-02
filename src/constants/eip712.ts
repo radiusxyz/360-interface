@@ -9,7 +9,7 @@ export const DOMAIN_TYPE = [
 
 export const SWAP_TYPE = [
   { name: 'txOwner', type: 'address' },
-  { name: 'functionSelector', type: 'bytes32' },
+  { name: 'functionSelector', type: 'bytes4' },
   { name: 'amountIn', type: 'uint256' },
   { name: 'amountOut', type: 'uint256' },
   { name: 'path', type: 'address[]' },

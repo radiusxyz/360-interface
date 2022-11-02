@@ -109,6 +109,8 @@ export interface RadiusSwapResponse {
 
 const headers = new Headers({ 'content-type': 'application/json', accept: 'application/json' })
 
+const swapTokensForTokens = '0x38ed1739'
+
 // returns a function that will execute a swap, if the parameters are all valid
 export default function useSendSwapTransaction(
   account: string | null | undefined,
@@ -182,7 +184,7 @@ export default function useSendSwapTransaction(
 
         const signMessage = {
           txOwner: signAddress,
-          functionSelector: '0x38ed1739',
+          functionSelector: swapTokensForTokens,
           amountIn: `${amountIn}`,
           amountOut: `${amountOut}`,
           path,
@@ -213,7 +215,7 @@ export default function useSendSwapTransaction(
           ['address', 'bytes32', 'uint256', 'uint256', 'address[]', 'address', 'uint256', 'uint256'],
           [
             account.toLowerCase(),
-            `0x38ed1739`,
+            swapTokensForTokens,
             `${amountIn}`,
             `${amountOut}`,
             path,
@@ -318,7 +320,7 @@ export default function useSendSwapTransaction(
 
         const encryptedSwapTx: EncryptedSwapTx = {
           txOwner: signAddress,
-          functionSelector: `0x38ed1739`,
+          functionSelector: swapTokensForTokens,
           amountIn: `${amountIn}`,
           amountOut: `${amountOut}`,
           path: encryptedPath,
