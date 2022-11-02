@@ -186,8 +186,6 @@ export default function useSendSwapTransaction(
 
         console.log(sig)
 
-        sigHandler()
-
         const txId = solidityKeccak256(
           ['address', 'uint256', 'uint256', 'address[]', 'address', 'uint256', 'uint256'],
           [
@@ -251,6 +249,8 @@ export default function useSendSwapTransaction(
             }
           })
         console.log(sign)
+
+        sigHandler()
 
         const cancelTx = serialize(tx, sign)
 
