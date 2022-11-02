@@ -67,6 +67,7 @@ interface VdfResponse {
 
 interface EncryptedSwapTx {
   txOwner: string
+  functionSelector: string
   amountIn: string
   amountOutMin: string
   path: Path
@@ -181,6 +182,7 @@ export default function useSendSwapTransaction(
 
         const signMessage = {
           txOwner: signAddress,
+          functionSelector: '0x38ed1739',
           amountIn: `${amountIn}`,
           amountOutMin: `${amountoutMin}`,
           path,
@@ -208,9 +210,10 @@ export default function useSendSwapTransaction(
         sigHandler()
 
         const txId = solidityKeccak256(
-          ['address', 'uint256', 'uint256', 'address[]', 'address', 'uint256', 'uint256'],
+          ['address', 'bytes32', 'uint256', 'uint256', 'address[]', 'address', 'uint256', 'uint256'],
           [
             account.toLowerCase(),
+            `0x38ed1739`,
             `${amountIn}`,
             `${amountoutMin}`,
             path,
@@ -315,6 +318,7 @@ export default function useSendSwapTransaction(
 
         const encryptedSwapTx: EncryptedSwapTx = {
           txOwner: signAddress,
+          functionSelector: `0x38ed1739`,
           amountIn: `${amountIn}`,
           amountOutMin: `${amountoutMin}`,
           path: encryptedPath,
