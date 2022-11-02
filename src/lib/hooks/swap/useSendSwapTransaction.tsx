@@ -69,7 +69,7 @@ interface EncryptedSwapTx {
   txOwner: string
   functionSelector: string
   amountIn: string
-  amountOutMin: string
+  amountOut: string
   path: Path
   to: string
   nonce: number
@@ -168,7 +168,7 @@ export default function useSendSwapTransaction(
         }
 
         const resolvedCalls = await swapCalls
-        const { address, deadline, amountIn, amountoutMin, path, idPath } = resolvedCalls[0]
+        const { address, deadline, amountIn, amountOut, path, idPath } = resolvedCalls[0]
 
         const signer = library.getSigner()
         const signAddress = await signer.getAddress()
@@ -184,7 +184,7 @@ export default function useSendSwapTransaction(
           txOwner: signAddress,
           functionSelector: '0x38ed1739',
           amountIn: `${amountIn}`,
-          amountOutMin: `${amountoutMin}`,
+          amountOut: `${amountOut}`,
           path,
           to: signAddress,
           nonce: txNonce,
@@ -215,7 +215,7 @@ export default function useSendSwapTransaction(
             account.toLowerCase(),
             `0x38ed1739`,
             `${amountIn}`,
-            `${amountoutMin}`,
+            `${amountOut}`,
             path,
             account.toLowerCase(),
             `${txNonce}`,
@@ -320,7 +320,7 @@ export default function useSendSwapTransaction(
           txOwner: signAddress,
           functionSelector: `0x38ed1739`,
           amountIn: `${amountIn}`,
-          amountOutMin: `${amountoutMin}`,
+          amountOut: `${amountOut}`,
           path: encryptedPath,
           to: signAddress,
           nonce: txNonce,

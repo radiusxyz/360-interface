@@ -26,7 +26,7 @@ export interface SwapCall {
   value: string
   deadline: number
   amountIn: number
-  amountoutMin: number
+  amountOut: number
   path: string[]
   idPath: string
 }
@@ -59,7 +59,7 @@ export function useSwapCallArguments(
     console.log(v2trade)
 
     const amountIn = JSBI.toNumber(trade.inputAmount.numerator)
-    const amountoutMin = 0
+    const amountOut = 0
     // TODO: get dynamic deadline
     const deadlineNumber = 1753105128
 
@@ -84,7 +84,7 @@ export function useSwapCallArguments(
 
     const txRequest: TransactionRequest = await texContract.populateTransaction.swapExactTokensForTokens(
       `${amountIn}`,
-      `${amountoutMin}`,
+      `${amountOut}`,
       path,
       account,
       deadlineNumber
@@ -97,7 +97,7 @@ export function useSwapCallArguments(
         value: txRequest.value ? txRequest.value.toString() : '0x00',
         deadline: deadlineNumber,
         amountIn,
-        amountoutMin,
+        amountOut,
         path,
         idPath,
       },
