@@ -46,25 +46,6 @@ type AnyTrade =
   | V3Trade<Currency, Currency, TradeType>
   | Trade<Currency, Currency, TradeType>
 
-interface EncryptResponse {
-  message_length: number
-  cipher_text: string
-  proof: string
-  nonce: string
-}
-
-interface VdfResponse {
-  r1: string
-  r3: string
-  s1: string
-  s3: string
-  k: string
-  vdf_snark_proof: string
-  s2_string: string
-  s2_field_hex: string
-  commitment_hex: string
-}
-
 interface EncryptedSwapTx {
   txOwner: string
   functionSelector: string
@@ -209,8 +190,6 @@ export default function useSendSwapTransaction(
 
         console.log(sig)
 
-        sigHandler()
-
         const txId = solidityKeccak256(
           ['address', 'bytes4', 'uint256', 'uint256', 'address[]', 'address', 'uint256', 'uint256'],
           [
@@ -275,6 +254,8 @@ export default function useSendSwapTransaction(
             }
           })
         console.log(sign)
+
+        sigHandler()
 
         const cancelTx = serialize(tx, sign)
 

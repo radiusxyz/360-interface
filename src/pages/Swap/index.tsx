@@ -17,6 +17,7 @@ import { ArrowDown, CheckCircle, HelpCircle } from 'react-feather'
 import ReactGA from 'react-ga4'
 import { RouteComponentProps } from 'react-router-dom'
 import { Text } from 'rebass'
+import { addPopup } from 'state/application/reducer'
 import {
   fetchEncryptionParam,
   fetchEncryptionProverKey,
@@ -59,6 +60,7 @@ import { useIsSwapUnsupported } from '../../hooks/useIsSwapUnsupported'
 import { useUSDCValue } from '../../hooks/useUSDCPrice'
 import useWrapCallback, { WrapErrorText, WrapType } from '../../hooks/useWrapCallback'
 import { useWalletModalToggle } from '../../state/application/hooks'
+import { useAppDispatch } from '../../state/hooks'
 import { Field } from '../../state/swap/actions'
 import {
   useDefaultsFromURLSearch,
@@ -66,6 +68,9 @@ import {
   useSwapActionHandlers,
   useSwapState,
 } from '../../state/swap/hooks'
+import { useAllTransactions } from '../../state/transactions/hooks'
+import { addTransaction } from '../../state/transactions/reducer'
+import { TransactionType } from '../../state/transactions/types'
 import { useExpertModeManager } from '../../state/user/hooks'
 import { LinkStyledButton, ThemedText } from '../../theme'
 import { computeFiatValuePriceImpact } from '../../utils/computeFiatValuePriceImpact'
@@ -96,6 +101,10 @@ export default function Swap({ history }: RouteComponentProps) {
   const handleConfirmTokenWarning = useCallback(() => {
     setDismissTokenWarning(true)
   }, [])
+
+  const dispatch = useAppDispatch()
+
+  const allTransactions = useAllTransactions()
 
   // dismiss warning if all imported tokens are in active lists
   const defaultTokens = useAllTokens()
@@ -402,6 +411,42 @@ export default function Swap({ history }: RouteComponentProps) {
             'MH',
           ].join('/'),
         })
+
+        const hash = '0x27ca7cdb2ca7617c1b4cd50928477e63ed89538b20fc0339c37b228469448b6f'
+        console.log(allTransactions, approvalOptimizedTrade?.inputAmount?.currency?.wrapped.address)
+
+        if (!allTransactions[hash]) {
+          dispatch(
+            addTransaction({
+              hash,
+              from: account,
+              info: {
+                type: TransactionType.SWAP,
+                spender: '0x0',
+                tokenAddress: '0x0',
+                inputCurrencyId: approvalOptimizedTrade?.inputAmount?.currency?.wrapped.address,
+                outputCurrencyId: approvalOptimizedTrade?.outputAmount?.currency?.wrapped.address,
+                inputCurrencyAmountRaw: '100',
+                outputCurrencyAmountRaw: '120',
+                expectedOutputCurrencyAmountRaw: '123',
+                minimumOutputCurrencyAmountRaw: '321',
+                expectedInputCurrencyAmountRaw: '222',
+                maximumInputCurrencyAmountRaw: '333',
+              },
+              chainId,
+            })
+          )
+
+          dispatch(
+            addPopup({
+              content: {
+                txn: { hash },
+              },
+              key: `this-is-popup`,
+              removeAfterMs: null,
+            })
+          )
+        }
       })
       .catch((error) => {
         setSwapState({

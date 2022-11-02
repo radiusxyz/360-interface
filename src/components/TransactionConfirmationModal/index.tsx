@@ -144,15 +144,15 @@ function TransactionSubmittedContent({
           <Text fontWeight={500} fontSize={20} textAlign="center">
             <Trans>
               {progress === 1
-                ? '1/5 start'
+                ? '1/5 wait for sign cancel tx'
                 : progress === 2
-                ? '2/5 signed'
+                ? '2/5 making vdf proof'
                 : progress === 3
-                ? '3/5 got vdf proof'
+                ? '3/5 encrypting'
                 : progress === 4
-                ? '4/5 encrypted'
+                ? '4/5 sending eip712 tx to operator'
                 : progress === 5
-                ? '5/5 sent EIP712 tx'
+                ? '5/5 done'
                 : 'default'}
             </Trans>
           </Text>

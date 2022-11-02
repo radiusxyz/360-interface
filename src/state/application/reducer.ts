@@ -12,6 +12,9 @@ export type PopupContent =
   | {
       failedSwitchNetwork: SupportedChainId
     }
+  | {
+      message: string
+    }
 
 export enum ApplicationModal {
   ADDRESS_CLAIM,
