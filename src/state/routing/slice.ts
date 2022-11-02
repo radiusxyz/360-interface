@@ -82,7 +82,7 @@ export const routingApi = createApi({
 
           return { data: result.data as GetQuoteResult }
         } catch (e) {
-          // TODO: fall back to client-side quoter when auto router fails.
+          // todo: fall back to client-side quoter when auto router fails.
           // deprecate 'legacy' v2/v3 routers first.
           return { error: e as FetchBaseQueryError }
         }

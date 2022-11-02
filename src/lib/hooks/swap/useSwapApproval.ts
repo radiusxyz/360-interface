@@ -123,7 +123,7 @@ export function useSwapApprovalOptimizedTrade(
           return undefined
       }
     } catch (e) {
-      // TODO(#2989): remove try-catch
+      // todo(#2989): remove try-catch
       console.debug(e)
       return undefined
     }

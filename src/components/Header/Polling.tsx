@@ -134,7 +134,7 @@ export default function Polling() {
     //if you pass a value to array, like this [data] than clearTimeout will run every time this value changes (useEffect re-run)
   )
 
-  //TODO - chainlink gas oracle is really slow. Can we get a better data source?
+  //todo - chainlink gas oracle is really slow. Can we get a better data source?
 
   return (
     <>
