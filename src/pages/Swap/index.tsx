@@ -1,3 +1,4 @@
+import { Contract } from '@ethersproject/contracts'
 import { Trans } from '@lingui/macro'
 import contractsAddress from '@radiusxyz/tex-contracts-migration/contracts.json'
 import { Trade } from '@uniswap/router-sdk'
@@ -54,6 +55,7 @@ import TokenWarningModal from '../../components/TokenWarningModal'
 import { TOKEN_SHORTHANDS } from '../../constants/tokens'
 import { useAllTokens, useCurrency } from '../../hooks/Tokens'
 import { ApprovalState, useApprovalOptimizedTrade, useApproveCallbackFromTrade } from '../../hooks/useApproveCallback'
+import { useRecorderContract } from '../../hooks/useContract'
 import useENSAddress from '../../hooks/useENSAddress'
 import { useERC20PermitFromTrade, UseERC20PermitState } from '../../hooks/useERC20Permit'
 import useIsArgentWallet from '../../hooks/useIsArgentWallet'
@@ -106,6 +108,7 @@ export default function Swap({ history }: RouteComponentProps) {
   const dispatch = useAppDispatch()
 
   const allTransactions = useAllTransactions()
+  const recorderContract = useRecorderContract() as Contract
 
   // dismiss warning if all imported tokens are in active lists
   const defaultTokens = useAllTokens()
@@ -127,8 +130,6 @@ export default function Swap({ history }: RouteComponentProps) {
         }),
     [chainId, defaultTokens, urlLoadedTokens]
   )
-
-  console.log(process.env.REACT_APP_360_OPERATOR)
 
   const theme = useContext(ThemeContext)
 
@@ -423,17 +424,29 @@ export default function Swap({ history }: RouteComponentProps) {
             )
             console.log('roundResponse', roundResponse)
             if (roundResponse.ok) {
-              roundResponse.json().then((json) => {
+              roundResponse.json().then(async (json) => {
                 console.log(json)
                 if (json?.txHash) {
                   clearInterval(getTxIdPolling)
 
+                  // TODO: 수동 cancel 버튼
+                  // TODO: Contract에서 getArray 함수 요청하기
+                  const txIdList = recorderContract.getRoundTxIdList(json.round)
+                  let currXor = JSBI.BigInt(txIdList[0])
+                  for (let i = 1; i < json.order - 1; i++) {
+                    currXor = JSBI.bitwiseXor(currXor, JSBI.BigInt(txIdList[i]))
+                  }
+
+                  if (txIdList[json.order] !== res.data.txId || currXor !== JSBI.BigInt(json.proof)) {
+                    // TODO: go to challenge
+                    console.log('there is problem. try challenge?')
+                  }
+
                   if (!allTransactions[json.txHash]) {
-                    // TODO: get trade amount from data
-                    // let input = approvalOptimizedTrade?.inputAmount?.numerator
-                    // let output = approvalOptimizedTrade?.outputAmount?.numerator
-                    // input = !input ? 0 : input
-                    // output = !output ? 0 : output
+                    let input = approvalOptimizedTrade?.inputAmount?.numerator
+                    let output = approvalOptimizedTrade?.outputAmount?.numerator
+                    input = !input ? JSBI.BigInt(0) : input
+                    output = !output ? JSBI.BigInt(0) : output
 
                     dispatch(
                       addTransaction({
@@ -443,8 +456,8 @@ export default function Swap({ history }: RouteComponentProps) {
                           type: TransactionType.SWAP,
                           inputCurrencyId: approvalOptimizedTrade?.inputAmount?.currency?.wrapped.address,
                           outputCurrencyId: approvalOptimizedTrade?.outputAmount?.currency?.wrapped.address,
-                          expectedOutputCurrencyAmountRaw: '100000000',
-                          expectedInputCurrencyAmountRaw: '4000000000000000000',
+                          expectedOutputCurrencyAmountRaw: input.toString(),
+                          expectedInputCurrencyAmountRaw: output.toString(),
                         },
                         chainId,
                       })

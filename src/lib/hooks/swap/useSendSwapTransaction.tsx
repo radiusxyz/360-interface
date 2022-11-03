@@ -5,7 +5,6 @@ import { keccak256 } from '@ethersproject/keccak256'
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { recoverAddress } from '@ethersproject/transactions'
 import { serialize } from '@ethersproject/transactions'
-// import ROUTER_ABI from '@radiusxyz/tex-contracts-migration/artifacts/contracts/Tex/TexRouter02.sol/TexRouter02.json'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'
@@ -82,6 +81,7 @@ export interface RadiusSwapResponse {
     mmr_size: number
     proof: string[]
     hash: string
+    txId: string
   }
   msg: string
 }
@@ -310,7 +310,7 @@ export default function useSendSwapTransaction(
           txId,
         }
 
-        const sendResponse = await sendEIP712Tx(chainId, address, encryptedSwapTx, sig, cancelTx, library)
+        const sendResponse = await sendEIP712Tx(chainId, routerContract, encryptedSwapTx, sig, cancelTx, library)
 
         dispatch(setProgress({ newParam: 5 }))
 
@@ -352,7 +352,7 @@ async function signWithEIP712(library: JsonRpcProvider, signAddress: string, typ
 
 async function sendEIP712Tx(
   chainId: number,
-  routerAddress: string,
+  routerContract: Contract,
   encryptedSwapTx: EncryptedSwapTx,
   signature: Signature,
   cancelTx: string,
@@ -370,7 +370,7 @@ async function sendEIP712Tx(
     headers,
     body: JSON.stringify({
       chainId,
-      routerAddress,
+      routerAddress: routerContract.address,
       encryptedSwapTx,
       signature: {
         r: `${signature.r}`,
@@ -392,14 +392,15 @@ async function sendEIP712Tx(
       delete res.signature
 
       const verifySigner = recoverAddress(hashMessage(JSON.stringify(res)), signature)
+      const operatorAddress = await routerContract.operator()
 
-      // TODO: get signer address from contract
-      if (verifySigner === '0x01D5fb852a8107be2cad72dFf64020b22639e18B') {
+      console.log('operatorAddress from router', operatorAddress)
+
+      if (verifySigner === operatorAddress && encryptedSwapTx.txId === res.txId) {
+        // '0x01D5fb852a8107be2cad72dFf64020b22639e18B'
         console.log('clear cancel tx')
         clearTimeout(timeLimit)
       }
-
-      // TODO: mmr verifying needed
 
       return {
         data: res,
