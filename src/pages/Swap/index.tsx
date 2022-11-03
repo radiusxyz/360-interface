@@ -1,6 +1,6 @@
 import { Contract } from '@ethersproject/contracts'
 import { Trans } from '@lingui/macro'
-import contractsAddress from '@radiusxyz/tex-contracts-migration/contracts.json'
+// import contractsAddress from '@radiusxyz/tex-contracts-migration/contracts.json'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, CurrencyAmount, Token, TradeType } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'
@@ -19,7 +19,7 @@ import { ArrowDown, CheckCircle, HelpCircle } from 'react-feather'
 import ReactGA from 'react-ga4'
 import { RouteComponentProps } from 'react-router-dom'
 import { Text } from 'rebass'
-import { addPopup } from 'state/application/reducer'
+// import { addPopup } from 'state/application/reducer'
 import {
   fetchEncryptionParam,
   fetchEncryptionProverKey,
@@ -72,8 +72,8 @@ import {
   useSwapState,
 } from '../../state/swap/hooks'
 import { useAllTransactions } from '../../state/transactions/hooks'
-import { addTransaction } from '../../state/transactions/reducer'
-import { TransactionType } from '../../state/transactions/types'
+// import { addTransaction } from '../../state/transactions/reducer'
+// import { TransactionType } from '../../state/transactions/types'
 import { useExpertModeManager } from '../../state/user/hooks'
 import { LinkStyledButton, ThemedText } from '../../theme'
 import { computeFiatValuePriceImpact } from '../../utils/computeFiatValuePriceImpact'
@@ -417,70 +417,70 @@ export default function Swap({ history }: RouteComponentProps) {
           ].join('/'),
         })
 
-        setTimeout(() => {
-          const getTxIdPolling = setInterval(async () => {
-            const roundResponse = await fetch(
-              `${process.env.REACT_APP_360_OPERATOR}/tx?chainId=${chainId}&routerAddress=${contractsAddress.router}&round=${res.data.round}`
-            )
-            console.log('roundResponse', roundResponse)
-            if (roundResponse.ok) {
-              roundResponse.json().then(async (json) => {
-                console.log(json)
-                if (json?.txHash) {
-                  clearInterval(getTxIdPolling)
+        // setTimeout(() => {
+        //   const getTxIdPolling = setInterval(async () => {
+        //     const roundResponse = await fetch(
+        //       `${process.env.REACT_APP_360_OPERATOR}/tx?chainId=${chainId}&routerAddress=${contractsAddress.router}&round=${res.data.round}`
+        //     )
+        //     console.log('roundResponse', roundResponse)
+        //     if (roundResponse.ok) {
+        //       roundResponse.json().then(async (json) => {
+        //         console.log(json)
+        //         if (json?.txHash) {
+        //           clearInterval(getTxIdPolling)
 
-                  // TODO: 수동 cancel 버튼
-                  // TODO: Contract에서 getArray 함수 요청하기
-                  const txIdList = recorderContract.getRoundTxIdList(json.round)
-                  let currXor = JSBI.BigInt(txIdList[0])
-                  for (let i = 1; i < json.order - 1; i++) {
-                    currXor = JSBI.bitwiseXor(currXor, JSBI.BigInt(txIdList[i]))
-                  }
+        //           // TODO: 수동 cancel 버튼
+        //           // TODO: Contract에서 getArray 함수 요청하기
+        //           const txIdList = recorderContract.getRoundTxIdList(json.round)
+        //           let currXor = JSBI.BigInt(txIdList[0])
+        //           for (let i = 1; i < json.order - 1; i++) {
+        //             currXor = JSBI.bitwiseXor(currXor, JSBI.BigInt(txIdList[i]))
+        //           }
 
-                  if (txIdList[json.order] !== res.data.txId || currXor !== JSBI.BigInt(json.proof)) {
-                    // TODO: go to challenge
-                    console.log('there is problem. try challenge?')
-                  }
+        //           if (txIdList[json.order] !== res.data.txId || currXor !== JSBI.BigInt(json.proof)) {
+        //             // TODO: go to challenge
+        //             console.log('there is problem. try challenge?')
+        //           }
 
-                  if (!allTransactions[json.txHash]) {
-                    let input = approvalOptimizedTrade?.inputAmount?.numerator
-                    let output = approvalOptimizedTrade?.outputAmount?.numerator
-                    input = !input ? JSBI.BigInt(0) : input
-                    output = !output ? JSBI.BigInt(0) : output
+        //           if (!allTransactions[json.txHash]) {
+        //             let input = approvalOptimizedTrade?.inputAmount?.numerator
+        //             let output = approvalOptimizedTrade?.outputAmount?.numerator
+        //             input = !input ? JSBI.BigInt(0) : input
+        //             output = !output ? JSBI.BigInt(0) : output
 
-                    dispatch(
-                      addTransaction({
-                        hash: json.txHash,
-                        from: account,
-                        info: {
-                          type: TransactionType.SWAP,
-                          inputCurrencyId: approvalOptimizedTrade?.inputAmount?.currency?.wrapped.address,
-                          outputCurrencyId: approvalOptimizedTrade?.outputAmount?.currency?.wrapped.address,
-                          expectedOutputCurrencyAmountRaw: input.toString(),
-                          expectedInputCurrencyAmountRaw: output.toString(),
-                        },
-                        chainId,
-                      })
-                    )
+        //             dispatch(
+        //               addTransaction({
+        //                 hash: json.txHash,
+        //                 from: account,
+        //                 info: {
+        //                   type: TransactionType.SWAP,
+        //                   inputCurrencyId: approvalOptimizedTrade?.inputAmount?.currency?.wrapped.address,
+        //                   outputCurrencyId: approvalOptimizedTrade?.outputAmount?.currency?.wrapped.address,
+        //                   expectedOutputCurrencyAmountRaw: input.toString(),
+        //                   expectedInputCurrencyAmountRaw: output.toString(),
+        //                 },
+        //                 chainId,
+        //               })
+        //             )
 
-                    dispatch(
-                      addPopup({
-                        content: {
-                          txn: { hash: json.txHash },
-                        },
-                        key: `this-is-popup`,
-                        removeAfterMs: null,
-                      })
-                    )
-                  }
-                }
-              })
-            }
-          }, 2000)
-          setTimeout(() => {
-            clearInterval(getTxIdPolling)
-          }, 30000)
-        }, 10000)
+        //             dispatch(
+        //               addPopup({
+        //                 content: {
+        //                   txn: { hash: json.txHash },
+        //                 },
+        //                 key: `this-is-popup`,
+        //                 removeAfterMs: null,
+        //               })
+        //             )
+        //           }
+        //         }
+        //       })
+        //     }
+        //   }, 2000)
+        //   setTimeout(() => {
+        //     clearInterval(getTxIdPolling)
+        //   }, 30000)
+        // }, 10000)
       })
       .catch((error) => {
         setSwapState({

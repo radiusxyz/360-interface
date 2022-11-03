@@ -4065,10 +4065,10 @@
   resolved "https://registry.npmjs.org/@protobufjs/utf8/-/utf8-1.1.0.tgz"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@radiusxyz/tex-contracts-migration@^0.0.17":
-  version "0.0.17"
-  resolved "https://npm.pkg.github.com/download/@radiusxyz/tex-contracts-migration/0.0.17/6276681c9bd7ba67760bbacd75f55c03db2f0ecd#6276681c9bd7ba67760bbacd75f55c03db2f0ecd"
-  integrity sha512-P+wo0GIpopp/133tW3a4VJdJYkq/Vei80PYdeBV3BOxeh53XCUnycfJvoNRyKS3fEba+BG/z03+hEe8oSalNxw==
+"@radiusxyz/tex-contracts-migration@^0.0.18":
+  version "0.0.18"
+  resolved "https://npm.pkg.github.com/download/@radiusxyz/tex-contracts-migration/0.0.18/e4f3947243eea1a0b64c38cbb07339464846a18a#e4f3947243eea1a0b64c38cbb07339464846a18a"
+  integrity sha512-O55dEwdl+ZJDgmfM/UFdBNV0K2eS6Nk3r+lGb08703TbuA49SUCdm971TEVcxs9f9643FHWM7R2iQQh2mZwUnA==
 
 "@radiusxyz/tex-contracts@^0.0.4":
   version "0.0.4"
