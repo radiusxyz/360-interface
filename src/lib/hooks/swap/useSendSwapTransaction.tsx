@@ -5,9 +5,7 @@ import { keccak256 } from '@ethersproject/keccak256'
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { recoverAddress } from '@ethersproject/transactions'
 import { serialize } from '@ethersproject/transactions'
-import RECORDER_ABI from '@radiusxyz/tex-contracts-migration/artifacts/contracts/Tex/Recorder.sol/Recorder.json'
-import ROUTER_ABI from '@radiusxyz/tex-contracts-migration/artifacts/contracts/Tex/TexRouter02.sol/TexRouter02.json'
-import contractsAddress from '@radiusxyz/tex-contracts-migration/contracts.json'
+// import ROUTER_ABI from '@radiusxyz/tex-contracts-migration/artifacts/contracts/Tex/TexRouter02.sol/TexRouter02.json'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'
@@ -38,6 +36,8 @@ import {
 import { swapErrorToUserReadableMessage } from 'utils/swapErrorToUserReadableMessage'
 import { poseidonEncrypt } from 'wasm/encrypt'
 import { getVdfProof } from 'wasm/vdf'
+
+import { useRecorderContract, useV2RouterContract } from '../../../hooks/useContract'
 
 type AnyTrade =
   | V2Trade<Currency, Currency, TradeType>
@@ -105,6 +105,9 @@ export default function useSendSwapTransaction(
   // console.log(parameters)
   const dispatch = useAppDispatch()
 
+  const routerContract = useV2RouterContract() as Contract
+  const recorderContract = useRecorderContract() as Contract
+
   return useMemo(() => {
     if (!trade || !library || !account || !chainId) {
       return { callback: null }
@@ -154,8 +157,6 @@ export default function useSendSwapTransaction(
         const signer = library.getSigner()
         const signAddress = await signer.getAddress()
 
-        const routerContract = new Contract(contractsAddress.router, ROUTER_ABI.abi, signer)
-
         // TODO: 한 round에 2개의 tx를 날리면 contract에서 가져오지 않고 nonce값을 ++ 해야 한다.
         const _txNonce = await routerContract.nonces(signAddress)
         const txNonce = BigNumber.from(_txNonce).toNumber()
@@ -203,7 +204,6 @@ export default function useSendSwapTransaction(
           ]
         )
 
-        const recorderContract = new Contract(contractsAddress.recorder, RECORDER_ABI.abi, signer)
         const params = [txId]
         const action = 'cancelTxId'
         const unsignedTx = await recorderContract.populateTransaction[action](...params)

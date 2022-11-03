@@ -5,12 +5,12 @@ import { IRoute, Trade } from '@uniswap/router-sdk'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
 import { Pair, Trade as V2Trade } from '@uniswap/v2-sdk'
 import { FeeOptions, Pool, Trade as V3Trade } from '@uniswap/v3-sdk'
-import { SWAP_ROUTER_ADDRESSES } from 'constants/addresses'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import JSBI from 'jsbi'
 import { useMemo } from 'react'
 import { TokenWithId } from 'state/routing/types'
 
+import { useV2RouterContract } from './useContract'
 import useENS from './useENS'
 import { SignatureData } from './useERC20Permit'
 
@@ -50,6 +50,8 @@ export function useSwapCallArguments(
   const { address: recipientAddress } = useENS(recipientAddressOrName)
   const recipient = recipientAddressOrName === null ? account : recipientAddress
 
+  const routerContract = useV2RouterContract() as Contract
+
   return useMemo(async () => {
     if (!trade || !recipient || !library || !account || !chainId || !deadline) return []
 
@@ -76,10 +78,7 @@ export function useSwapCallArguments(
 
     idPath = idPath.substring(0, idPath.length - 1)
 
-    const { abi: RouterABI } = ROUTER_JSON
-    const texContract = new Contract(SWAP_ROUTER_ADDRESSES[chainId], RouterABI, library)
-
-    const txRequest: TransactionRequest = await texContract.populateTransaction.swapExactTokensForTokens(
+    const txRequest: TransactionRequest = await routerContract.populateTransaction.swapExactTokensForTokens(
       `${amountIn}`,
       `${amountOut}`,
       path,
@@ -89,7 +88,7 @@ export function useSwapCallArguments(
 
     return [
       {
-        address: texContract.address,
+        address: routerContract.address,
         calldata: txRequest.data ? txRequest.data.toString() : '',
         value: txRequest.value ? txRequest.value.toString() : '0x00',
         deadline: deadlineNumber,
