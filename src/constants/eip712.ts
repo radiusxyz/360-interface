@@ -20,7 +20,7 @@ export const SWAP_TYPE = [
 
 export const domain = (chainId: number) => {
   return {
-    name: 'Tex swap',
+    name: '360 dex',
     version: '1',
     chainId,
     verifyingContract: SWAP_ROUTER_ADDRESSES[chainId],

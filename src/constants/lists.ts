@@ -12,7 +12,7 @@ export const OPTIMISM_LIST = 'https://static.optimism.io/optimism.tokenlist.json
 const SET_LIST = 'https://raw.githubusercontent.com/SetProtocol/uniswap-tokenlist/main/set.tokenlist.json'
 const WRAPPED_LIST = 'wrapped.tokensoft.eth'
 
-export const RADIUS_LIST = 'https://theradius.xyz'
+export const RADIUS_LIST = 'https://api.theradius.xyz'
 
 export const UNSUPPORTED_LIST_URLS: string[] = [BA_LIST]
 

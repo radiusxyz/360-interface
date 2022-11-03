@@ -39,7 +39,7 @@ export function SwitchLocaleLink() {
   return (
     <Container>
       <Trans>
-        TEX available in:{' '}
+        360 available in:{' '}
         <StyledInternalLink onClick={onClick} to={to}>
           {LOCALE_LABEL[targetLocale]}
         </StyledInternalLink>

@@ -128,6 +128,8 @@ export default function Swap({ history }: RouteComponentProps) {
     [chainId, defaultTokens, urlLoadedTokens]
   )
 
+  console.log(process.env.REACT_APP_360_OPERATOR)
+
   const theme = useContext(ThemeContext)
 
   // toggle wallet when disconnected
@@ -416,13 +418,8 @@ export default function Swap({ history }: RouteComponentProps) {
 
         setTimeout(() => {
           const getTxIdPolling = setInterval(async () => {
-            // TODO: get srv from env
-            const srv = 'api.theradius.xyz'
-            console.log(
-              `https://${srv}/tx?chainId=${chainId}&routerAddress=${contractsAddress.router}&round=${res.data.round}`
-            )
             const roundResponse = await fetch(
-              `https://${srv}/tx?chainId=${chainId}&routerAddress=${contractsAddress.router}&round=${res.data.round}`
+              `${process.env.REACT_APP_360_OPERATOR}/tx?chainId=${chainId}&routerAddress=${contractsAddress.router}&round=${res.data.round}`
             )
             console.log('roundResponse', roundResponse)
             if (roundResponse.ok) {

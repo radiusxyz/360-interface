@@ -12,7 +12,7 @@ export const MULTICALL_ADDRESS: AddressMap = {
     SupportedChainId.OPTIMISM,
     SupportedChainId.POLYGON_MUMBAI,
     SupportedChainId.POLYGON,
-    SupportedChainId.TEX_PRIVATE,
+    SupportedChainId.PRIVATE,
   ]),
   [SupportedChainId.ARBITRUM_ONE]: '0xadF885960B47eA2CD9B55E6DAc6B42b7Cb2806dB',
   [SupportedChainId.ARBITRUM_RINKEBY]: '0xa501c031958F579dB7676fF1CE78AD305794d579',

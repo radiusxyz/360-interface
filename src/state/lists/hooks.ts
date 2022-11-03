@@ -56,7 +56,7 @@ function useCombinedTokenMapFromUrls(urls: string[] | undefined): TokenAddressMa
       let current = lists[currentUrl]?.current
       if (currentUrl === 'https://api.theradius.xyz/tex.tokenlist.json') {
         current = {
-          name: 'Tex',
+          name: '360',
           logoURI: 'https://ethereum-optimism.github.io/logos/optimism.svg',
           keywords: ['scaling', 'layer2', 'infrastructure'],
           timestamp: '2021-03-22T10:01:21.042+00:00',

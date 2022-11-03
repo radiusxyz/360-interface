@@ -168,15 +168,15 @@ export const CHAIN_INFO: ChainInfoMap = {
     logoUrl: polygonMaticLogo,
     nativeCurrency: { name: 'Polygon Mumbai Matic', symbol: 'mMATIC', decimals: 18 },
   },
-  [SupportedChainId.TEX_PRIVATE]: {
+  [SupportedChainId.PRIVATE]: {
     networkType: NetworkType.L1,
     blockWaitMsBeforeWarning: ms`10m`,
     bridge: 'https://wallet.polygon.technology/bridge',
     docs: 'https://polygon.io/',
     explorer: 'https://mumbai.polygonscan.com/',
     infoLink: 'https://info.uniswap.org/#/polygon/',
-    label: 'TEX Private',
+    label: '360 Private',
     logoUrl: radiusLogo,
-    nativeCurrency: { name: 'TEX Private Ether', symbol: 'TEX', decimals: 18 },
+    nativeCurrency: { name: '360 Private Ether', symbol: '360', decimals: 18 },
   },
 }

@@ -37,7 +37,7 @@ export const routingApi = createApi({
   reducerPath: 'routingApi',
   baseQuery: fetchBaseQuery({
     // baseUrl: 'https://api.uniswap.org/v1/',
-    baseUrl: 'https://api.theradius.xyz/',
+    baseUrl: process.env.REACT_APP_360_OPERATOR,
   }),
   endpoints: (build) => ({
     getQuote: build.query<

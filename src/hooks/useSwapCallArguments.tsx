@@ -5,7 +5,6 @@ import { IRoute, Trade } from '@uniswap/router-sdk'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
 import { Pair, Trade as V2Trade } from '@uniswap/v2-sdk'
 import { FeeOptions, Pool, Trade as V3Trade } from '@uniswap/v3-sdk'
-import TEX_JSON from 'abis/tex-router.json'
 import { SWAP_ROUTER_ADDRESSES } from 'constants/addresses'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import JSBI from 'jsbi'
@@ -77,8 +76,8 @@ export function useSwapCallArguments(
 
     idPath = idPath.substring(0, idPath.length - 1)
 
-    const { abi: TEX_ABI } = TEX_JSON
-    const texContract = new Contract(SWAP_ROUTER_ADDRESSES[chainId], TEX_ABI, library)
+    const { abi: RouterABI } = ROUTER_JSON
+    const texContract = new Contract(SWAP_ROUTER_ADDRESSES[chainId], RouterABI, library)
 
     const txRequest: TransactionRequest = await texContract.populateTransaction.swapExactTokensForTokens(
       `${amountIn}`,

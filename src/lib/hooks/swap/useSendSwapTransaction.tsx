@@ -7,8 +7,6 @@ import { recoverAddress } from '@ethersproject/transactions'
 import { serialize } from '@ethersproject/transactions'
 import RECORDER_ABI from '@radiusxyz/tex-contracts-migration/artifacts/contracts/Tex/Recorder.sol/Recorder.json'
 import ROUTER_ABI from '@radiusxyz/tex-contracts-migration/artifacts/contracts/Tex/TexRouter02.sol/TexRouter02.json'
-// import TEX_RECORDER from '../../../abis/tex-recorder.json'
-// import { RECORDER_ADDRESS } from '../../../constants/addresses'
 import contractsAddress from '@radiusxyz/tex-contracts-migration/contracts.json'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
@@ -205,7 +203,6 @@ export default function useSendSwapTransaction(
           ]
         )
 
-        // TODO: fix RECORDER_ADDRESS[chainId] error
         const recorderContract = new Contract(contractsAddress.recorder, RECORDER_ABI.abi, signer)
         const params = [txId]
         const action = 'cancelTxId'
@@ -368,9 +365,7 @@ async function sendEIP712Tx(
 
   console.log('set timeout')
 
-  const srv = 'api.theradius.xyz'
-
-  const sendResponse = await fetch(`https://${srv}/tx`, {
+  const sendResponse = await fetch(`${process.env.REACT_APP_360_OPERATOR}/tx`, {
     method: 'POST',
     headers,
     body: JSON.stringify({

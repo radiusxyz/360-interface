@@ -325,7 +325,7 @@ export default function NetworkSelector() {
             <Row onSelectChain={handleChainSwitch} targetChain={SupportedChainId.POLYGON_MUMBAI} />
             {/* <Row onSelectChain={handleChainSwitch} targetChain={SupportedChainId.OPTIMISM} /> */}
             <Row onSelectChain={handleChainSwitch} targetChain={SupportedChainId.ARBITRUM_ONE} />
-            <Row onSelectChain={handleChainSwitch} targetChain={SupportedChainId.TEX_PRIVATE} />
+            <Row onSelectChain={handleChainSwitch} targetChain={SupportedChainId.PRIVATE} />
             <Row onSelectChain={handleChainSwitch} targetChain={SupportedChainId.OPTIMISTIC_KOVAN} />
           </FlyoutMenuContents>
         </FlyoutMenu>
