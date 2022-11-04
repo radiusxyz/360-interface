@@ -9,7 +9,6 @@ import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useFeeTierDistribution } from 'hooks/useFeeTierDistribution'
 import { PoolState, usePools } from 'hooks/usePools'
 import usePrevious from 'hooks/usePrevious'
-import { DynamicSection } from 'pages/AddLiquidityV2/styled'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactGA from 'react-ga4'
 import { Box } from 'rebass'
@@ -143,7 +142,7 @@ export default function FeeSelector({
 
   return (
     <AutoColumn gap="16px">
-      <DynamicSection gap="md" disabled={disabled}>
+      <>
         <FocusedOutlineCard pulsing={pulsing} onAnimationEnd={() => setPulsing(false)}>
           <RowBetween>
             <AutoColumn id="add-liquidity-selected-fee">
@@ -200,7 +199,7 @@ export default function FeeSelector({
             })}
           </Select>
         )}
-      </DynamicSection>
+      </>
     </AutoColumn>
   )
 }
