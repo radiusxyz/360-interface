@@ -12,15 +12,8 @@ import Polling from '../components/Header/Polling'
 import Popups from '../components/Popups'
 import Web3ReactManager from '../components/Web3ReactManager'
 import DarkModeQueryParamReader from '../theme/DarkModeQueryParamReader'
-import AddLiquidity from './AddLiquidityV2'
-import { RedirectDuplicateTokenIdsV2 } from './AddLiquidityV2/redirects'
-import Earn from './Earn'
-import Manage from './Earn/Manage'
-import PoolV2 from './Pool/v2'
-import PoolFinder from './PoolFinder'
-import RemoveLiquidity from './RemoveLiquidity'
 import Swap from './Swap'
-import { OpenClaimAddressModalAndRedirectToSwap, RedirectPathToSwapOnly, RedirectToSwap } from './Swap/redirects'
+import { RedirectPathToSwapOnly, RedirectToSwap } from './Swap/redirects'
 
 const AppWrapper = styled.div`
   display: flex;
@@ -72,28 +65,8 @@ export default function App() {
             <TopLevelModals />
             <Suspense fallback={<Loader />}>
               <Switch>
-                <Route exact strict path="/claim" component={OpenClaimAddressModalAndRedirectToSwap} />
-                <Route exact strict path="/uni" component={Earn} />
-                <Route exact strict path="/uni/:currencyIdA/:currencyIdB" component={Manage} />
-
-                <Route exact strict path="/send" component={RedirectPathToSwapOnly} />
                 <Route exact strict path="/swap/:outputCurrency" component={RedirectToSwap} />
                 <Route exact strict path="/swap" component={Swap} />
-
-                <Route exact strict path="/pool/find" component={PoolFinder} />
-                <Route exact strict path="/pool" component={PoolV2} />
-
-                <Route exact strict path="/add/:currencyIdA?/:currencyIdB?" component={RedirectDuplicateTokenIdsV2} />
-
-                <Route
-                  exact
-                  strict
-                  path="/increase/:currencyIdA?/:currencyIdB?/:feeAmount?/:tokenId?"
-                  component={AddLiquidity}
-                />
-
-                <Route exact strict path="/remove/v2/:currencyIdA/:currencyIdB" component={RemoveLiquidity} />
-
                 <Route component={RedirectPathToSwapOnly} />
               </Switch>
             </Suspense>

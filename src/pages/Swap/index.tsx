@@ -1,4 +1,3 @@
-import { Contract } from '@ethersproject/contracts'
 import { Trans } from '@lingui/macro'
 // import contractsAddress from '@radiusxyz/tex-contracts-migration/contracts.json'
 import { Trade } from '@uniswap/router-sdk'
@@ -55,7 +54,6 @@ import TokenWarningModal from '../../components/TokenWarningModal'
 import { TOKEN_SHORTHANDS } from '../../constants/tokens'
 import { useAllTokens, useCurrency } from '../../hooks/Tokens'
 import { ApprovalState, useApprovalOptimizedTrade, useApproveCallbackFromTrade } from '../../hooks/useApproveCallback'
-import { useRecorderContract } from '../../hooks/useContract'
 import useENSAddress from '../../hooks/useENSAddress'
 import { useERC20PermitFromTrade, UseERC20PermitState } from '../../hooks/useERC20Permit'
 import useIsArgentWallet from '../../hooks/useIsArgentWallet'
@@ -63,7 +61,6 @@ import { useIsSwapUnsupported } from '../../hooks/useIsSwapUnsupported'
 import { useUSDCValue } from '../../hooks/useUSDCPrice'
 import useWrapCallback, { WrapErrorText, WrapType } from '../../hooks/useWrapCallback'
 import { useWalletModalToggle } from '../../state/application/hooks'
-import { useAppDispatch } from '../../state/hooks'
 import { Field } from '../../state/swap/actions'
 import {
   useDefaultsFromURLSearch,
@@ -71,7 +68,6 @@ import {
   useSwapActionHandlers,
   useSwapState,
 } from '../../state/swap/hooks'
-import { useAllTransactions } from '../../state/transactions/hooks'
 // import { addTransaction } from '../../state/transactions/reducer'
 // import { TransactionType } from '../../state/transactions/types'
 import { useExpertModeManager } from '../../state/user/hooks'
@@ -105,10 +101,10 @@ export default function Swap({ history }: RouteComponentProps) {
     setDismissTokenWarning(true)
   }, [])
 
-  const dispatch = useAppDispatch()
+  // const dispatch = useAppDispatch()
 
-  const allTransactions = useAllTransactions()
-  const recorderContract = useRecorderContract() as Contract
+  // const allTransactions = useAllTransactions()
+  // const recorderContract = useRecorderContract() as Contract
 
   // dismiss warning if all imported tokens are in active lists
   const defaultTokens = useAllTokens()
