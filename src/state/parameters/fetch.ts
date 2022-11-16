@@ -28,12 +28,10 @@ export async function fetchVdfSnarkParam(callback: (res: boolean) => void): Prom
 }
 
 export async function fetchEncryptionParam(callback: (res: boolean) => void): Promise<string> {
-  return await fetch('/parameters/encryption_zkp_parameter.data.bin', {
+  return await fetch('/parameters/encryption_zkp_parameter.txt', {
     method: 'GET',
   }).then(async (res) => {
-    const bytes = await res.arrayBuffer()
-    const uint8bytes = new Uint8Array(bytes)
-    const string = Buffer.from(uint8bytes).toString('hex')
+    const string = await res.text()
     localForage.setItem('encryption_param', string)
     callback(true)
     return string
@@ -41,12 +39,10 @@ export async function fetchEncryptionParam(callback: (res: boolean) => void): Pr
 }
 
 export async function fetchEncryptionProverKey(callback: (res: boolean) => void): Promise<string> {
-  return await fetch('/parameters/encryption_prover_key.data.bin', {
+  return await fetch('/parameters/encryption_prover_key.txt', {
     method: 'GET',
   }).then(async (res) => {
-    const bytes = await res.arrayBuffer()
-    const uint8bytes = new Uint8Array(bytes)
-    const string = Buffer.from(uint8bytes).toString('hex')
+    const string = await res.text()
     localForage.setItem('encryption_prover_key', string)
     callback(true)
     return string
@@ -54,12 +50,11 @@ export async function fetchEncryptionProverKey(callback: (res: boolean) => void)
 }
 
 export async function fetchEncryptionVerifierData(callback: (res: boolean) => void): Promise<string> {
-  return await fetch('/parameters/encryption_verifier_data.data.bin', {
+  return await fetch('/parameters/encryption_verifier_data.txt', {
     method: 'GET',
   }).then(async (res) => {
-    const bytes = await res.arrayBuffer()
-    const uint8bytes = new Uint8Array(bytes)
-    const string = Buffer.from(uint8bytes).toString('hex')
+    const string = await res.text()
+    console.log(string)
     localForage.setItem('encryption_verifier_data', string)
     callback(true)
     return string
