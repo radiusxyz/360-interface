@@ -4065,10 +4065,10 @@
   resolved "https://registry.npmjs.org/@protobufjs/utf8/-/utf8-1.1.0.tgz"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@radiusxyz/tex-contracts-migration@^0.0.18":
-  version "0.0.18"
-  resolved "https://npm.pkg.github.com/download/@radiusxyz/tex-contracts-migration/0.0.18/e4f3947243eea1a0b64c38cbb07339464846a18a#e4f3947243eea1a0b64c38cbb07339464846a18a"
-  integrity sha512-O55dEwdl+ZJDgmfM/UFdBNV0K2eS6Nk3r+lGb08703TbuA49SUCdm971TEVcxs9f9643FHWM7R2iQQh2mZwUnA==
+"@radiusxyz/tex-contracts-migration@^0.0.20":
+  version "0.0.20"
+  resolved "https://npm.pkg.github.com/download/@radiusxyz/tex-contracts-migration/0.0.20/44a407e16e4509d071d0c78aaaf7d19388b4f7ab#44a407e16e4509d071d0c78aaaf7d19388b4f7ab"
+  integrity sha512-bYLQOGAcAlqIgIZRGUT20EzxPpNgnpr+a33GY+QE1rXi7KZxhFZhw8/rx+DeFqwQ2I4WJ+LcPPxuK7v3G0UnXg==
 
 "@radiusxyz/tex-contracts@^0.0.4":
   version "0.0.4"
@@ -19565,10 +19565,10 @@ wasm-dce@^1.0.0:
     babylon "^7.0.0-beta.39"
     webassembly-interpreter "0.0.30"
 
-wasm-encryptor-zkp@^0.1.4:
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/wasm-encryptor-zkp/-/wasm-encryptor-zkp-0.1.4.tgz#4c2fc070c738e9c79eb6034d901493bf329af614"
-  integrity sha512-hp5ZvoV9AOhpoLOUvsaUGKYUK/SkUXd7AxIA0OF0XHxO6XKUpS+VpE5zRDpt5PdXEZEYDOjtPcxmi6TB9N905Q==
+wasm-encryptor-zkp@^0.1.7:
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/wasm-encryptor-zkp/-/wasm-encryptor-zkp-0.1.7.tgz#52ec58a41ff953b0a409da6758f9f62761d14f3b"
+  integrity sha512-n05VZXveVnm6gThnQXcMsu7wus02KwH64r5nASgo2xapSGa5/d22j7Xeu73mxLroNPbChMdHTa5xaOJRD/+Big==
 
 wasm-loader@^1.3.0:
   version "1.3.0"
