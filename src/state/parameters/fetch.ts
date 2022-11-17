@@ -54,7 +54,6 @@ export async function fetchEncryptionVerifierData(callback: (res: boolean) => vo
     method: 'GET',
   }).then(async (res) => {
     const string = await res.text()
-    console.log(string)
     localForage.setItem('encryption_verifier_data', string)
     callback(true)
     return string
