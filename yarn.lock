@@ -19565,10 +19565,10 @@ wasm-dce@^1.0.0:
     babylon "^7.0.0-beta.39"
     webassembly-interpreter "0.0.30"
 
-wasm-encryptor-zkp@^0.1.7:
-  version "0.1.7"
-  resolved "https://registry.yarnpkg.com/wasm-encryptor-zkp/-/wasm-encryptor-zkp-0.1.7.tgz#52ec58a41ff953b0a409da6758f9f62761d14f3b"
-  integrity sha512-n05VZXveVnm6gThnQXcMsu7wus02KwH64r5nASgo2xapSGa5/d22j7Xeu73mxLroNPbChMdHTa5xaOJRD/+Big==
+wasm-encryptor-zkp@^0.1.12:
+  version "0.1.12"
+  resolved "https://registry.yarnpkg.com/wasm-encryptor-zkp/-/wasm-encryptor-zkp-0.1.12.tgz#5729725d21d54660d0fca35e9aa9b6caa3fffa0a"
+  integrity sha512-5iHDO7jtxtXRarCPoAuZhcnGt4beR6nV1TlGcnt7ykudcYcRzfGKCN++xDSRH0SdiRZYkVvClX3DvhFawSIyvQ==
 
 wasm-loader@^1.3.0:
   version "1.3.0"
