@@ -33,7 +33,7 @@ import {
   VdfParam,
 } from 'state/parameters/reducer'
 import { swapErrorToUserReadableMessage } from 'utils/swapErrorToUserReadableMessage'
-import { poseidonEncrypt } from 'wasm/encrypt'
+import { poseidonEncryptWithTxHash } from 'wasm/encrypt'
 import { getVdfProof } from 'wasm/vdf'
 
 import { useRecorderContract, useV2RouterContract } from '../../../hooks/useContract'
@@ -42,6 +42,19 @@ type AnyTrade =
   | V2Trade<Currency, Currency, TradeType>
   | V3Trade<Currency, Currency, TradeType>
   | Trade<Currency, Currency, TradeType>
+
+export interface TxInfo {
+  tx_owner: string
+  function_selector: string
+  amount_in: string
+  amount_out: string
+  to: string
+  deadline: string
+  nonce: string
+  path: string[] // length MUST be 6 -> for compatibility with rust-wasm
+}
+
+const MAXIMUM_PATH_LENGTH = 6
 
 interface EncryptedSwapTx {
   txOwner: string
@@ -174,6 +187,25 @@ export default function useSendSwapTransaction(
           deadline,
         }
 
+        const pathToHash: string[] = new Array(MAXIMUM_PATH_LENGTH)
+
+        for (let i = 0; i < MAXIMUM_PATH_LENGTH; i++) {
+          pathToHash[i] = i < path.length ? path[i].split('x')[1] : '0'
+        }
+
+        const txInfoToHash: TxInfo = {
+          tx_owner: signAddress.split('x')[1],
+          function_selector: swapExactTokensForTokens.split('x')[1],
+          amount_in: `${amountIn}`,
+          amount_out: `${amountOut}`,
+          to: signAddress.split('x')[1],
+          deadline: `${deadline}`,
+          nonce: `${txNonce}`,
+          path: pathToHash,
+        }
+
+        console.log('txInfoToHash: ', txInfoToHash)
+
         const typedData = JSON.stringify({
           types: {
             EIP712Domain: DOMAIN_TYPE,
@@ -263,14 +295,14 @@ export default function useSendSwapTransaction(
 
         dispatch(setProgress({ newParam: 2 }))
 
-        // const vdfData = await getVdfProof(parameters.vdfParam || vdfParam, parameters.vdfSnarkParam || vdfSnarkParam)
         const vdfData = await getVdfProof(vdfParam, vdfSnarkParam)
 
         console.log(vdfData)
 
         dispatch(setProgress({ newParam: 3 }))
 
-        const encryptData = await poseidonEncrypt(
+        const encryptData = await poseidonEncryptWithTxHash(
+          txInfoToHash,
           encryptionParam,
           encryptionProverKey,
           encryptionVerifierData,
