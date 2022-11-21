@@ -1,6 +1,7 @@
 import { BigNumber } from '@ethersproject/bignumber'
 import { Signature, splitSignature } from '@ethersproject/bytes'
 import { Contract } from '@ethersproject/contracts'
+import { _TypedDataEncoder as typedDataEncoder } from '@ethersproject/hash'
 import { keccak256 } from '@ethersproject/keccak256'
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { recoverAddress } from '@ethersproject/transactions'
@@ -9,8 +10,7 @@ import { Trade } from '@uniswap/router-sdk'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'
 import { Trade as V3Trade } from '@uniswap/v3-sdk'
-import { domain, DOMAIN_TYPE, SWAP_TYPE } from 'constants/eip712'
-import { hashMessage, solidityKeccak256 } from 'ethers/lib/utils'
+import { CLAIM_TYPE, domain, DOMAIN_TYPE, SWAP_TYPE } from 'constants/eip712'
 import { SwapCall } from 'hooks/useSwapCallArguments'
 import localForage from 'localforage'
 import { useMemo } from 'react'
@@ -65,7 +65,8 @@ interface EncryptedSwapTx {
   to: string
   nonce: number
   deadline: number
-  txId: string
+  txHash: string
+  mimcHash: string
 }
 
 interface Path {
@@ -91,10 +92,9 @@ export interface RadiusSwapResponse {
   data: {
     round: number
     order: number
-    mmr_size: number
-    proof: string[]
-    hash: string
-    txId: string
+    mimcHash: string
+    txHash: string
+    prevHash: string
   }
   msg: string
 }
@@ -226,21 +226,23 @@ export default function useSendSwapTransaction(
 
         console.log(sig)
 
-        const txId = solidityKeccak256(
-          ['address', 'bytes4', 'uint256', 'uint256', 'address[]', 'address', 'uint256', 'uint256'],
-          [
-            account.toLowerCase(),
-            swapExactTokensForTokens,
-            `${amountIn}`,
-            `${amountOut}`,
-            path,
-            account.toLowerCase(),
-            `${txNonce}`,
-            `${deadline}`,
-          ]
-        )
+        const txHash = typedDataEncoder.hash(domain(chainId), { Swap: SWAP_TYPE }, signMessage)
 
-        const params = [txId]
+        // const txHash = solidityKeccak256(
+        //   ['address', 'bytes4', 'uint256', 'uint256', 'address[]', 'address', 'uint256', 'uint256'],
+        //   [
+        //     account.toLowerCase(),
+        //     swapExactTokensForTokens,
+        //     `${amountIn}`,
+        //     `${amountOut}`,
+        //     path,
+        //     account.toLowerCase(),
+        //     `${txNonce}`,
+        //     `${deadline}`,
+        //   ]
+        // )
+
+        const params = [txHash]
         const action = 'cancelTxId'
         const unsignedTx = await recorderContract.populateTransaction[action](...params)
         console.log('unsignedTx', unsignedTx)
@@ -340,7 +342,8 @@ export default function useSendSwapTransaction(
           to: signAddress,
           nonce: txNonce,
           deadline,
-          txId,
+          txHash,
+          mimcHash,
         }
 
         const sendResponse = await sendEIP712Tx(chainId, routerContract, encryptedSwapTx, sig, cancelTx, library)
@@ -397,6 +400,10 @@ async function sendEIP712Tx(
   }, 5000)
 
   console.log('set timeout')
+  window.localStorage.setItem(
+    encryptedSwapTx.txHash,
+    JSON.stringify({ txOrderMsg: { mimcHash: encryptedSwapTx.mimcHash, txHash: encryptedSwapTx.txHash } })
+  )
 
   const sendResponse = await fetch(`${process.env.REACT_APP_360_OPERATOR}/tx`, {
     method: 'POST',
@@ -422,18 +429,23 @@ async function sendEIP712Tx(
         v: res.signature.v,
       }
 
-      delete res.signature
+      const msgHash = typedDataEncoder.hash(domain(chainId), { Claim: CLAIM_TYPE }, res.txOrderMsg)
 
-      const verifySigner = recoverAddress(hashMessage(JSON.stringify(res)), signature)
+      const verifySigner = recoverAddress(msgHash, signature)
       const operatorAddress = await routerContract.operator()
 
       console.log('operatorAddress from router', operatorAddress)
 
       // TODO: change to operatorAddress
-      if (verifySigner === '0x01D5fb852a8107be2cad72dFf64020b22639e18B' && encryptedSwapTx.txId === res.txId) {
+      if (
+        verifySigner === '0x01D5fb852a8107be2cad72dFf64020b22639e18B' &&
+        encryptedSwapTx.txHash === res.txOrderMsg.txHash
+      ) {
         // if (verifySigner === operatorAddress && encryptedSwapTx.txId === res.txId) {
-        // '0x01D5fb852a8107be2cad72dFf64020b22639e18B'
         console.log('clear cancel tx')
+
+        window.localStorage.setItem(res.txOrderMsg.txHash, JSON.stringify({ txOrderMsg: res.txOrderMsg, signature }))
+
         clearTimeout(timeLimit)
       }
 
