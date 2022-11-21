@@ -18,6 +18,14 @@ export const SWAP_TYPE = [
   { name: 'deadline', type: 'uint256' },
 ]
 
+export const CLAIM_TYPE = [
+  { name: 'round', type: 'uint256' },
+  { name: 'order', type: 'uint256' },
+  { name: 'mimcHash', type: 'bytes32' },
+  { name: 'txHash', type: 'bytes32' },
+  { name: 'proof', type: 'bytes32' },
+]
+
 export const domain = (chainId: number) => {
   return {
     name: 'Tex swap',
