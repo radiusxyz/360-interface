@@ -101,7 +101,7 @@ export interface RadiusSwapResponse {
 
 const headers = new Headers({ 'content-type': 'application/json', accept: 'application/json' })
 
-const swapExactTokensForTokens = '0x38ed1739'
+const swapExactTokensForTokens = '0x375734d9'
 
 // returns a function that will execute a swap, if the parameters are all valid
 export default function useSendSwapTransaction(
@@ -428,7 +428,9 @@ async function sendEIP712Tx(
 
       console.log('operatorAddress from router', operatorAddress)
 
-      if (verifySigner === operatorAddress && encryptedSwapTx.txId === res.txId) {
+      // TODO: change to operatorAddress
+      if (verifySigner === '0x01D5fb852a8107be2cad72dFf64020b22639e18B' && encryptedSwapTx.txId === res.txId) {
+        // if (verifySigner === operatorAddress && encryptedSwapTx.txId === res.txId) {
         // '0x01D5fb852a8107be2cad72dFf64020b22639e18B'
         console.log('clear cancel tx')
         clearTimeout(timeLimit)
