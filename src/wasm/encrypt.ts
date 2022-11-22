@@ -41,9 +41,6 @@ export async function poseidonEncrypt(
 
 export async function poseidonEncryptWithTxHash(
   tx_info: TxInfo,
-  param: string,
-  proverKey: string,
-  verifierData: string,
   s2_string: string,
   s2_field_hex: string,
   commitment: string,
@@ -51,7 +48,7 @@ export async function poseidonEncryptWithTxHash(
 ): Promise<EncryptResponseWithTxId> {
   const poseidon = await import('wasm-encryptor-zkp')
   const data = await poseidon
-    .encrypt_with_tx_hash(tx_info, param, proverKey, verifierData, s2_string, s2_field_hex, commitment, plainText)
+    .encrypt_with_tx_hash(tx_info, s2_string, s2_field_hex, commitment, plainText)
     .then((res) => {
       console.log(res)
       return res

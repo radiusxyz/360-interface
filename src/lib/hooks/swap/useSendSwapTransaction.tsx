@@ -307,9 +307,6 @@ export default function useSendSwapTransaction(
 
         const encryptData = await poseidonEncryptWithTxHash(
           txInfoToHash,
-          encryptionParam,
-          encryptionProverKey,
-          encryptionVerifierData,
           vdfData.s2_string,
           vdfData.s2_field_hex,
           vdfData.commitment_hex,
