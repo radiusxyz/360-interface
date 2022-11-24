@@ -19,21 +19,8 @@ import ReactGA from 'react-ga4'
 import { RouteComponentProps } from 'react-router-dom'
 import { Text } from 'rebass'
 import { addPopup } from 'state/application/reducer'
-import {
-  fetchEncryptionParam,
-  fetchEncryptionProverKey,
-  fetchEncryptionVerifierData,
-  fetchVdfParam,
-  fetchVdfSnarkParam,
-} from 'state/parameters/fetch'
-import {
-  useEncryptionParamManager,
-  useEncryptionProverKeyManager,
-  useEncryptionVerifierDataManager,
-  useParametersManager,
-  useVdfParamManager,
-  useVdfSnarkParamManager,
-} from 'state/parameters/hooks'
+import { fetchVdfParam, fetchVdfSnarkParam } from 'state/parameters/fetch'
+import { useParametersManager, useVdfParamManager, useVdfSnarkParamManager } from 'state/parameters/hooks'
 import { TradeState } from 'state/routing/types'
 import styled, { ThemeContext } from 'styled-components/macro'
 
@@ -157,9 +144,6 @@ export default function Swap({ history }: RouteComponentProps) {
   const [parameters, updateParameters] = useParametersManager()
   const [vdfParam, updateVdfParam] = useVdfParamManager()
   const [vdfSnarkParam, updateVdfSnarkParam] = useVdfSnarkParamManager()
-  const [encryptionVerifierData, updateEncryptionVerifierData] = useEncryptionVerifierDataManager()
-  const [encryptionParam, updateEncryptionParam] = useEncryptionParamManager()
-  const [encryptionProverKey, updateEncryptionProverKey] = useEncryptionProverKeyManager()
 
   useEffect(() => {
     if (!vdfParam) {
@@ -176,30 +160,6 @@ export default function Swap({ history }: RouteComponentProps) {
       })
     }
   }, [updateVdfSnarkParam, vdfSnarkParam])
-
-  useEffect(() => {
-    if (!encryptionParam) {
-      fetchEncryptionParam((newParam: boolean) => {
-        updateEncryptionParam(newParam)
-      })
-    }
-  }, [encryptionParam, updateEncryptionParam])
-
-  useEffect(() => {
-    if (!encryptionProverKey) {
-      fetchEncryptionProverKey((newParam: boolean) => {
-        updateEncryptionProverKey(newParam)
-      })
-    }
-  }, [encryptionProverKey, updateEncryptionProverKey])
-
-  useEffect(() => {
-    if (!encryptionVerifierData) {
-      fetchEncryptionVerifierData((newParam: boolean) => {
-        updateEncryptionVerifierData(newParam)
-      })
-    }
-  }, [encryptionVerifierData, updateEncryptionVerifierData])
 
   // swap state
   const { independentField, typedValue, recipient } = useSwapState()

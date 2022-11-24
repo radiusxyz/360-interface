@@ -14,18 +14,12 @@ export interface VdfParam {
 export interface ParameterState {
   readonly vdfParam: boolean
   readonly vdfSnarkParam: boolean
-  readonly encryptionParam: boolean
-  readonly encryptionProverKey: boolean
-  readonly encryptionVerifierData: boolean
   readonly progress: number
 }
 
 const initialState: ParameterState = {
   vdfParam: false,
   vdfSnarkParam: false,
-  encryptionParam: false,
-  encryptionProverKey: false,
-  encryptionVerifierData: false,
   progress: 0,
 }
 
@@ -39,15 +33,6 @@ const parameterSlice = createSlice({
     setVdfSnarkParam(state, action: { payload: { newParam: boolean } }) {
       state.vdfSnarkParam = action.payload.newParam
     },
-    setEncryptionParam(state, action: { payload: { newParam: boolean } }) {
-      state.encryptionParam = action.payload.newParam
-    },
-    setEncryptionProverKey(state, action: { payload: { newParam: boolean } }) {
-      state.encryptionProverKey = action.payload.newParam
-    },
-    setEncryptionVerifierData(state, action: { payload: { newParam: boolean } }) {
-      state.encryptionVerifierData = action.payload.newParam
-    },
     setZkpParameters(state, action: { payload: { newParam: ParameterState } }) {
       state = action.payload.newParam
     },
@@ -57,13 +42,5 @@ const parameterSlice = createSlice({
   },
 })
 
-export const {
-  setVdfParam,
-  setVdfSnarkParam,
-  setEncryptionParam,
-  setEncryptionProverKey,
-  setEncryptionVerifierData,
-  setZkpParameters,
-  setProgress,
-} = parameterSlice.actions
+export const { setVdfParam, setVdfSnarkParam, setZkpParameters, setProgress } = parameterSlice.actions
 export default parameterSlice.reducer
