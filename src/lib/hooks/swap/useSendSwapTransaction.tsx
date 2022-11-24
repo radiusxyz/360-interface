@@ -2,10 +2,8 @@ import { BigNumber } from '@ethersproject/bignumber'
 import { Signature, splitSignature } from '@ethersproject/bytes'
 import { Contract } from '@ethersproject/contracts'
 import { _TypedDataEncoder as typedDataEncoder } from '@ethersproject/hash'
-import { keccak256 } from '@ethersproject/keccak256'
 import { JsonRpcProvider } from '@ethersproject/providers'
 import { recoverAddress } from '@ethersproject/transactions'
-import { serialize } from '@ethersproject/transactions'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'
@@ -90,11 +88,18 @@ export interface RadiusSwapRequest {
 
 export interface RadiusSwapResponse {
   data: {
-    round: number
-    order: number
-    mimcHash: string
-    txHash: string
-    prevHash: string
+    txOrderMsg: {
+      round: number
+      order: number
+      mimcHash: string
+      txHash: string
+      proofHash: string
+    }
+    signature: {
+      r: string
+      s: string
+      v: number
+    }
   }
   msg: string
 }
@@ -228,75 +233,61 @@ export default function useSendSwapTransaction(
 
         const txHash = typedDataEncoder.hash(domain(chainId), { Swap: SWAP_TYPE }, signMessage)
 
-        // const txHash = solidityKeccak256(
-        //   ['address', 'bytes4', 'uint256', 'uint256', 'address[]', 'address', 'uint256', 'uint256'],
-        //   [
-        //     account.toLowerCase(),
-        //     swapExactTokensForTokens,
-        //     `${amountIn}`,
-        //     `${amountOut}`,
-        //     path,
-        //     account.toLowerCase(),
-        //     `${txNonce}`,
-        //     `${deadline}`,
-        //   ]
-        // )
-
         const params = [txHash]
-        const action = 'cancelTxId'
+        const action = 'disableTxHash'
         const unsignedTx = await recorderContract.populateTransaction[action](...params)
         console.log('unsignedTx', unsignedTx)
 
-        // const gasPrice = await signer.getGasPrice()
         const nonce = await signer.provider.getTransactionCount(signAddress)
 
-        // TODO: get Gas Data from gas tracker
-        unsignedTx.gasLimit = BigNumber.from('50000')
-        // unsignedTx.gasPrice = BigNumber.from('1000000000')
-        unsignedTx.maxFeePerGas = BigNumber.from('5000')
-        unsignedTx.maxPriorityFeePerGas = BigNumber.from('5000')
-        unsignedTx.nonce = nonce
-        console.log('unsignedTx2', unsignedTx)
+        const feeData = await signer.getFeeData()
+        const gasLimit = await routerContract.estimateGas.disableTxHash(...params)
+        // unsignedTx.gasLimit = gasLimit.mul(BigNumber.from(1.1))
+        // unsignedTx.maxFeePerGas = feeData.maxFeePerGas as BigNumber
+        // unsignedTx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas as BigNumber
+        // unsignedTx.nonce = nonce
+        // console.log('unsignedTx2', unsignedTx)
 
-        const tx = {
-          nonce: unsignedTx.nonce,
-          gasLimit: unsignedTx.gasLimit.toHexString(),
-          // gasPrice: unsignedTx.gasPrice.toHexString(),
-          maxFeePerGas: unsignedTx.maxFeePerGas.toHexString(),
-          maxPriorityFeePerGas: unsignedTx.maxPriorityFeePerGas.toHexString(),
-          to: unsignedTx.to,
-          data: unsignedTx.data,
-          chainId,
-          type: 2,
-        }
+        // const tx = {
+        //   nonce: unsignedTx.nonce,
+        //   gasLimit: unsignedTx.gasLimit.toHexString(),
+        //   maxFeePerGas: unsignedTx.maxFeePerGas.toHexString(),
+        //   maxPriorityFeePerGas: unsignedTx.maxPriorityFeePerGas.toHexString(),
+        //   to: unsignedTx.to,
+        //   data: unsignedTx.data,
+        //   chainId,
+        //   type: 2,
+        // }
 
-        console.log('tx', tx)
+        // console.log('tx', tx)
 
-        const sign = await signer.provider
-          .send('eth_sign', [signAddress, keccak256(serialize(tx))])
-          .then((response) => {
-            console.log(response)
-            const sig = splitSignature(response)
-            return sig
-          })
-          .catch((error) => {
-            // if the user rejected the sign, pass this along
-            if (error?.code === 401) {
-              throw new Error(`Sign rejected.`)
-            } else {
-              // otherwise, the error was unexpected and we need to convey that
-              console.error(`Sign failed`, error, signAddress, typedData)
+        // const sign = await signer.signTransaction(tx)
 
-              throw new Error(`Sign failed: ${swapErrorToUserReadableMessage(error)}`)
-            }
-          })
-        console.log(sign)
+        // const sign = await signer.provider
+        //   .send('eth_sign', [signAddress, keccak256(serialize(tx))])
+        //   .then((response) => {
+        //     console.log(response)
+        //     const sig = splitSignature(response)
+        //     return sig
+        //   })
+        //   .catch((error) => {
+        //     // if the user rejected the sign, pass this along
+        //     if (error?.code === 401) {
+        //       throw new Error(`Sign rejected.`)
+        //     } else {
+        //       // otherwise, the error was unexpected and we need to convey that
+        //       console.error(`Sign failed`, error, signAddress, typedData)
+
+        //       throw new Error(`Sign failed: ${swapErrorToUserReadableMessage(error)}`)
+        //     }
+        //   })
+        // console.log(sign)
 
         sigHandler()
 
-        const cancelTx = serialize(tx, sign)
+        // const disableTxHash = serialize(tx, sign)
 
-        console.log('cancelTx', cancelTx)
+        // console.log('disableTxHash', disableTxHash)
         console.log(signer, signAddress)
 
         dispatch(setProgress({ newParam: 2 }))
@@ -343,10 +334,17 @@ export default function useSendSwapTransaction(
           nonce: txNonce,
           deadline,
           txHash,
-          mimcHash,
+          mimcHash: '0x' + encryptData.tx_id,
         }
 
-        const sendResponse = await sendEIP712Tx(chainId, routerContract, encryptedSwapTx, sig, cancelTx, library)
+        const sendResponse = await sendEIP712Tx(
+          chainId,
+          routerContract,
+          encryptedSwapTx,
+          sig,
+          '' /*disableTxHash*/,
+          library
+        )
 
         dispatch(setProgress({ newParam: 5 }))
 
@@ -391,19 +389,20 @@ async function sendEIP712Tx(
   routerContract: Contract,
   encryptedSwapTx: EncryptedSwapTx,
   signature: Signature,
-  cancelTx: string,
+  disableTxHash: string,
   library: JsonRpcProvider | undefined
 ): Promise<RadiusSwapResponse> {
   const timeLimit = setTimeout(async () => {
-    const res = await library?.getSigner().provider.sendTransaction(cancelTx)
+    // const res = await library?.getSigner().provider.sendTransaction(disableTxHash)
+    const res = ''
     console.log(res)
   }, 5000)
 
   console.log('set timeout')
-  window.localStorage.setItem(
-    encryptedSwapTx.txHash,
-    JSON.stringify({ txOrderMsg: { mimcHash: encryptedSwapTx.mimcHash, txHash: encryptedSwapTx.txHash } })
-  )
+  // window.localStorage.setItem(
+  //   encryptedSwapTx.txHash,
+  //   JSON.stringify({ txOrderMsg: { mimcHash: encryptedSwapTx.mimcHash, txHash: encryptedSwapTx.txHash } })
+  // )
 
   const sendResponse = await fetch(`${process.env.REACT_APP_360_OPERATOR}/tx`, {
     method: 'POST',
@@ -434,15 +433,15 @@ async function sendEIP712Tx(
       const verifySigner = recoverAddress(msgHash, signature)
       const operatorAddress = await routerContract.operator()
 
+      console.log('verifySigner', verifySigner)
       console.log('operatorAddress from router', operatorAddress)
 
-      // TODO: change to operatorAddress
       if (
-        verifySigner === '0x01D5fb852a8107be2cad72dFf64020b22639e18B' &&
-        encryptedSwapTx.txHash === res.txOrderMsg.txHash
+        verifySigner === operatorAddress &&
+        encryptedSwapTx.txHash === res.txOrderMsg.txHash &&
+        encryptedSwapTx.mimcHash === res.txOrderMsg.mimcHash
       ) {
-        // if (verifySigner === operatorAddress && encryptedSwapTx.txId === res.txId) {
-        console.log('clear cancel tx')
+        console.log('clear disableTxHash tx')
 
         window.localStorage.setItem(res.txOrderMsg.txHash, JSON.stringify({ txOrderMsg: res.txOrderMsg, signature }))
 

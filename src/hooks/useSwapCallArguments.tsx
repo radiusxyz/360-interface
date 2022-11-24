@@ -59,8 +59,7 @@ export function useSwapCallArguments(
 
     const amountIn = JSBI.toNumber(trade.inputAmount.numerator)
     const amountOut = 0
-    // TODO: get dynamic deadline
-    const deadlineNumber = 1953105128
+    const deadlineNumber = Math.floor(Date.now() / 1000 + 60 * 30)
 
     const routePath = v2trade.routes as unknown as Omit<IRoute<Currency, Currency, Pair | Pool>, 'path'> &
       { path: TokenWithId[] }[]

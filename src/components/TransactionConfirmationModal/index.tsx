@@ -195,7 +195,7 @@ function TransactionSubmittedContent({
               </Text>
               <Text fontWeight={500} fontSize={14}>
                 <Trans>
-                  Round: {swapResponse.data.round}, Order: {swapResponse.data.order}
+                  Round: {swapResponse.data.txOrderMsg.round}, Order: {swapResponse.data.txOrderMsg.order}
                 </Trans>
               </Text>
               <Text fontWeight={500} fontSize={14}>
@@ -377,7 +377,7 @@ function L2Content({
                 <>
                   <Text fontWeight={500} fontSize={14} marginTop={20}>
                     <Trans>
-                      Round: {swapResponse.data.round}, Order: {swapResponse.data.order}
+                      Round: {swapResponse.data.txOrderMsg.round}, Order: {swapResponse.data.txOrderMsg.order}
                     </Trans>
                   </Text>
                   <Text fontWeight={400} fontSize={14} color={'#565A69'} marginTop={10}>
@@ -389,7 +389,7 @@ function L2Content({
                 <>
                   <Text fontWeight={500} fontSize={14} marginTop={20}>
                     <Trans>
-                      Round: {swapResponse.data.round}, Order: {swapResponse.data.order}
+                      Round: {swapResponse.data.txOrderMsg.round}, Order: {swapResponse.data.txOrderMsg.order}
                     </Trans>
                   </Text>
                   <Text fontWeight={400} fontSize={14} color={'#565A69'} marginTop={10}>

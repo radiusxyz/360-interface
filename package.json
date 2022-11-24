@@ -175,7 +175,7 @@
     "@fontsource/inter": "^4.5.1",
     "@popperjs/core": "^2.4.4",
     "@radiusxyz/tex-contracts": "^0.0.4",
-    "@radiusxyz/tex-contracts-migration": "^0.0.20",
+    "@radiusxyz/tex-contracts-migration": "^0.0.24",
     "@ramonak/react-progress-bar": "^4.4.0",
     "@reduxjs/toolkit": "^1.6.1",
     "@uniswap/redux-multicall": "^1.1.1",

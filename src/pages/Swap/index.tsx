@@ -417,7 +417,7 @@ export default function Swap({ history }: RouteComponentProps) {
         setTimeout(() => {
           const getTxIdPolling = setInterval(async () => {
             const roundResponse = await fetch(
-              `${process.env.REACT_APP_360_OPERATOR}/tx?chainId=${chainId}&routerAddress=${contractsAddress.router}&round=${res.data.round}`
+              `${process.env.REACT_APP_360_OPERATOR}/tx?chainId=${chainId}&routerAddress=${contractsAddress.router}&round=${res.data.txOrderMsg.round}`
             )
             console.log('roundResponse', roundResponse)
             if (roundResponse.ok) {
@@ -434,7 +434,7 @@ export default function Swap({ history }: RouteComponentProps) {
                   //   currXor = JSBI.bitwiseXor(currXor, JSBI.BigInt(txIdList[i]))
                   // }
 
-                  // if (txIdList[json.order] !== res.data.txId || currXor !== JSBI.BigInt(json.proof)) {
+                  // if (txIdList[json.order] !== res.txOrderMsg.txHash || currXor !== JSBI.BigInt(json.proofHash)) {
                   //   // TODO: go to challenge
                   //   console.log('there is problem. try challenge?')
                   // }
@@ -719,7 +719,7 @@ export default function Swap({ history }: RouteComponentProps) {
                           {approvalState === ApprovalState.APPROVED || signatureState === UseERC20PermitState.SIGNED ? (
                             <Trans>You can now trade {currencies[Field.INPUT]?.symbol}</Trans>
                           ) : (
-                            <Trans>Allow the Uniswap Protocol to use your {currencies[Field.INPUT]?.symbol}</Trans>
+                            <Trans>Allow the 360° Protocol to use your {currencies[Field.INPUT]?.symbol}</Trans>
                           )}
                         </span>
                         {approvalState === ApprovalState.PENDING ? (

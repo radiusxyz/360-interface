@@ -23,7 +23,7 @@ export const CLAIM_TYPE = [
   { name: 'order', type: 'uint256' },
   { name: 'mimcHash', type: 'bytes32' },
   { name: 'txHash', type: 'bytes32' },
-  { name: 'proof', type: 'bytes32' },
+  { name: 'proofHash', type: 'bytes32' },
 ]
 
 export const domain = (chainId: number) => {
