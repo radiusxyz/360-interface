@@ -54,7 +54,7 @@ export interface TxInfo {
   path: string[] // length MUST be 6 -> for compatibility with rust-wasm
 }
 
-const MAXIMUM_PATH_LENGTH = 6
+const MAXIMUM_PATH_LENGTH = 3
 
 interface EncryptedSwapTx {
   txOwner: string
@@ -187,6 +187,10 @@ export default function useSendSwapTransaction(
           deadline,
         }
 
+        if (path.length > 3) {
+          console.error('Cannot encrypt path which length is over 3')
+        }
+
         const pathToHash: string[] = new Array(MAXIMUM_PATH_LENGTH)
 
         for (let i = 0; i < MAXIMUM_PATH_LENGTH; i++) {
@@ -303,9 +307,6 @@ export default function useSendSwapTransaction(
 
         const encryptData = await poseidonEncryptWithTxHash(
           txInfoToHash,
-          encryptionParam,
-          encryptionProverKey,
-          encryptionVerifierData,
           vdfData.s2_string,
           vdfData.s2_field_hex,
           vdfData.commitment_hex,
