@@ -74,6 +74,7 @@ import { TransactionType } from '../../state/transactions/types'
 import { useExpertModeManager } from '../../state/user/hooks'
 import { LinkStyledButton, ThemedText } from '../../theme'
 import { computeFiatValuePriceImpact } from '../../utils/computeFiatValuePriceImpact'
+import { db } from '../../utils/db'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { warningSeverity } from '../../utils/prices'
 import { supportedChainId } from '../../utils/supportedChainId'
@@ -85,6 +86,23 @@ const AlertWrapper = styled.div`
 `
 
 export default function Swap({ history }: RouteComponentProps) {
+  const dbTest = async () => {
+    await db.pendingTxs.add({
+      round: 3,
+      order: 4,
+      mimcHash: 'mimcHash',
+      txHash: 'txHash',
+      proofHash: 'proofHash',
+      signature: { r: 'r', s: 's', v: 27 },
+    })
+  }
+
+  const showDB = async () => {
+    const keys = await db.pendingTxs.toCollection().keys()
+    const got = await db.pendingTxs.get(keys[0])
+    console.log(got)
+  }
+
   const { account, chainId } = useActiveWeb3React()
   const loadedUrlParams = useDefaultsFromURLSearch()
 
@@ -413,6 +431,9 @@ export default function Swap({ history }: RouteComponentProps) {
             'MH',
           ].join('/'),
         })
+
+        // TODO: add transaction to db and tracking execute result.
+        // TODO: if tx successed, remove tx and add result to db for history
 
         setTimeout(() => {
           const getTxIdPolling = setInterval(async () => {
@@ -818,6 +839,10 @@ export default function Swap({ history }: RouteComponentProps) {
               )}
               {isExpertMode && swapErrorMessage ? <SwapCallbackError error={swapErrorMessage} /> : null}
             </div>
+            {/* <div>
+              <button onClick={() => dbTest()}>add</button>
+              <button onClick={() => showDB()}>get</button>
+            </div> */}
           </AutoColumn>
         </Wrapper>
       </AppBody>

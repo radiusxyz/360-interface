@@ -9325,6 +9325,16 @@ detect-port-alt@1.1.6:
     address "^1.0.1"
     debug "^2.6.0"
 
+dexie-react-hooks@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/dexie-react-hooks/-/dexie-react-hooks-1.1.1.tgz#ff405cc89e5d899ddbac5e40d593f83f9a74106a"
+  integrity sha512-Cam5JP6PxHN564RvWEoe8cqLhosW0O4CAZ9XEVYeGHJBa6KEJlOpd9CUpV3kmU9dm2MrW97/lk7qkf1xpij7gA==
+
+dexie@^3.2.2:
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/dexie/-/dexie-3.2.2.tgz#fa6f2a3c0d6ed0766f8d97a03720056f88fe0e01"
+  integrity sha512-q5dC3HPmir2DERlX+toCBbHQXW5MsyrFqPFcovkH9N2S/UW/H3H5AWAB6iEOExeraAu+j+zRDG+zg/D7YhH0qg==
+
 diff-sequences@^25.2.6:
   version "25.2.6"
   resolved "https://registry.npmjs.org/diff-sequences/-/diff-sequences-25.2.6.tgz"
@@ -19565,10 +19575,10 @@ wasm-dce@^1.0.0:
     babylon "^7.0.0-beta.39"
     webassembly-interpreter "0.0.30"
 
-wasm-encryptor-zkp@^0.1.19:
-  version "0.1.19"
-  resolved "https://registry.yarnpkg.com/wasm-encryptor-zkp/-/wasm-encryptor-zkp-0.1.19.tgz#2828be49e2125f91e2a60cbf720892cbae7470d8"
-  integrity sha512-C3u0/MvncytY+gql07PF617mtDd/E1+5K8FpCrZ2t9+u382KEDmqXBkOCldaaDBflwmXow8W9fQnbpMpPoQtDQ==
+wasm-encryptor-zkp@^0.1.22:
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/wasm-encryptor-zkp/-/wasm-encryptor-zkp-0.1.22.tgz#73099c4de762d9647f07406153afaef7d8259522"
+  integrity sha512-NZ0OyQe5eAQCkseIAbp/zBDPU1Ut1vPWgXTsOTvjhAyIZxy1tL9PDNJw15EtPBY366cFmhCta/3Q0prDzC2CXQ==
 
 wasm-loader@^1.3.0:
   version "1.3.0"

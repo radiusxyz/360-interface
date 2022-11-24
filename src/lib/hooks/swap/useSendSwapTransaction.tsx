@@ -35,6 +35,7 @@ import { poseidonEncryptWithTxHash } from 'wasm/encrypt'
 import { getVdfProof } from 'wasm/vdf'
 
 import { useRecorderContract, useV2RouterContract } from '../../../hooks/useContract'
+import { db } from '../../../utils/db'
 
 type AnyTrade =
   | V2Trade<Currency, Currency, TradeType>
@@ -443,7 +444,8 @@ async function sendEIP712Tx(
       ) {
         console.log('clear disableTxHash tx')
 
-        window.localStorage.setItem(res.txOrderMsg.txHash, JSON.stringify({ txOrderMsg: res.txOrderMsg, signature }))
+        // window.localStorage.setItem(res.txOrderMsg.txHash, JSON.stringify({ txOrderMsg: res.txOrderMsg, signature }))
+        await db.pendingTxs.add({ ...res.txOrderMsg, signature })
 
         clearTimeout(timeLimit)
       }
