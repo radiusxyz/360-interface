@@ -31,8 +31,8 @@ import {
   VdfParam,
 } from 'state/parameters/reducer'
 import { swapErrorToUserReadableMessage } from 'utils/swapErrorToUserReadableMessage'
-import { poseidonEncryptWithTxHash } from 'wasm/encrypt'
-import { getVdfProof } from 'wasm/vdf'
+import { poseidonEncryptWithTxHash } from 'wasm/encryptor'
+import { getVdfProof } from 'wasm/timelockPuzzle'
 
 import { useRecorderContract, useV2RouterContract } from '../../../hooks/useContract'
 

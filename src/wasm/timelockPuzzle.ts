@@ -13,7 +13,7 @@ interface VdfResponse {
 }
 
 export async function getVdfProof(vdfParam: VdfParam, vdfSnarkParam: string): Promise<VdfResponse> {
-  const vdf = await import('wasm-vdf-zkp')
+  const vdf = await import('wasm-timelock-puzzle-zkp')
   const data = await vdf
     .get_vdf_proof(vdfParam, vdfSnarkParam)
     .then((res) => {
