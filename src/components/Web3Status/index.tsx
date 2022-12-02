@@ -132,6 +132,7 @@ function Sock() {
 }
 
 function WrappedStatusIcon({ connector }: { connector: AbstractConnector | Connector }) {
+  return <> </>
   return (
     <IconWrapper size={16}>
       <StatusIcon connector={connector} />

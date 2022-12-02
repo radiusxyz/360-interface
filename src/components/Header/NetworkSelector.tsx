@@ -300,7 +300,7 @@ export default function NetworkSelector() {
       <SelectorControls interactive>
         <SelectorLogo interactive src={info.logoUrl} />
         <SelectorLabel>{info.label}</SelectorLabel>
-        <StyledChevronDown />
+        {/* <StyledChevronDown /> */}
       </SelectorControls>
       {open && (
         <FlyoutMenu>

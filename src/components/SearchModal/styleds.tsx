@@ -40,20 +40,25 @@ export const SearchInput = styled.input`
   padding: 16px;
   align-items: center;
   width: 100%;
+  height: 50px;
   white-space: nowrap;
-  background: none;
+  background: #1b1d26;
   border: none;
   outline: none;
-  border-radius: 20px;
+  border-radius: 74px;
   color: ${({ theme }) => theme.text1};
   border-style: solid;
   border: 1px solid ${({ theme }) => theme.bg3};
   -webkit-appearance: none;
 
-  font-size: 18px;
+  font-size: 14px;
 
   ::placeholder {
-    color: ${({ theme }) => theme.text3};
+    background-image: url(http://www.levenmetwater.nl/static/global/images/icon-search.png);
+    color: #5b78b4; /*${({ theme }) => theme.text3};*/
+    background-color: #1b1d26;
+    font-size: 14;
+    font-weight: 400;
   }
   transition: border 100ms;
   :focus {

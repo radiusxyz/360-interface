@@ -54,9 +54,9 @@ export default function RadialGradientByChainUpdater(): null {
       case SupportedChainId.POLYGON_MUMBAI:
         setBackground(backgroundResetStyles)
         const polygonLightGradient =
-          'radial-gradient(153.32% 100% at 47.26% 0%, rgba(130, 71, 229, 0.0864) 0%, rgba(0, 41, 255, 0.06) 48.19%, rgba(0, 41, 255, 0.012) 100%), #FFFFFF'
+          'radial-gradient(153.32% 100% at 47.26% 0%, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0)  100%), #FFFFFF'
         const polygonDarkGradient =
-          'radial-gradient(150.6% 98.22% at 48.06% 0%, rgba(130, 71, 229, 0.6) 0%, rgba(200, 168, 255, 0) 100%), #1F2128'
+          'radial-gradient(150.6% 98.22% at 48.06% 0%, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 100%), #090909'
         backgroundRadialGradientElement.style.background = darkMode ? polygonDarkGradient : polygonLightGradient
         backgroundRadialGradientElement.style.backgroundBlendMode = darkMode ? 'overlay,normal' : 'multiply,normal'
         break

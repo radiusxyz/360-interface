@@ -12,13 +12,14 @@ import Polling from '../components/Header/Polling'
 import Popups from '../components/Popups'
 import Web3ReactManager from '../components/Web3ReactManager'
 import DarkModeQueryParamReader from '../theme/DarkModeQueryParamReader'
+import Footer from './Footer'
 import Swap from './Swap'
 import { RedirectPathToSwapOnly, RedirectToSwap } from './Swap/redirects'
 
 const AppWrapper = styled.div`
   display: flex;
   flex-flow: column;
-  align-items: flex-start;
+  align-items: center;
 `
 
 const BodyWrapper = styled.div`
@@ -71,6 +72,7 @@ export default function App() {
               </Switch>
             </Suspense>
             <Marginer />
+            <Footer />
           </BodyWrapper>
         </AppWrapper>
       </Web3ReactManager>
