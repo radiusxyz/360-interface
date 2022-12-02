@@ -13,28 +13,14 @@ import { SwapCall } from 'hooks/useSwapCallArguments'
 import localForage from 'localforage'
 import { useMemo } from 'react'
 import { useAppDispatch } from 'state/hooks'
-import {
-  fetchEncryptionParam,
-  fetchEncryptionProverKey,
-  fetchEncryptionVerifierData,
-  fetchVdfParam,
-  fetchVdfSnarkParam,
-} from 'state/parameters/fetch'
-import {
-  ParameterState,
-  setEncryptionParam,
-  setEncryptionProverKey,
-  setEncryptionVerifierData,
-  setProgress,
-  setVdfParam,
-  setVdfSnarkParam,
-  VdfParam,
-} from 'state/parameters/reducer'
+import { fetchVdfParam, fetchVdfSnarkParam } from 'state/parameters/fetch'
+import { ParameterState, setProgress, setVdfParam, setVdfSnarkParam, VdfParam } from 'state/parameters/reducer'
 import { swapErrorToUserReadableMessage } from 'utils/swapErrorToUserReadableMessage'
 import { poseidonEncryptWithTxHash } from 'wasm/encryptor'
 import { getVdfProof } from 'wasm/timelockPuzzle'
 
 import { useRecorderContract, useV2RouterContract } from '../../../hooks/useContract'
+import { db } from '../../../utils/db'
 
 type AnyTrade =
   | V2Trade<Currency, Currency, TradeType>
@@ -134,9 +120,6 @@ export default function useSendSwapTransaction(
       callback: async function onSwap(): Promise<RadiusSwapResponse> {
         let vdfParam: VdfParam | null = await localForage.getItem('vdf_param')
         let vdfSnarkParam: string | null = await localForage.getItem('vdf_snark_param')
-        let encryptionParam: string | null = await localForage.getItem('encryption_param')
-        let encryptionProverKey: string | null = await localForage.getItem('encryption_prover_key')
-        let encryptionVerifierData: string | null = await localForage.getItem('encryption_verifier_data')
 
         // if save flag is false or getItem result is null
         if (!parameters.vdfParam || !vdfParam) {
@@ -148,24 +131,6 @@ export default function useSendSwapTransaction(
         if (!parameters.vdfSnarkParam || !vdfSnarkParam) {
           vdfSnarkParam = await fetchVdfSnarkParam((newParam: boolean) => {
             dispatch(setVdfSnarkParam({ newParam }))
-          })
-        }
-
-        if (!parameters.encryptionParam || !encryptionParam) {
-          encryptionParam = await fetchEncryptionParam((newParam: boolean) => {
-            dispatch(setEncryptionParam({ newParam }))
-          })
-        }
-
-        if (!parameters.encryptionProverKey || !encryptionProverKey) {
-          encryptionProverKey = await fetchEncryptionProverKey((newParam: boolean) => {
-            dispatch(setEncryptionProverKey({ newParam }))
-          })
-        }
-
-        if (!parameters.encryptionVerifierData || !encryptionVerifierData) {
-          encryptionVerifierData = await fetchEncryptionVerifierData((newParam: boolean) => {
-            dispatch(setEncryptionVerifierData({ newParam }))
           })
         }
 
@@ -443,7 +408,8 @@ async function sendEIP712Tx(
       ) {
         console.log('clear disableTxHash tx')
 
-        window.localStorage.setItem(res.txOrderMsg.txHash, JSON.stringify({ txOrderMsg: res.txOrderMsg, signature }))
+        // window.localStorage.setItem(res.txOrderMsg.txHash, JSON.stringify({ txOrderMsg: res.txOrderMsg, signature }))
+        await db.pendingTxs.add({ ...res.txOrderMsg, signature })
 
         clearTimeout(timeLimit)
       }

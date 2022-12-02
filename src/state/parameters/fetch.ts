@@ -26,36 +26,3 @@ export async function fetchVdfSnarkParam(callback: (res: boolean) => void): Prom
     return string
   })
 }
-
-export async function fetchEncryptionParam(callback: (res: boolean) => void): Promise<string> {
-  return await fetch('/parameters/encryption_zkp_parameter.txt', {
-    method: 'GET',
-  }).then(async (res) => {
-    const string = await res.text()
-    localForage.setItem('encryption_param', string)
-    callback(true)
-    return string
-  })
-}
-
-export async function fetchEncryptionProverKey(callback: (res: boolean) => void): Promise<string> {
-  return await fetch('/parameters/encryption_prover_key.txt', {
-    method: 'GET',
-  }).then(async (res) => {
-    const string = await res.text()
-    localForage.setItem('encryption_prover_key', string)
-    callback(true)
-    return string
-  })
-}
-
-export async function fetchEncryptionVerifierData(callback: (res: boolean) => void): Promise<string> {
-  return await fetch('/parameters/encryption_verifier_data.txt', {
-    method: 'GET',
-  }).then(async (res) => {
-    const string = await res.text()
-    localForage.setItem('encryption_verifier_data', string)
-    callback(true)
-    return string
-  })
-}
