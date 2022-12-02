@@ -4065,11 +4065,6 @@
   resolved "https://registry.npmjs.org/@protobufjs/utf8/-/utf8-1.1.0.tgz"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@radiusxyz/tex-contracts-migration@^0.0.24":
-  version "0.0.24"
-  resolved "https://npm.pkg.github.com/download/@radiusxyz/tex-contracts-migration/0.0.24/b614d8538c7c2da62a76aaf2a2bd718757b53a3d#b614d8538c7c2da62a76aaf2a2bd718757b53a3d"
-  integrity sha512-gocU8wKli23oNkdCZSXmLWbnXe8zaF5AZ0EAqZvCxcBkaRWTHuPoxlDL7TyplMt2HYiI6jDt9eVLRbBiu/fARw==
-
 "@radiusxyz/tex-contracts@^0.0.4":
   version "0.0.4"
   resolved "https://npm.pkg.github.com/download/@radiusxyz/tex-contracts/0.0.4/a7e281b3a17a92abdd19eae6ecbc0d9c0a85aff2#a7e281b3a17a92abdd19eae6ecbc0d9c0a85aff2"
@@ -19565,10 +19560,10 @@ wasm-dce@^1.0.0:
     babylon "^7.0.0-beta.39"
     webassembly-interpreter "0.0.30"
 
-wasm-encryptor-zkp@^0.1.19:
-  version "0.1.19"
-  resolved "https://registry.yarnpkg.com/wasm-encryptor-zkp/-/wasm-encryptor-zkp-0.1.19.tgz#2828be49e2125f91e2a60cbf720892cbae7470d8"
-  integrity sha512-C3u0/MvncytY+gql07PF617mtDd/E1+5K8FpCrZ2t9+u382KEDmqXBkOCldaaDBflwmXow8W9fQnbpMpPoQtDQ==
+wasm-encryptor-zkp@^0.1.22:
+  version "0.1.22"
+  resolved "https://registry.yarnpkg.com/wasm-encryptor-zkp/-/wasm-encryptor-zkp-0.1.22.tgz#73099c4de762d9647f07406153afaef7d8259522"
+  integrity sha512-NZ0OyQe5eAQCkseIAbp/zBDPU1Ut1vPWgXTsOTvjhAyIZxy1tL9PDNJw15EtPBY366cFmhCta/3Q0prDzC2CXQ==
 
 wasm-loader@^1.3.0:
   version "1.3.0"
@@ -19578,10 +19573,10 @@ wasm-loader@^1.3.0:
     loader-utils "^1.1.0"
     wasm-dce "^1.0.0"
 
-wasm-vdf-zkp@^0.1.2:
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/wasm-vdf-zkp/-/wasm-vdf-zkp-0.1.2.tgz#164a8cde1ec342ea627c87848f71e0806f6225fc"
-  integrity sha512-8qL7FumqomM2Y3ieKTr4vKgeurW5CqDCHQsF19qakGslXL7+FP7E6/6uDtLtpUWMmvCMZ65Xuqseyro8Wys5cg==
+wasm-timelock-puzzle-zkp@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/wasm-timelock-puzzle-zkp/-/wasm-timelock-puzzle-zkp-0.1.0.tgz#a9707264ccd7049e07980ecd934492a5c4811cba"
+  integrity sha512-Ls78wa9GVG8oh1Ghv6b0bpEin0Gr756aUnbx1ldO/85CXvKYbG2ZAg+cg9hRWeUHQ/5DX0yBBhewHHRAuofH/A==
 
 watchpack-chokidar2@^2.0.1:
   version "2.0.1"
