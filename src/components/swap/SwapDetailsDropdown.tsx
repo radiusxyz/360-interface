@@ -11,6 +11,7 @@ import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { darken } from 'polished'
 import { useState } from 'react'
 import { ChevronDown, Info } from 'react-feather'
+import { BsArrowLeftRight } from 'react-icons/bs'
 import { InterfaceTrade } from 'state/routing/types'
 import styled, { keyframes, useTheme } from 'styled-components/macro'
 import { HideSmall, ThemedText } from 'theme'
@@ -24,6 +25,13 @@ import TradePrice from './TradePrice'
 const Wrapper = styled(Row)`
   width: 100%;
   justify-content: center;
+`
+
+const StyledBsArrowLeftRight = styled(BsArrowLeftRight)`
+  height: 12px;
+  width: 12px;
+  stroke-width: 1;
+  color: ${({ theme }) => theme.text3};
 `
 
 const StyledInfoIcon = styled(Info)`
@@ -132,7 +140,12 @@ export default function SwapDetailsDropdown({
   return (
     <Wrapper>
       <AutoColumn gap={'8px'} style={{ width: '100%', marginBottom: '-8px' }}>
-        <StyledHeaderRow onClick={() => setShowDetails(!showDetails)} disabled={!trade} open={showDetails}>
+        <StyledHeaderRow
+          onClick={() => setShowDetails(!showDetails)}
+          disabled={!trade}
+          open={showDetails}
+          style={{ padding: '0px' }}
+        >
           <RowFixed style={{ position: 'relative' }}>
             {loading || syncing ? (
               <StyledPolling>
@@ -159,7 +172,19 @@ export default function SwapDetailsDropdown({
                   placement="bottom"
                   disableHover={showDetails}
                 >
-                  <StyledInfoIcon color={trade ? theme.text3 : theme.bg3} />
+                  <div
+                    style={{
+                      background: 'white',
+                      borderRadius: '10px',
+                      width: '20px',
+                      height: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <StyledBsArrowLeftRight color={trade ? theme.text3 : theme.bg3} />
+                  </div>
                 </MouseoverTooltipContent>
               </HideSmall>
             )}

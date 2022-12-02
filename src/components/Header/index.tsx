@@ -11,9 +11,7 @@ import { Text } from 'rebass'
 import { useNativeCurrencyBalances } from 'state/wallet/hooks'
 import styled from 'styled-components/macro'
 
-import Logo from '../../assets/images/radius_sun.png'
 import { ExternalLink } from '../../theme'
-import Menu from '../Menu'
 import Row from '../Row'
 import Web3Status from '../Web3Status'
 import HolidayOrnament from './HolidayOrnament'
@@ -21,15 +19,15 @@ import NetworkSelector from './NetworkSelector'
 
 const HeaderFrame = styled.div<{ showBackground: boolean }>`
   display: grid;
-  grid-template-columns: 120px 1fr 120px;
-  align-items: center;
-  justify-content: space-between;
+  grid-template-columns: 120px 1fr 1fr;
+  justify-content: between;
   align-items: center;
   flex-direction: row;
   width: 100%;
   top: 0;
   position: relative;
-  padding: 1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
   z-index: 21;
   position: relative;
   /* Background slide effect on scroll. */
@@ -41,7 +39,7 @@ const HeaderFrame = styled.div<{ showBackground: boolean }>`
   background-blend-mode: hard-light;
 
   ${({ theme }) => theme.mediaWidth.upToLarge`
-    grid-template-columns: 48px 1fr 1fr;
+    grid-template-columns: 148px 1fr 1fr;
   `};
 
   ${({ theme }) => theme.mediaWidth.upToMedium`
@@ -51,7 +49,7 @@ const HeaderFrame = styled.div<{ showBackground: boolean }>`
 
   ${({ theme }) => theme.mediaWidth.upToSmall`
     padding:  1rem;
-    grid-template-columns: 36px 1fr;
+    grid-template-columns: 136px 1fr;
   `};
 `
 
@@ -82,17 +80,15 @@ const HeaderElement = styled.div`
 
 const HeaderLinks = styled(Row)`
   justify-self: center;
-  background-color: ${({ theme }) => theme.bg0};
   width: fit-content;
   padding: 2px;
-  border-radius: 16px;
   display: grid;
   grid-auto-flow: column;
-  grid-gap: 10px;
+  grid-gap: 40px;
   overflow: auto;
   align-items: center;
   ${({ theme }) => theme.mediaWidth.upToLarge`
-    justify-self: start;  
+    justify-self: center;  
     `};
   ${({ theme }) => theme.mediaWidth.upToMedium`
     justify-self: center;
@@ -112,11 +108,12 @@ const HeaderLinks = styled(Row)`
   `};
 `
 
+//   background-color: ${({ theme, active }) => (!active ? theme.bg0 : theme.bg0)};
 const AccountElement = styled.div<{ active: boolean }>`
   display: flex;
   flex-direction: row;
   align-items: center;
-  background-color: ${({ theme, active }) => (!active ? theme.bg0 : theme.bg0)};
+  background-color: #15151e;
   border-radius: 16px;
   white-space: nowrap;
   width: 100%;
@@ -161,7 +158,8 @@ const Title = styled.a`
   align-items: center;
   pointer-events: auto;
   justify-self: flex-start;
-  margin-right: 12px;
+  text-decoration: none;
+  padding-right: 12px;
   ${({ theme }) => theme.mediaWidth.upToSmall`
     justify-self: center;
   `};
@@ -171,6 +169,7 @@ const Title = styled.a`
 `
 
 const Icon = styled.div`
+  padding-right: 12px;
   transition: transform 0.3s ease;
   :hover {
     transform: rotate(-5deg);
@@ -254,43 +253,48 @@ export default function Header() {
   } = CHAIN_INFO[chainId ? chainId : SupportedChainId.MAINNET]
 
   return (
-    <HeaderFrame showBackground={scrollY > 45}>
-      <Title href=".">
-        <Icon>
-          <img src={Logo} width="28px" height="100%" alt="logo" />
-          <HolidayOrnament />
-        </Icon>
-      </Title>
-      <HeaderLinks>
-        <StyledNavLink id={`swap-nav-link`} to={'/swap'}>
-          <Trans>Swap</Trans>
-        </StyledNavLink>
-        <StyledExternalLink id={`charts-nav-link`} href={infoLink}>
-          <Trans>Charts</Trans>
-          <sup>↗</sup>
-        </StyledExternalLink>
-      </HeaderLinks>
+    <div style={{ background: '#0E0E0E', display: 'flex', width: '100%', justifyContent: 'center' }}>
+      <HeaderFrame style={{ maxWidth: '1280px' }} showBackground={scrollY > 45}>
+        <Title href=".">
+          <Icon>
+            {/* <img src={Logo} width="28px" height="100%" alt="logo" /> */}
+            <HolidayOrnament />
+          </Icon>
+          <h2 style={{ color: '#ffffff', fontWeight: 'bolder' }}>360°</h2>
+        </Title>
+        <HeaderLinks>
+          <StyledNavLink id={`swap-nav-link`} to={'/swap'}>
+            <Trans>Swap</Trans>
+          </StyledNavLink>
+          <StyledExternalLink id={`charts-nav-link`} href={infoLink}>
+            <Trans>Docs</Trans>
+          </StyledExternalLink>
+          <StyledExternalLink id={`charts-nav-link`} href={infoLink}>
+            <Trans>About</Trans>
+          </StyledExternalLink>
+        </HeaderLinks>
 
-      <HeaderControls>
-        <HeaderElement>
-          <NetworkSelector />
-        </HeaderElement>
-        <HeaderElement>
-          <AccountElement active={!!account}>
-            {account && userEthBalance ? (
-              <BalanceText style={{ flexShrink: 0, userSelect: 'none' }} pl="0.75rem" pr="0.5rem" fontWeight={500}>
-                <Trans>
-                  {userEthBalance?.toSignificant(3)} {nativeCurrencySymbol}
-                </Trans>
-              </BalanceText>
-            ) : null}
-            <Web3Status />
-          </AccountElement>
-        </HeaderElement>
-        <HeaderElement>
-          <Menu />
-        </HeaderElement>
-      </HeaderControls>
-    </HeaderFrame>
+        <HeaderControls>
+          <HeaderElement>
+            <NetworkSelector />
+          </HeaderElement>
+          <HeaderElement>
+            <AccountElement active={!!account}>
+              {/*account && userEthBalance ? (
+                <BalanceText style={{ flexShrink: 0, userSelect: 'none' }} pl="0.75rem" pr="0.5rem" fontWeight={500}>
+                  <Trans>
+                    {userEthBalance?.toSignificant(3)} {nativeCurrencySymbol}
+                  </Trans>
+                </BalanceText>
+              ) : null*/}
+              <Web3Status />
+            </AccountElement>
+          </HeaderElement>
+          {/* <HeaderElement>
+            <Menu />
+          </HeaderElement> */}
+        </HeaderControls>
+      </HeaderFrame>
+    </div>
   )
 }

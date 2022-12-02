@@ -10,7 +10,6 @@ import useNativeCurrency from 'lib/hooks/useNativeCurrency'
 import { getTokenFilter } from 'lib/hooks/useTokenList/filtering'
 import { tokenComparator, useSortTokensByQuery } from 'lib/hooks/useTokenList/sorting'
 import { KeyboardEvent, RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Edit } from 'react-feather'
 import ReactGA from 'react-ga4'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import { FixedSizeList } from 'react-window'
@@ -19,10 +18,10 @@ import { useAllTokenBalances } from 'state/wallet/hooks'
 import styled from 'styled-components/macro'
 
 import { useAllTokens, useIsUserAddedToken, useSearchInactiveTokenLists, useToken } from '../../hooks/Tokens'
-import { ButtonText, CloseIcon, IconWrapper, ThemedText } from '../../theme'
+import { CloseIcon, ThemedText } from '../../theme'
 import { isAddress } from '../../utils'
 import Column from '../Column'
-import Row, { RowBetween, RowFixed } from '../Row'
+import Row, { RowBetween } from '../Row'
 import CommonBases from './CommonBases'
 import CurrencyList from './CurrencyList'
 import ImportRow from './ImportRow'
@@ -32,6 +31,7 @@ const ContentWrapper = styled(Column)`
   width: 100%;
   flex: 1 1;
   position: relative;
+  background-color: #272b3e; /*linear-gradient(180deg, #525e8d 0%, #3c3e64 48.96%, #2b3258 100%);*/
 `
 
 const Footer = styled.div`
@@ -175,14 +175,25 @@ export function CurrencySearch({
 
   return (
     <ContentWrapper>
-      <PaddedColumn gap="16px">
-        <RowBetween>
-          <Text fontWeight={500} fontSize={16}>
-            <Trans>Select a token</Trans>
-          </Text>
+      <PaddedColumn
+        gap="16px"
+        style={{
+          background: 'linear-gradient(0deg, #7079be33 0%, #636aae33 100%)',
+          alignItems: 'center',
+          width: '100%',
+        }}
+        justify="center"
+      >
+        <RowBetween style={{ width: '100%', display: 'flex', maxWidth: '440px' }} justify="stretch">
+          <div style={{ display: 'absolute', textAlign: 'center', width: '100%' }}>
+            <Text fontWeight={500} fontSize={20}>
+              <Trans>Select a token</Trans>
+            </Text>
+          </div>
+          <div>&nbsp;</div>
           <CloseIcon onClick={onDismiss} />
         </RowBetween>
-        <Row>
+        <Row style={{ maxWidth: '440px' }} justify="stretch">
           <SearchInput
             type="text"
             id="token-search-input"
@@ -229,7 +240,7 @@ export function CurrencySearch({
           </ThemedText.Main>
         </Column>
       )}
-      <Footer>
+      {/* <Footer>
         <Row justify="center">
           <ButtonText onClick={showManageView} color={theme.primary1} className="list-token-manage-button">
             <RowFixed>
@@ -242,7 +253,7 @@ export function CurrencySearch({
             </RowFixed>
           </ButtonText>
         </Row>
-      </Footer>
+      </Footer> */}
     </ContentWrapper>
   )
 }
