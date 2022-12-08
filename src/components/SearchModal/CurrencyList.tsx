@@ -31,7 +31,7 @@ function currencyKey(currency: Currency): string {
 const StyledBalanceText = styled(Text)`
   white-space: nowrap;
   overflow: hidden;
-  max-width: 7rem;
+  max-width: 10rem;
   font-size: 20px;
   font-weight: 600;
   text-overflow: ellipsis;
@@ -131,9 +131,9 @@ function CurrencyRow({
       onClick={() => (isSelected ? null : onSelect())}
       disabled={isSelected}
       selected={otherSelected}
-      maxWidth="440px"
+      maxWidth="560px"
     >
-      <CurrencyLogo currency={currency} size={'40px'} />
+      <CurrencyLogo currency={currency} size={'40px'} style={{ marginLeft: '20px' }} />
       <Column>
         <Text title={currency.name} fontWeight={600} fontSize={20}>
           {currency.symbol}
@@ -148,7 +148,7 @@ function CurrencyRow({
       </Column>
       <TokenTags currency={currency} />
       {showCurrencyAmount && (
-        <RowFixed style={{ justifySelf: 'flex-end' }}>
+        <RowFixed style={{ justifySelf: 'flex-end', marginRight: '20px' }}>
           {balance ? <Balance balance={balance} /> : account ? <Loader /> : null}
         </RowFixed>
       )}
@@ -274,7 +274,7 @@ export default function CurrencyList({
   return (
     <div
       style={{
-        maxWidth: '440px',
+        maxWidth: '560px',
         width: '100%',
         display: 'flex',
         alignItems: 'center',

@@ -24,6 +24,7 @@ const StyledPolling = styled.div<{ warning: boolean }>`
   right: 0;
   bottom: 0;
   padding: 1rem;
+  margin-bottom: 32px;
   color: ${({ theme, warning }) => (warning ? theme.yellow3 : theme.green1)};
   transition: 250ms ease color;
 
@@ -140,6 +141,7 @@ export default function Polling() {
     <>
       <RowFixed>
         <StyledPolling onMouseEnter={() => setIsHover(true)} onMouseLeave={() => setIsHover(false)} warning={warning}>
+          <StyledPollingDot warning={warning}>{isMounting && <Spinner warning={warning} />} </StyledPollingDot>
           <ExternalLink href={'https://etherscan.io/gastracker'}>
             {priceGwei ? (
               <RowFixed style={{ marginRight: '8px' }}>
@@ -172,7 +174,6 @@ export default function Polling() {
               </MouseoverTooltip>
             </ExternalLink>
           </StyledPollingNumber>
-          <StyledPollingDot warning={warning}>{isMounting && <Spinner warning={warning} />}</StyledPollingDot>{' '}
         </StyledPolling>
         {warning && <ChainConnectivityWarning />}
       </RowFixed>

@@ -1,4 +1,5 @@
 import { ReactNode, useCallback, useState } from 'react'
+import { Info } from 'react-feather'
 import styled from 'styled-components/macro'
 
 import Tooltip from '../Tooltip'
@@ -58,9 +59,18 @@ export default function QuestionHelper({ text }: { text: ReactNode; size?: numbe
   return (
     <span style={{ marginLeft: 4, display: 'flex', alignItems: 'center' }}>
       <Tooltip text={text} show={show}>
-        <QuestionWrapper onClick={open} onMouseEnter={open} onMouseLeave={close}>
+        <Info
+          onClick={open}
+          onMouseEnter={open}
+          onMouseLeave={close}
+          color={'#ffffff'}
+          stroke={'1'}
+          height={16}
+          width={16}
+        />
+        {/* <QuestionWrapper onClick={open} onMouseEnter={open} onMouseLeave={close}>
           <QuestionMark>?</QuestionMark>
-        </QuestionWrapper>
+        </QuestionWrapper> */}
       </Tooltip>
     </span>
   )
@@ -75,9 +85,11 @@ export function LightQuestionHelper({ text }: { text: string }) {
   return (
     <span style={{ marginLeft: 4 }}>
       <Tooltip text={text} show={show}>
+        <Info onClick={open} onMouseEnter={open} onMouseLeave={close} color={'#ffffff'} height={20} width={20} />
+        {/* 
         <LightQuestionWrapper onClick={open} onMouseEnter={open} onMouseLeave={close}>
           <QuestionMark>?</QuestionMark>
-        </LightQuestionWrapper>
+        </LightQuestionWrapper> */}
       </Tooltip>
     </span>
   )

@@ -33,6 +33,7 @@ export interface TxInfo {
   amount_in: string
   amount_out: string
   to: string
+  available_from: string
   deadline: string
   nonce: string
   path: string[] // length MUST be 6 -> for compatibility with rust-wasm
@@ -48,6 +49,7 @@ interface EncryptedSwapTx {
   path: Path
   to: string
   nonce: number
+  availableFrom: number
   deadline: number
   txHash: string
   mimcHash: string
@@ -135,7 +137,7 @@ export default function useSendSwapTransaction(
         }
 
         const resolvedCalls = await swapCalls
-        const { address, deadline, amountIn, amountOut, path, idPath } = resolvedCalls[0]
+        const { address, availableFrom, deadline, amountIn, amountOut, path, idPath } = resolvedCalls[0]
 
         const signer = library.getSigner()
         const signAddress = await signer.getAddress()
@@ -144,7 +146,7 @@ export default function useSendSwapTransaction(
         const _txNonce = await routerContract.nonces(signAddress)
         const txNonce = BigNumber.from(_txNonce).toNumber()
 
-        console.log('nonce from contract', txNonce)
+        // console.log('nonce from contract', txNonce)
 
         const signMessage = {
           txOwner: signAddress,
@@ -154,6 +156,7 @@ export default function useSendSwapTransaction(
           path,
           to: signAddress,
           nonce: txNonce,
+          availableFrom,
           deadline,
         }
 
@@ -173,40 +176,23 @@ export default function useSendSwapTransaction(
           amount_in: `${amountIn}`,
           amount_out: `${amountOut}`,
           to: signAddress.split('x')[1],
+          available_from: `${availableFrom}`,
           deadline: `${deadline}`,
           nonce: `${txNonce}`,
           path: pathToHash,
         }
 
-        console.log('txInfoToHash: ', txInfoToHash)
+        // console.log('txInfoToHash: ', txInfoToHash)
 
-        const typedData = JSON.stringify({
-          types: {
-            EIP712Domain: DOMAIN_TYPE,
-            Swap: SWAP_TYPE,
-          },
-          primaryType: 'Swap',
-          domain: domain(chainId),
-          message: signMessage,
-        })
+        // const params = [txHash]
+        // const action = 'disableTxHash'
+        // const unsignedTx = await recorderContract.populateTransaction[action](...params)
+        // console.log('unsignedTx', unsignedTx)
 
-        dispatch(setProgress({ newParam: 1 }))
+        // const nonce = await signer.provider.getTransactionCount(signAddress)
 
-        const sig = await signWithEIP712(library, signAddress, typedData)
-
-        console.log(sig)
-
-        const txHash = typedDataEncoder.hash(domain(chainId), { Swap: SWAP_TYPE }, signMessage)
-
-        const params = [txHash]
-        const action = 'disableTxHash'
-        const unsignedTx = await recorderContract.populateTransaction[action](...params)
-        console.log('unsignedTx', unsignedTx)
-
-        const nonce = await signer.provider.getTransactionCount(signAddress)
-
-        const feeData = await signer.getFeeData()
-        const gasLimit = await routerContract.estimateGas.disableTxHash(...params)
+        // const feeData = await signer.getFeeData()
+        // const gasLimit = await routerContract.estimateGas.disableTxHash(...params)
         // unsignedTx.gasLimit = gasLimit.mul(BigNumber.from(1.1))
         // unsignedTx.maxFeePerGas = feeData.maxFeePerGas as BigNumber
         // unsignedTx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas as BigNumber
@@ -253,15 +239,15 @@ export default function useSendSwapTransaction(
         // const disableTxHash = serialize(tx, sign)
 
         // console.log('disableTxHash', disableTxHash)
-        console.log(signer, signAddress)
+        // console.log(signer, signAddress)
 
-        dispatch(setProgress({ newParam: 2 }))
+        dispatch(setProgress({ newParam: 1 }))
 
         const vdfData = await getVdfProof(vdfParam, vdfSnarkParam)
 
-        console.log(vdfData)
+        // console.log(vdfData)
 
-        dispatch(setProgress({ newParam: 3 }))
+        dispatch(setProgress({ newParam: 2 }))
 
         const encryptData = await poseidonEncryptWithTxHash(
           txInfoToHash,
@@ -271,9 +257,9 @@ export default function useSendSwapTransaction(
           idPath
         )
 
-        console.log(encryptData)
+        // console.log(encryptData)
 
-        dispatch(setProgress({ newParam: 4 }))
+        dispatch(setProgress({ newParam: 3 }))
 
         const encryptedPath = {
           message_length: encryptData.message_length,
@@ -289,6 +275,22 @@ export default function useSendSwapTransaction(
           encryption_proof: encryptData.proof,
         }
 
+        const typedData = JSON.stringify({
+          types: {
+            EIP712Domain: DOMAIN_TYPE,
+            Swap: SWAP_TYPE,
+          },
+          primaryType: 'Swap',
+          domain: domain(chainId),
+          message: signMessage,
+        })
+
+        const sig = await signWithEIP712(library, signAddress, typedData)
+
+        // console.log(sig)
+
+        const txHash = typedDataEncoder.hash(domain(chainId), { Swap: SWAP_TYPE }, signMessage)
+
         const encryptedSwapTx: EncryptedSwapTx = {
           txOwner: signAddress,
           functionSelector: swapExactTokensForTokens,
@@ -297,23 +299,17 @@ export default function useSendSwapTransaction(
           path: encryptedPath,
           to: signAddress,
           nonce: txNonce,
+          availableFrom,
           deadline,
           txHash,
           mimcHash: '0x' + encryptData.tx_id,
         }
 
-        const sendResponse = await sendEIP712Tx(
-          chainId,
-          routerContract,
-          encryptedSwapTx,
-          sig,
-          '' /*disableTxHash*/,
-          library
-        )
+        const sendResponse = await sendEIP712Tx(chainId, routerContract, encryptedSwapTx, sig, library)
 
-        dispatch(setProgress({ newParam: 5 }))
+        dispatch(setProgress({ newParam: 4 }))
 
-        console.log('sendResponse', sendResponse)
+        // console.log('sendResponse', sendResponse)
 
         const finalResponse: RadiusSwapResponse = {
           data: sendResponse.data,
@@ -325,12 +321,22 @@ export default function useSendSwapTransaction(
   }, [trade, library, account, chainId, parameters, swapCalls, sigHandler, dispatch])
 }
 
+async function fetchWithTimeout(resource: any, options: any, timeout = 1000) {
+  const controller = new AbortController()
+  const id = setTimeout(() => controller.abort(), timeout)
+  const response = await fetch(resource, {
+    ...options,
+    signal: controller.signal,
+  })
+  clearTimeout(id)
+  return response
+}
+
 async function signWithEIP712(library: JsonRpcProvider, signAddress: string, typedData: string): Promise<Signature> {
   const signer = library.getSigner()
   const sig = await signer.provider
     .send('eth_signTypedData_v4', [signAddress, typedData])
     .then((response) => {
-      console.log('signed', response)
       const sig = splitSignature(response)
       return sig
     })
@@ -354,38 +360,41 @@ async function sendEIP712Tx(
   routerContract: Contract,
   encryptedSwapTx: EncryptedSwapTx,
   signature: Signature,
-  disableTxHash: string,
   library: JsonRpcProvider | undefined
 ): Promise<RadiusSwapResponse> {
   const timeLimit = setTimeout(async () => {
     // const res = await library?.getSigner().provider.sendTransaction(disableTxHash)
     const res = ''
-    console.log(res)
+    // console.log(res)
   }, 5000)
 
-  console.log('set timeout')
+  // console.log('set timeout')
   // window.localStorage.setItem(
   //   encryptedSwapTx.txHash,
   //   JSON.stringify({ txOrderMsg: { mimcHash: encryptedSwapTx.mimcHash, txHash: encryptedSwapTx.txHash } })
   // )
 
-  const sendResponse = await fetch(`${process.env.REACT_APP_360_OPERATOR}/tx`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      chainId,
-      routerAddress: routerContract.address,
-      encryptedSwapTx,
-      signature: {
-        r: `${signature.r}`,
-        s: `${signature.s}`,
-        v: `${signature.v}`,
-      },
-    }),
-  })
+  const sendResponse = await fetchWithTimeout(
+    `${process.env.REACT_APP_360_OPERATOR}/tx`,
+    {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        chainId,
+        routerAddress: routerContract.address,
+        encryptedSwapTx,
+        signature: {
+          r: `${signature.r}`,
+          s: `${signature.s}`,
+          v: `${signature.v}`,
+        },
+      }),
+    },
+    2000
+  )
     .then(async (res) => res.json())
     .then(async (res) => {
-      console.log('jsoned response', res)
+      // console.log('jsoned response', res)
 
       const signature = {
         r: res.signature.r,
@@ -398,30 +407,41 @@ async function sendEIP712Tx(
       const verifySigner = recoverAddress(msgHash, signature)
       const operatorAddress = await routerContract.operator()
 
-      console.log('verifySigner', verifySigner)
-      console.log('operatorAddress from router', operatorAddress)
+      // console.log('verifySigner', verifySigner)
+      // console.log('operatorAddress from router', operatorAddress)
 
       if (
         verifySigner === operatorAddress &&
         encryptedSwapTx.txHash === res.txOrderMsg.txHash &&
         encryptedSwapTx.mimcHash === res.txOrderMsg.mimcHash
       ) {
-        console.log('clear disableTxHash tx')
+        // console.log('clear disableTxHash tx')
 
         // window.localStorage.setItem(res.txOrderMsg.txHash, JSON.stringify({ txOrderMsg: res.txOrderMsg, signature }))
         await db.pendingTxs.add({ ...res.txOrderMsg, signature })
 
         clearTimeout(timeLimit)
-      }
 
-      return {
-        data: res,
-        msg: '화이팅!!!!',
+        return {
+          data: res,
+          msg: "Successfully received tx's order and round",
+        }
+      } else {
+        return {
+          data: res,
+          msg: "Error: tx's order and round is invalid. let's cancel tx",
+        }
       }
     })
     .catch((error) => {
-      console.error(error)
-      throw new Error(`Send failed: ${swapErrorToUserReadableMessage(error)}`)
+      if (error.name === 'AbortError') {
+        throw new Error(
+          `Operator is not respond: ${swapErrorToUserReadableMessage({ ...error, message: 'Operator is not respond' })}`
+        )
+      } else {
+        console.error(error)
+        throw new Error(`Send failed: ${swapErrorToUserReadableMessage(error)}`)
+      }
     })
 
   return sendResponse

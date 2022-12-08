@@ -30,7 +30,8 @@ import AnimatedConfirmation from './AnimatedConfirmation'
 
 const Wrapper = styled.div`
   width: 100%;
-  padding: 1rem;
+  background: rgba(44, 47, 63);
+  padding: 35px;
 `
 const Section = styled(AutoColumn)<{ inline?: boolean }>`
   padding: ${({ inline }) => (inline ? '0' : '0')};
@@ -144,15 +145,13 @@ function TransactionSubmittedContent({
           <Text fontWeight={500} fontSize={20} textAlign="center">
             <Trans>
               {progress === 1
-                ? '1/5 wait for sign cancel tx'
+                ? '1/4 making vdf proof'
                 : progress === 2
-                ? '2/5 making vdf proof'
+                ? '2/4 encrypting'
                 : progress === 3
-                ? '3/5 encrypting'
+                ? '3/4 sending eip712 tx to operator'
                 : progress === 4
-                ? '4/5 sending eip712 tx to operator'
-                : progress === 5
-                ? '5/5 done'
+                ? '4/4 done'
                 : 'default'}
             </Trans>
           </Text>
@@ -256,11 +255,11 @@ export function ConfirmationModalContent({
   return (
     <Wrapper>
       <Section>
-        <RowBetween>
-          <Text fontWeight={500} fontSize={16}>
+        <RowBetween style={{ justifyContent: 'center' }}>
+          <Text fontWeight={600} fontSize={20}>
             {title}
           </Text>
-          <CloseIcon onClick={onDismiss} />
+          {/* <CloseIcon onClick={onDismiss} /> */}
         </RowBetween>
         {topContent()}
       </Section>
@@ -462,7 +461,7 @@ export default function TransactionConfirmationModal({
 
   // confirmation screen
   return (
-    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90}>
+    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={500}>
       {isL2 && swapResponse && (hash || attemptingTxn) ? (
         <L2Content
           swapResponse={swapResponse}
@@ -471,9 +470,12 @@ export default function TransactionConfirmationModal({
           onDismiss={onDismiss}
           pendingText={pendingText}
         />
-      ) : attemptingTxn ? (
-        <ConfirmationPendingContent onDismiss={onDismiss} pendingText={pendingText} />
-      ) : hash || showVdf ? (
+      ) : attemptingTxn ||
+        // ? (
+        //  <ConfirmationPendingContent onDismiss={onDismiss} pendingText={pendingText} />
+        // ) :
+        hash ||
+        showVdf ? (
         <TransactionSubmittedContent
           chainId={chainId}
           hash={hash}

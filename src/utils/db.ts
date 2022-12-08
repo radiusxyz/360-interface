@@ -1,13 +1,29 @@
 import Dexie, { Table } from 'dexie'
 
+export enum Status {
+  PENDING,
+  COMPLETED,
+  CANCELED,
+  REJECTED,
+  REIMBURSE_AVAILABLE,
+  REIMBURSED,
+}
+
 export interface PendingTx {
   id?: number
+  sendDate: number
   round: number
   order: number
+  tx: string
   mimcHash: string
   txHash: string
   proofHash: string
-  signature: { r: string; s: string; v: number }
+  operatorSignature: { r: string; s: string; v: number }
+}
+
+export interface TokenAmount {
+  token: string
+  amount: string
 }
 
 export interface TxHistory {
@@ -15,10 +31,10 @@ export interface TxHistory {
   round: number
   order: number
   txId: string
-  fromToken: string
-  toToken: string
-  fromAmount: number
-  toAmount: number
+  txDate: number
+  from: TokenAmount
+  to: TokenAmount
+  status: Status
 }
 
 export class MySubClassedDexie extends Dexie {
@@ -28,8 +44,8 @@ export class MySubClassedDexie extends Dexie {
   constructor() {
     super('ThreeSixty')
     this.version(1).stores({
-      pendingTxs: '++id, round, order, txHash',
-      txHistory: '++id, round, order, txId, fromToken, toToken',
+      pendingTxs: '++id, sendDate, round, txHash',
+      txHistory: '++id, txDate, round, txId, fromToken, toToken',
     })
   }
 }

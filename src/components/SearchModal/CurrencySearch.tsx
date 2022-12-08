@@ -193,7 +193,7 @@ export function CurrencySearch({
           <div>&nbsp;</div>
           <CloseIcon onClick={onDismiss} />
         </RowBetween>
-        <Row style={{ maxWidth: '440px' }} justify="stretch">
+        <Row style={{ maxWidth: '560px' }} justify="stretch">
           <SearchInput
             type="text"
             id="token-search-input"
