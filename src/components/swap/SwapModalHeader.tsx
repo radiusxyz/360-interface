@@ -1,7 +1,7 @@
 import { Trans } from '@lingui/macro'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
 import { useContext, useState } from 'react'
-import { AlertTriangle, ArrowDown } from 'react-feather'
+import { AlertTriangle, ArrowRight } from 'react-feather'
 import { Text } from 'rebass'
 import { InterfaceTrade } from 'state/routing/types'
 import styled, { ThemeContext } from 'styled-components/macro'
@@ -11,14 +11,12 @@ import { ThemedText } from '../../theme'
 import { isAddress, shortenAddress } from '../../utils'
 import { computeFiatValuePriceImpact } from '../../utils/computeFiatValuePriceImpact'
 import { ButtonPrimary } from '../Button'
-import { LightCard } from '../Card'
 import { AutoColumn } from '../Column'
 import { FiatValue } from '../CurrencyInputPanel/FiatValue'
 import CurrencyLogo from '../CurrencyLogo'
-import { RowBetween, RowFixed } from '../Row'
-import TradePrice from '../swap/TradePrice'
+import { AutoRow, RowBetween, RowFixed } from '../Row'
 import { AdvancedSwapDetails } from './AdvancedSwapDetails'
-import { SwapShowAcceptChanges, TruncatedText } from './styleds'
+import { SwapShowAcceptChanges } from './styleds'
 
 const ArrowWrapper = styled.div`
   padding: 4px;
@@ -58,66 +56,131 @@ export default function SwapModalHeader({
   const fiatValueInput = useUSDCValue(trade.inputAmount)
   const fiatValueOutput = useUSDCValue(trade.outputAmount)
 
+  console.log('raynear', trade.inputAmount.currency)
+
   return (
-    <AutoColumn gap={'4px'} style={{ marginTop: '1rem' }}>
-      <LightCard padding="0.75rem 1rem">
-        <AutoColumn gap={'8px'}>
-          <RowBetween align="center">
-            <RowFixed gap={'0px'}>
-              <TruncatedText
-                fontSize={24}
-                fontWeight={500}
-                color={showAcceptChanges && trade.tradeType === TradeType.EXACT_OUTPUT ? theme.primary1 : ''}
-              >
-                {trade.inputAmount.toSignificant(6)}
-              </TruncatedText>
-            </RowFixed>
-            <RowFixed gap={'0px'}>
-              <CurrencyLogo currency={trade.inputAmount.currency} size={'20px'} style={{ marginRight: '12px' }} />
-              <Text fontSize={20} fontWeight={500}>
-                {trade.inputAmount.currency.symbol}
-              </Text>
-            </RowFixed>
-          </RowBetween>
-          <RowBetween>
-            <FiatValue fiatValue={fiatValueInput} />
-          </RowBetween>
-        </AutoColumn>
-      </LightCard>
-      <ArrowWrapper>
-        <ArrowDown size="16" color={theme.text2} />
-      </ArrowWrapper>
-      <LightCard padding="0.75rem 1rem" style={{ marginBottom: '0.25rem' }}>
-        <AutoColumn gap={'8px'}>
-          <RowBetween align="flex-end">
-            <RowFixed gap={'0px'}>
-              <TruncatedText fontSize={24} fontWeight={500}>
-                {trade.outputAmount.toSignificant(6)}
-              </TruncatedText>
-            </RowFixed>
-            <RowFixed gap={'0px'}>
-              <CurrencyLogo currency={trade.outputAmount.currency} size={'20px'} style={{ marginRight: '12px' }} />
-              <Text fontSize={20} fontWeight={500}>
-                {trade.outputAmount.currency.symbol}
-              </Text>
-            </RowFixed>
-          </RowBetween>
-          <RowBetween>
-            <ThemedText.Body fontSize={14} color={theme.text3}>
-              <FiatValue
-                fiatValue={fiatValueOutput}
-                priceImpact={computeFiatValuePriceImpact(fiatValueInput, fiatValueOutput)}
-              />
-            </ThemedText.Body>
-          </RowBetween>
-        </AutoColumn>
-      </LightCard>
-      <RowBetween style={{ marginTop: '0.25rem', padding: '0 1rem' }}>
-        <TradePrice price={trade.executionPrice} showInverted={showInverted} setShowInverted={setShowInverted} />
-      </RowBetween>
-      <LightCard style={{ padding: '.75rem', marginTop: '0.5rem' }}>
+    <AutoRow
+      gap={'4px'}
+      style={{
+        marginTop: '16px',
+        marginBottom: '30px',
+        flexDirection: 'row',
+        width: '100%',
+        justifyContent: 'space-between',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-around',
+          padding: '32px 0px',
+          width: '100%',
+          alignItems: 'center',
+        }}
+      >
+        <div style={{ width: '40%' }}>
+          <div
+            style={{
+              display: 'flex',
+              width: '100%',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <CurrencyLogo
+              currency={trade.inputAmount.currency}
+              size={'60px'}
+              style={{ marginRight: '12px', marginBottom: '15px' }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                width: '100%',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <RowFixed gap={'0px'} style={{ marginRight: '5px' }}>
+                <Text
+                  fontSize={20}
+                  fontWeight={500}
+                  color={showAcceptChanges && trade.tradeType === TradeType.EXACT_OUTPUT ? theme.primary1 : ''}
+                >
+                  {trade.inputAmount.toSignificant(6)}
+                </Text>
+              </RowFixed>
+              <RowFixed gap={'0px'}>
+                <Text fontSize={20} fontWeight={500}>
+                  {trade.inputAmount.currency.symbol}
+                </Text>
+              </RowFixed>
+            </div>
+            {/* <RowBetween>
+              <FiatValue fiatValue={fiatValueInput} />
+            </RowBetween> */}
+          </div>
+        </div>
+        <ArrowRight size="36" color={'#ffffff'} />
+        <div style={{ width: '40%' }}>
+          <div
+            style={{
+              display: 'flex',
+              width: '100%',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <CurrencyLogo
+              currency={trade.outputAmount.currency}
+              size={'60px'}
+              style={{ marginRight: '12px', marginBottom: '15px' }}
+            />
+            <div
+              style={{
+                display: 'flex',
+                width: '100%',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <RowFixed gap={'0px'} style={{ marginRight: '5px' }}>
+                <Text fontSize={20} fontWeight={500}>
+                  {trade.outputAmount.toSignificant(6)}
+                </Text>
+              </RowFixed>
+              <RowFixed gap={'0px'}>
+                <Text fontSize={20} fontWeight={500}>
+                  {trade.outputAmount.currency.symbol}
+                </Text>
+              </RowFixed>
+            </div>
+            <RowBetween>
+              <ThemedText.Body fontSize={14} color={theme.text3}>
+                <FiatValue
+                  fiatValue={fiatValueOutput}
+                  priceImpact={computeFiatValuePriceImpact(fiatValueInput, fiatValueOutput)}
+                />
+              </ThemedText.Body>
+            </RowBetween>
+          </div>
+        </div>
+      </div>
+      <div
+        style={{
+          padding: '25px 35px',
+          marginTop: '0.5rem',
+          borderRadius: '4px',
+          background: 'rgba(31,32,42)',
+          width: '100%',
+        }}
+      >
         <AdvancedSwapDetails trade={trade} allowedSlippage={allowedSlippage} />
-      </LightCard>
+      </div>
       {showAcceptChanges ? (
         <SwapShowAcceptChanges justify="flex-start" gap={'0px'}>
           <RowBetween>
@@ -136,7 +199,7 @@ export default function SwapModalHeader({
           </RowBetween>
         </SwapShowAcceptChanges>
       ) : null}
-
+      {/* 
       <AutoColumn justify="flex-start" gap="sm" style={{ padding: '.75rem 1rem' }}>
         {trade.tradeType === TradeType.EXACT_INPUT ? (
           <ThemedText.Italic fontWeight={400} textAlign="left" style={{ width: '100%' }}>
@@ -159,7 +222,7 @@ export default function SwapModalHeader({
             </Trans>
           </ThemedText.Italic>
         )}
-      </AutoColumn>
+      </AutoColumn> */}
       {recipient !== null ? (
         <AutoColumn justify="flex-start" gap="sm" style={{ padding: '12px 0 0 0px' }}>
           <ThemedText.Main>
@@ -170,6 +233,9 @@ export default function SwapModalHeader({
           </ThemedText.Main>
         </AutoColumn>
       ) : null}
-    </AutoColumn>
+      {/* <RowBetween style={{ marginTop: '0.25rem', padding: '0 1rem' }}>
+        <TradePrice price={trade.executionPrice} showInverted={showInverted} setShowInverted={setShowInverted} />
+      </RowBetween> */}
+    </AutoRow>
   )
 }

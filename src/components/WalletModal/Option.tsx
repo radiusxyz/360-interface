@@ -4,12 +4,15 @@ import styled from 'styled-components/macro'
 import { ExternalLink } from '../../theme'
 
 const InfoCard = styled.button<{ active?: boolean }>`
-  background-color: ${({ theme, active }) => (active ? theme.bg3 : theme.bg2)};
-  padding: 1rem;
+  /*background-color: ${({ theme, active }) => (active ? theme.bg3 : theme.bg2)};*/
+  background: rgba(31, 32, 42);
+  padding: 8px;
+  margin: 10px;
   outline: none;
-  border: 1px solid;
-  border-radius: 12px;
-  width: 100% !important;
+  border: 0px solid;
+  border-radius: 2px;
+  width: 90% !important;
+  height: 80px;
   &:focus {
     box-shadow: 0 0 0 1px ${({ theme }) => theme.primary1};
   }
@@ -20,7 +23,7 @@ const OptionCard = styled(InfoCard as any)`
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
+  justify-content: start;
   margin-top: 2rem;
   padding: 1rem;
 `
@@ -64,7 +67,7 @@ const CircleWrapper = styled.div`
 const HeaderText = styled.div`
   ${({ theme }) => theme.flexRowNoWrap};
   color: ${(props) => (props.color === 'blue' ? ({ theme }) => theme.primary1 : ({ theme }) => theme.text1)};
-  font-size: 1rem;
+  font-size: 20px;
   font-weight: 500;
 `
 
@@ -113,24 +116,22 @@ export default function Option({
 }) {
   const content = (
     <OptionCardClickable id={id} onClick={onClick} clickable={clickable && !active} active={active}>
-      <OptionCardLeft>
-        <HeaderText color={color}>
-          {active ? (
-            <CircleWrapper>
-              <GreenCircle>
-                <div />
-              </GreenCircle>
-            </CircleWrapper>
-          ) : (
-            ''
-          )}
-          {header}
-        </HeaderText>
-        {subheader && <SubHeader>{subheader}</SubHeader>}
+      <OptionCardLeft style={{ display: 'flex', flexDirection: 'row', width: '28%' }}>
+        {active ? (
+          <CircleWrapper style={{ width: '20%' }}>
+            <GreenCircle>
+              <div />
+            </GreenCircle>
+          </CircleWrapper>
+        ) : (
+          <div style={{ width: '20%' }}></div>
+        )}
+        <IconWrapper size={size}>
+          <img src={icon} height={'46px'} width={'46px'} alt={'Icon'} />
+        </IconWrapper>
       </OptionCardLeft>
-      <IconWrapper size={size}>
-        <img src={icon} alt={'Icon'} />
-      </IconWrapper>
+      <HeaderText color={color}>{header}</HeaderText>
+      {subheader && <SubHeader>{subheader}</SubHeader>}
     </OptionCardClickable>
   )
   if (link) {

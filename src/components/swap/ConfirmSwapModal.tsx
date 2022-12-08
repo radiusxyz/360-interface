@@ -1,11 +1,17 @@
 import { Trans } from '@lingui/macro'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
+import { RowBetween, RowFixed } from 'components/Row'
+import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { RadiusSwapResponse } from 'lib/hooks/swap/useSendSwapTransaction'
-import { ReactNode, useCallback, useMemo } from 'react'
+import { ReactNode, useCallback, useMemo, useState } from 'react'
 import { InterfaceTrade } from 'state/routing/types'
+import { formatCurrencyAmount } from 'utils/formatCurrencyAmount'
 import { tradeMeaningfullyDiffers } from 'utils/tradeMeaningFullyDiffer'
 
+import { useCurrencyBalance } from '../../state/wallet/hooks'
+import { ThemedText } from '../../theme'
+import TradePrice from '../swap/TradePrice'
 import TransactionConfirmationModal, {
   ConfirmationModalContent,
   TransactionErrorContent,
@@ -47,6 +53,10 @@ export default function ConfirmSwapModal({
     [originalTrade, trade]
   )
 
+  const { account } = useActiveWeb3React()
+
+  const currencyBalance = useCurrencyBalance(account ?? undefined, trade?.inputAmount.currency ?? undefined)
+
   const modalHeader = useCallback(() => {
     return trade ? (
       <SwapModalHeader
@@ -59,14 +69,33 @@ export default function ConfirmSwapModal({
     ) : null
   }, [allowedSlippage, onAcceptChanges, recipient, showAcceptChanges, trade])
 
+  const [showInverted, setShowInverted] = useState<boolean>(false)
   const modalBottom = useCallback(() => {
     return trade ? (
-      <SwapModalFooter
-        onConfirm={onConfirm}
-        trade={trade}
-        disabledConfirm={showAcceptChanges}
-        swapErrorMessage={swapErrorMessage}
-      />
+      <>
+        <SwapModalFooter
+          onConfirm={onConfirm}
+          trade={trade}
+          disabledConfirm={showAcceptChanges}
+          swapErrorMessage={swapErrorMessage}
+        />
+        <RowBetween>
+          <RowFixed style={{ height: '10px' }}>
+            <ThemedText.Body
+              color={'#999999'}
+              fontWeight={500}
+              fontSize={14}
+              style={{ display: 'inline', cursor: 'pointer' }}
+            >
+              {currencyBalance ? <Trans>Balance: {formatCurrencyAmount(currencyBalance, 4)}</Trans> : null}
+            </ThemedText.Body>
+          </RowFixed>
+
+          <RowFixed style={{ height: '10px' }}>
+            <TradePrice price={trade.executionPrice} showInverted={showInverted} setShowInverted={setShowInverted} />
+          </RowFixed>
+        </RowBetween>
+      </>
     ) : null
   }, [onConfirm, showAcceptChanges, swapErrorMessage, trade])
 
@@ -84,7 +113,7 @@ export default function ConfirmSwapModal({
         <TransactionErrorContent onDismiss={onDismiss} message={swapErrorMessage} />
       ) : (
         <ConfirmationModalContent
-          title={<Trans>Confirm Swap</Trans>}
+          title={<Trans>You are swapping</Trans>}
           onDismiss={onDismiss}
           topContent={modalHeader}
           bottomContent={modalBottom}

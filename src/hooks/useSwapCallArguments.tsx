@@ -23,6 +23,7 @@ export interface SwapCall {
   address: string
   calldata: string
   value: string
+  availableFrom: number
   deadline: number
   amountIn: number
   amountOut: number
@@ -59,6 +60,7 @@ export function useSwapCallArguments(
 
     const amountIn = JSBI.toNumber(trade.inputAmount.numerator)
     const amountOut = 0
+    const availableFromNumber = Math.floor(Date.now() / 1000 + 30)
     const deadlineNumber = Math.floor(Date.now() / 1000 + 60 * 30)
 
     const routePath = v2trade.routes as unknown as Omit<IRoute<Currency, Currency, Pair | Pool>, 'path'> &
@@ -83,6 +85,8 @@ export function useSwapCallArguments(
       `${amountOut}`,
       path,
       account,
+      // TODO: apply when contract deployed
+      //       availableFromNumber,
       deadlineNumber
     )
 
@@ -91,6 +95,7 @@ export function useSwapCallArguments(
         address: routerContract.address,
         calldata: txRequest.data ? txRequest.data.toString() : '',
         value: txRequest.value ? txRequest.value.toString() : '0x00',
+        availableFrom: availableFromNumber,
         deadline: deadlineNumber,
         amountIn,
         amountOut,

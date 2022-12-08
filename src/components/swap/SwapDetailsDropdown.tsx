@@ -1,15 +1,12 @@
 import { Trans } from '@lingui/macro'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
-import AnimatedDropdown from 'components/AnimatedDropdown'
 import Card, { OutlineCard } from 'components/Card'
 import { AutoColumn } from 'components/Column'
 import { LoadingOpacityContainer } from 'components/Loader/styled'
 import Row, { RowBetween, RowFixed } from 'components/Row'
 import { MouseoverTooltipContent } from 'components/Tooltip'
-import { SUPPORTED_GAS_ESTIMATE_CHAIN_IDS } from 'constants/chains'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { darken } from 'polished'
-import { useState } from 'react'
 import { ChevronDown, Info } from 'react-feather'
 import { BsArrowLeftRight } from 'react-icons/bs'
 import { InterfaceTrade } from 'state/routing/types'
@@ -17,9 +14,7 @@ import styled, { keyframes, useTheme } from 'styled-components/macro'
 import { HideSmall, ThemedText } from 'theme'
 
 import { AdvancedSwapDetails } from './AdvancedSwapDetails'
-import GasEstimateBadge from './GasEstimateBadge'
 import { ResponsiveTooltipContainer } from './styleds'
-import SwapRoute from './SwapRoute'
 import TradePrice from './TradePrice'
 
 const Wrapper = styled(Row)`
@@ -135,15 +130,15 @@ export default function SwapDetailsDropdown({
 }: SwapDetailsInlineProps) {
   const theme = useTheme()
   const { chainId } = useActiveWeb3React()
-  const [showDetails, setShowDetails] = useState(false)
+  // const [showDetails, setShowDetails] = useState(false)
 
   return (
     <Wrapper>
       <AutoColumn gap={'8px'} style={{ width: '100%', marginBottom: '-8px' }}>
-        <StyledHeaderRow
-          onClick={() => setShowDetails(!showDetails)}
+        <RowBetween
+          // onClick={() => setShowDetails(!showDetails)}
           disabled={!trade}
-          open={showDetails}
+          // open={showDetails}
           style={{ padding: '0px' }}
         >
           <RowFixed style={{ position: 'relative' }}>
@@ -170,7 +165,7 @@ export default function SwapDetailsDropdown({
                     </ResponsiveTooltipContainer>
                   }
                   placement="bottom"
-                  disableHover={showDetails}
+                  // disableHover={showDetails}
                 >
                   <div
                     style={{
@@ -202,7 +197,8 @@ export default function SwapDetailsDropdown({
               </ThemedText.Main>
             ) : null}
           </RowFixed>
-          <RowFixed>
+        </RowBetween>
+        {/* <RowFixed>
             {!trade?.gasUseEstimateUSD ||
             showDetails ||
             !chainId ||
@@ -216,7 +212,6 @@ export default function SwapDetailsDropdown({
             )}
             <RotatingArrow stroke={trade ? theme.text3 : theme.bg3} open={Boolean(trade && showDetails)} />
           </RowFixed>
-        </StyledHeaderRow>
         <AnimatedDropdown open={showDetails}>
           <AutoColumn gap={'8px'} style={{ padding: '0', paddingBottom: '8px' }}>
             {trade ? (
@@ -226,7 +221,7 @@ export default function SwapDetailsDropdown({
             ) : null}
             {trade ? <SwapRoute trade={trade} syncing={syncing} /> : null}
           </AutoColumn>
-        </AnimatedDropdown>
+        </AnimatedDropdown> */}
       </AutoColumn>
     </Wrapper>
   )

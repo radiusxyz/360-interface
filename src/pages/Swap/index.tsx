@@ -2,18 +2,20 @@ import { Trans } from '@lingui/macro'
 import contractsAddress from '@radiusxyz/tex-contracts-migration/contracts.json'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, CurrencyAmount, Token, TradeType } from '@uniswap/sdk-core'
+import { Percent } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'
 import { Trade as V3Trade } from '@uniswap/v3-sdk'
 import SwapDetailsDropdown from 'components/swap/SwapDetailsDropdown'
 import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter'
 import { MouseoverTooltip } from 'components/Tooltip'
+import { motion, useAnimationControls } from 'framer-motion'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useSwapCallback } from 'hooks/useSwapCallback'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import JSBI from 'jsbi'
 import { RadiusSwapResponse } from 'lib/hooks/swap/useSendSwapTransaction'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { ArrowDown, CheckCircle, HelpCircle } from 'react-feather'
+import { ArrowDown, CheckCircle, HelpCircle, Info } from 'react-feather'
 import ReactGA from 'react-ga4'
 import { BsArrowDown, BsArrowDownUp } from 'react-icons/bs'
 import { RouteComponentProps } from 'react-router-dom'
@@ -26,7 +28,6 @@ import styled, { ThemeContext } from 'styled-components/macro'
 
 import AddressInputPanel from '../../components/AddressInputPanel'
 import { ButtonConfirmed, ButtonError, ButtonLight, ButtonPrimary } from '../../components/Button'
-import { GreyCard } from '../../components/Card'
 import { AutoColumn } from '../../components/Column'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import CurrencyLogo from '../../components/CurrencyLogo'
@@ -36,7 +37,6 @@ import confirmPriceImpactWithoutFee from '../../components/swap/confirmPriceImpa
 import ConfirmSwapModal from '../../components/swap/ConfirmSwapModal'
 import { ArrowWrapper, SwapCallbackError, Wrapper } from '../../components/swap/styleds'
 import SwapHeader from '../../components/swap/SwapHeader'
-import { SwitchLocaleLink } from '../../components/SwitchLocaleLink'
 import TokenWarningModal from '../../components/TokenWarningModal'
 import { TOKEN_SHORTHANDS } from '../../constants/tokens'
 import { useAllTokens, useCurrency } from '../../hooks/Tokens'
@@ -61,7 +61,7 @@ import { TransactionType } from '../../state/transactions/types'
 import { useExpertModeManager } from '../../state/user/hooks'
 import { LinkStyledButton, ThemedText } from '../../theme'
 import { computeFiatValuePriceImpact } from '../../utils/computeFiatValuePriceImpact'
-import { db } from '../../utils/db'
+import { db, Status } from '../../utils/db'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { warningSeverity } from '../../utils/prices'
 import { supportedChainId } from '../../utils/supportedChainId'
@@ -93,7 +93,7 @@ const SwapButtonLight = styled(ButtonLight)`
 `
 const SwapButtonPrimary = styled(ButtonPrimary)`
   margin: 10px 0px 16px 0px;
-  background: linear-gradient(97deg, #00ffff 10%, #0066ff 65%, #2cff9a 100%);
+  background: #cccccc;
   border-radius: 4px;
   border: 0px solid #fff;
 `
@@ -151,14 +151,28 @@ export const FadeWrapper = styled.div`
 `
 
 export default function Swap({ history }: RouteComponentProps) {
-  const dbTest = async () => {
+  const addPending = async () => {
     await db.pendingTxs.add({
+      sendDate: Date.now(),
+      tx: '{}',
       round: 3,
       order: 4,
       mimcHash: 'mimcHash',
       txHash: 'txHash',
       proofHash: 'proofHash',
-      signature: { r: 'r', s: 's', v: 27 },
+      operatorSignature: { r: 'r', s: 's', v: 27 },
+    })
+  }
+
+  const addTx = async () => {
+    await db.txHistory.add({
+      round: 3,
+      order: 5,
+      txId: 'txId',
+      txDate: Date.now(),
+      from: { token: 'fromToken', amount: '123000000000000000000' },
+      to: { token: 'toToken', amount: '321000000000000000000' },
+      status: Status.COMPLETED,
     })
   }
 
@@ -170,6 +184,10 @@ export default function Swap({ history }: RouteComponentProps) {
 
   const { account, chainId } = useActiveWeb3React()
   const loadedUrlParams = useDefaultsFromURLSearch()
+
+  const controls = useAnimationControls()
+
+  const [toggle, setToggle] = useState(false)
 
   // token warning stuff
   const [loadedInputCurrency, loadedOutputCurrency] = [
@@ -283,12 +301,6 @@ export default function Swap({ history }: RouteComponentProps) {
     () => (routeIsSyncing ? undefined : computeFiatValuePriceImpact(fiatValueInput, fiatValueOutput)),
     [fiatValueInput, fiatValueOutput, routeIsSyncing]
   )
-
-  console.log('trade', trade)
-  console.log('in', trade?.inputAmount)
-  console.log('out', trade?.outputAmount)
-  console.log('in', fiatValueInput)
-  console.log('out', fiatValueOutput)
 
   const { onSwitchTokens, onCurrencySelection, onUserInput, onChangeRecipient } = useSwapActionHandlers()
   const isValid = !swapInputError
@@ -449,8 +461,6 @@ export default function Swap({ history }: RouteComponentProps) {
     })
     swapCallback()
       .then((res) => {
-        console.log('end callback', res)
-        console.log('tradeToConfirm', tradeToConfirm)
         setSwapState({
           attemptingTxn: false,
           tradeToConfirm,
@@ -477,17 +487,15 @@ export default function Swap({ history }: RouteComponentProps) {
         })
 
         // TODO: add transaction to db and tracking execute result.
-        // TODO: if tx successed, remove tx and add result to db for history
+        // TODO: if tx success, remove tx and add result to db for history
 
         setTimeout(() => {
           const getTxIdPolling = setInterval(async () => {
             const roundResponse = await fetch(
               `${process.env.REACT_APP_360_OPERATOR}/tx?chainId=${chainId}&routerAddress=${contractsAddress.router}&round=${res.data.txOrderMsg.round}`
             )
-            console.log('roundResponse', roundResponse)
             if (roundResponse.ok) {
               roundResponse.json().then(async (json) => {
-                console.log(json)
                 if (json?.txHash) {
                   clearInterval(getTxIdPolling)
 
@@ -547,6 +555,8 @@ export default function Swap({ history }: RouteComponentProps) {
         }, 10000)
       })
       .catch((error) => {
+        console.log(error.message)
+        // TODO: toss to send cancel tx page
         setSwapState({
           attemptingTxn: false,
           tradeToConfirm,
@@ -590,7 +600,6 @@ export default function Swap({ history }: RouteComponentProps) {
 
   // show approve flow when: no error on inputs, not approved or pending, or approved in current session
   // never show if price impact is above threshold in non expert mode
-  console.log('swapInputError', swapInputError)
   const showApproveFlow =
     !isArgentWallet &&
     !swapInputError &&
@@ -644,6 +653,46 @@ export default function Swap({ history }: RouteComponentProps) {
 
   const priceImpactTooHigh = priceImpactSeverity > 3 && !isExpertMode
 
+  useEffect(() => {
+    const a = !(!isValid || routeIsSyncing || routeIsLoading || !!swapCallbackError)
+    const b = !toggle
+    if (a && b) {
+      controls.start((i) => {
+        switch (i) {
+          case 'out':
+            return { height: '24px', padding: '6px', transition: { duration: 0.3 } }
+          case 'in':
+            return { height: '12px', transition: { duration: 0.4 } }
+          case 'paper':
+            return { height: '200px', opacity: 1, transition: { delay: 0.5, duration: 0.3 } }
+          default:
+            return { height: '200px', opacity: 1, transition: { delay: 0.5, duration: 0.3 } }
+        }
+      })
+      setToggle(true)
+    } else if (toggle) {
+      controls.start((i) => {
+        switch (i) {
+          case 'out':
+            return { height: '0px', padding: '0px', transition: { delay: 0.5, duration: 0.3 } }
+          case 'in':
+            return { height: '0px', transition: { delay: 0.4, duration: 0.3 } }
+          case 'paper':
+            return { height: '0px', opacity: 0, transition: { duration: 0.3 } }
+          default:
+            return { height: '0px', opacity: 0, transition: { duration: 0.3 } }
+        }
+      })
+      setToggle(false)
+    }
+  }, [isValid, routeIsSyncing, routeIsLoading, swapCallbackError, controls])
+
+  const minimum = trade
+    ?.minimumAmountOut(new Percent((100 - parseInt(allowedSlippage.toSignificant())).toString()))
+    .multiply('100')
+    .toSignificant()
+    .toString()
+
   return (
     <>
       <TokenWarningModal
@@ -653,7 +702,17 @@ export default function Swap({ history }: RouteComponentProps) {
         onDismiss={handleDismissTokenWarning}
       />
       <AppBody>
-        <div style={{ background: '#000000', borderRadius: '6px', padding: '4px' }}>
+        <button onClick={() => addPending()}>inputPending</button>
+        <button onClick={() => addTx()}>inputTx</button>
+        <button onClick={() => showDB()}>log</button>
+        <div
+          style={{
+            background: '#000000',
+            borderRadius: '6px',
+            padding: '4px',
+            border: '1.5px solid #5560a3',
+          }}
+        >
           <SwapHeader allowedSlippage={allowedSlippage} />
           <Wrapper id="swap-page">
             <ConfirmSwapModal
@@ -783,11 +842,9 @@ export default function Swap({ history }: RouteComponentProps) {
                 ) : null}
               </SwapButtonPrimary>
             ) : routeNotFound && userHasSpecifiedInputOutput && !routeIsLoading && !routeIsSyncing ? (
-              <GreyCard style={{ textAlign: 'center' }}>
-                <ThemedText.Main mb="4px">
-                  <Trans>Insufficient liquidity for this trade.</Trans>
-                </ThemedText.Main>
-              </GreyCard>
+              <SwapButtonPrimary disabled={true} onClick={onWrap}>
+                <Trans>Insufficient liquidity for this trade.</Trans>
+              </SwapButtonPrimary>
             ) : showApproveFlow ? (
               <AutoRow style={{ flexWrap: 'nowrap', width: '100%' }}>
                 <AutoColumn style={{ width: '100%' }} gap="12px">
@@ -827,7 +884,7 @@ export default function Swap({ history }: RouteComponentProps) {
                         <MouseoverTooltip
                           text={
                             <Trans>
-                              You must give the Uniswap smart contracts permission to use your{' '}
+                              You must give the 360° smart contracts permission to use your{' '}
                               {currencies[Field.INPUT]?.symbol}. You only have to do this once per token.
                             </Trans>
                           }
@@ -916,15 +973,163 @@ export default function Swap({ history }: RouteComponentProps) {
             {isExpertMode && swapErrorMessage ? <SwapCallbackError error={swapErrorMessage} /> : null}
           </div>
         </div>
-        {/* <div>
-              <button onClick={() => dbTest()}>add</button>
-              <button onClick={() => showDB()}>get</button>
-            </div> */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            width: '100%',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <motion.div
+            custom={'out'}
+            animate={controls}
+            initial={{ height: '0px', padding: '0px' }}
+            style={{
+              background: '#3c4270',
+              width: '90%',
+              height: '24px',
+              padding: '6px',
+              boxShadow: '0px 4px 18px rgba(15, 16, 24, 0.5)',
+              borderRadius: '4px',
+              display: 'flex',
+              justifyContent: 'center',
+            }}
+          >
+            <motion.div
+              custom={'in'}
+              animate={controls}
+              initial={{ height: '0px' }}
+              style={{
+                background: 'black',
+                width: '98%',
+                height: '12px',
+              }}
+            ></motion.div>
+          </motion.div>
+        </div>
       </AppBody>
+      <motion.div
+        custom={'paper'}
+        animate={controls}
+        initial={{ height: '0px', opacity: 0 }}
+        style={{
+          background: 'linear-gradient(180deg, #000000 0%, #cdcdcd 6.31%)',
+          overflow: 'hidden',
+          maxWidth: '400px',
+          width: '80%',
+          transform: 'translateY(-30px) perspective(4.0em) rotateX(2deg)',
+          padding: '24px',
+          zIndex: 300,
+          opacity: 1,
+        }}
+      >
+        <div
+          style={{
+            color: '#333333',
+            fontWeight: 'bold',
+            fontSize: '12',
+            justifyContent: 'space-between',
+            display: 'flex',
+            flexDirection: 'row',
+            padding: '4px',
+          }}
+        >
+          <div
+            style={{
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            You receive minimum{' '}
+            <Info
+              style={{
+                stroke: '1px',
+                width: '18px',
+                height: '18px',
+              }}
+            />
+          </div>
+          <div>{minimum && minimum + trade?.outputAmount.currency.symbol}</div>
+        </div>
+        <div
+          style={{
+            color: '#333333',
+            fontWeight: 'normal',
+            fontSize: '12',
+            justifyContent: 'space-between',
+            display: 'flex',
+            flexDirection: 'row',
+            padding: '4px',
+          }}
+        >
+          <div>
+            Slippage Tolerance{' '}
+            <Info
+              style={{
+                stroke: '1px',
+                width: '18px',
+                height: '18px',
+              }}
+            />
+          </div>
+          <div>{allowedSlippage.toSignificant()}%</div>
+        </div>
+        <div
+          style={{
+            color: '#333333',
+            fontWeight: 'normal',
+            fontSize: '12',
+            justifyContent: 'space-between',
+            display: 'flex',
+            flexDirection: 'row',
+            padding: '4px',
+          }}
+        >
+          <div>
+            Price Impact{' '}
+            <Info
+              style={{
+                stroke: '1px',
+                width: '18px',
+                height: '18px',
+              }}
+            />
+          </div>{' '}
+          <div>
+            {priceImpactTooHigh ? (
+              <div style={{ color: 'red', fontSize: '10', fontWeight: 'normal' }}>
+                {'Warning: Price Impact High '}
+                <span style={{ fontSize: '12', fontWeight: 'bold' }}>{trade?.priceImpact.toSignificant(3) + ' %'}</span>
+              </div>
+            ) : (
+              <div style={{ color: '#008c27', fontSize: '12', fontWeight: 'bold' }}>
+                {trade?.priceImpact.toSignificant(3) + ' %'}
+              </div>
+            )}
+          </div>
+        </div>
+        <div
+          style={{
+            color: '#333333',
+            fontWeight: 'normal',
+            fontSize: '12',
+            justifyContent: 'space-between',
+            display: 'flex',
+            flexDirection: 'row',
+            padding: '4px',
+          }}
+        >
+          <div>Total Fee (including gas fee)</div>
+          <div style={{ color: '#0075FF', fontWeight: 'bold' }}>NO FEE</div>
+        </div>
+      </motion.div>
+
       {/* <AlertWrapper>
         <NetworkAlert />
-      </AlertWrapper> */}
-      <SwitchLocaleLink />
+      </AlertWrapper>
+      <SwitchLocaleLink /> */}
       {!swapIsUnsupported ? null : (
         <UnsupportedCurrencyFooter
           show={swapIsUnsupported}

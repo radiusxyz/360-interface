@@ -1,5 +1,6 @@
 import { Trans } from '@lingui/macro'
 import { Connector } from '@web3-react/types'
+import { useLiveQuery } from 'dexie-react-hooks'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useCallback, useContext } from 'react'
 import { ExternalLink as LinkIcon } from 'react-feather'
@@ -11,8 +12,10 @@ import { ReactComponent as Close } from '../../assets/images/x.svg'
 import { injected, walletlink } from '../../connectors'
 import { SUPPORTED_WALLETS } from '../../constants/wallet'
 import { clearAllTransactions } from '../../state/transactions/reducer'
-import { ExternalLink, LinkStyledButton, ThemedText } from '../../theme'
+import { ExternalLink, ThemedText } from '../../theme'
+import { LinkStyledButton } from '../../theme'
 import { shortenAddress } from '../../utils'
+import { db, Status } from '../../utils/db'
 import { ExplorerDataType, getExplorerLink } from '../../utils/getExplorerLink'
 import { ButtonSecondary } from '../Button'
 import StatusIcon from '../Identicon/StatusIcon'
@@ -32,6 +35,7 @@ const HeaderRow = styled.div`
 
 const UpperSection = styled.div`
   position: relative;
+  background: rgba(44, 47, 63);
 
   h5 {
     margin: 0;
@@ -51,13 +55,11 @@ const UpperSection = styled.div`
 `
 
 const InfoCard = styled.div`
-  padding: 1rem;
-  border: 1px solid ${({ theme }) => theme.bg3};
-  border-radius: 20px;
+  padding: 16px;
+  border-radius: 2px;
+  background: rgba(23, 26, 38, 0.5);
   position: relative;
-  display: grid;
-  grid-row-gap: 12px;
-  margin-bottom: 20px;
+  margin: 16px;
 `
 
 const AccountGroupingRow = styled.div`
@@ -74,7 +76,6 @@ const AccountGroupingRow = styled.div`
 `
 
 const AccountSection = styled.div`
-  padding: 0rem 1rem;
   ${({ theme }) => theme.mediaWidth.upToMedium`padding: 0rem 1rem 1.5rem 1rem;`};
 `
 
@@ -92,12 +93,11 @@ const YourAccount = styled.div`
 
 const LowerSection = styled.div`
   ${({ theme }) => theme.flexColumnNoWrap}
-  padding: 1.5rem;
-  flex-grow: 1;
+  padding: 16px;
+  border-radius: 2px;
+  background: rgba(23, 26, 38, 0.5);
+  margin: 16px;
   overflow: auto;
-  background-color: ${({ theme }) => theme.bg2};
-  border-bottom-left-radius: 20px;
-  border-bottom-right-radius: 20px;
 
   h5 {
     margin: 0;
@@ -195,8 +195,10 @@ const WalletAction = styled(ButtonSecondary)`
   margin-left: 8px;
   font-size: 0.825rem;
   padding: 4px 6px;
+  color: #ffffff;
+  border: 0px solid;
   :hover {
-    cursor: pointer;
+    border: 0px solid;
     text-decoration: underline;
   }
 `
@@ -211,12 +213,66 @@ function renderTransactions(transactions: string[]) {
   )
 }
 
+function getStatus(status: Status) {
+  switch (status) {
+    case Status.CANCELED:
+      return <span style={{ color: '#A8A8A8' }}>Void</span>
+    case Status.COMPLETED:
+      return <span style={{ color: '#51FF6D' }}>Completed</span>
+    case Status.PENDING:
+      return <span style={{ color: '#FF4444' }}>Pending</span>
+    case Status.REIMBURSED:
+      return <span style={{ color: '#FFBF44' }}>Reimbursed</span>
+    case Status.REIMBURSE_AVAILABLE:
+      return <span style={{ color: '#00A3FF' }}>Reimburse Available</span>
+    case Status.REJECTED:
+      return <span style={{ color: '#FFFFFF' }}>Rejected</span>
+  }
+  return <span style={{ color: '#FFFFFF' }}>Rejected</span>
+}
+
+function renderRecentTx(recentTx: any) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {recentTx.map((i: any) => {
+        return (
+          <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }} key={i}>
+            <div style={{ display: 'flex', flexDirection: 'row' }}>
+              <div style={{ padding: '0px 5px', color: '#a8a8a8', fontSize: '14px' }}>
+                {i.from.amount.substring(0, i.from.amount.length - 18) +
+                  ' ' +
+                  i.from.token +
+                  ' to ' +
+                  i.from.amount.substring(0, i.to.amount.length - 18) +
+                  ' ' +
+                  i.to.token}
+              </div>
+              <div style={{ padding: '0px 5px' }}>
+                <AddressLink
+                  hasENS={false}
+                  isENS={false}
+                  href={getExplorerLink(80001, i.txId, ExplorerDataType.TRANSACTION)}
+                  style={{ marginLeft: '0px' }}
+                >
+                  <LinkIcon size={20} />
+                </AddressLink>
+              </div>
+            </div>
+            <div style={{ fontSize: '14px' }}>{getStatus(i.status)}</div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 interface AccountDetailsProps {
   toggleWalletModal: () => void
   pendingTransactions: string[]
   confirmedTransactions: string[]
   ENSName?: string
   openOptions: () => void
+  openHistory: () => void
 }
 
 export default function AccountDetails({
@@ -225,12 +281,13 @@ export default function AccountDetails({
   confirmedTransactions,
   ENSName,
   openOptions,
+  openHistory,
 }: AccountDetailsProps) {
   const { chainId, account, connector } = useActiveWeb3React()
   const theme = useContext(ThemeContext)
   const dispatch = useAppDispatch()
 
-  function formatConnectorName() {
+  function formatConnectorIcon() {
     const { ethereum } = window
     const isMetaMask = !!(ethereum && ethereum.isMetaMask)
     const name = Object.keys(SUPPORTED_WALLETS)
@@ -239,16 +296,35 @@ export default function AccountDetails({
           SUPPORTED_WALLETS[k].connector === connector && (connector !== injected || isMetaMask === (k === 'METAMASK'))
       )
       .map((k) => SUPPORTED_WALLETS[k].name)[0]
+    const icon = Object.keys(SUPPORTED_WALLETS)
+      .filter(
+        (k) =>
+          SUPPORTED_WALLETS[k].connector === connector && (connector !== injected || isMetaMask === (k === 'METAMASK'))
+      )
+      .map((k) => SUPPORTED_WALLETS[k].iconURL)[0]
+
     return (
-      <WalletName>
-        <Trans>Connected with {name}</Trans>
-      </WalletName>
+      <div style={{ margin: '0px 16px' }}>
+        <img src={icon} width="28" height="28" alt="" />
+      </div>
     )
+
+    // return (
+    //   <WalletName>
+    //     <Trans>Connected with {name}</Trans>
+    //   </WalletName>
+    // )
   }
 
   const clearAllTransactionsCallback = useCallback(() => {
     if (chainId) dispatch(clearAllTransactions({ chainId }))
   }, [dispatch, chainId])
+
+  const recentTx = useLiveQuery(async () => {
+    return await db.txHistory.orderBy('txDate').reverse().limit(3).toArray()
+  })
+
+  console.log(recentTx)
 
   return (
     <>
@@ -257,122 +333,111 @@ export default function AccountDetails({
           <CloseColor />
         </CloseIcon>
         <HeaderRow>
-          <Trans>Account</Trans>
+          <Trans>Connected Wallet</Trans>
         </HeaderRow>
         <AccountSection>
           <YourAccount>
             <InfoCard>
-              <AccountGroupingRow>
-                {formatConnectorName()}
-                <div>
-                  {connector !== injected && connector !== walletlink && (
-                    <WalletAction
-                      style={{ fontSize: '.825rem', fontWeight: 400, marginRight: '8px' }}
-                      onClick={() => {
-                        ;(connector as any).close()
-                      }}
-                    >
-                      <Trans>Disconnect</Trans>
-                    </WalletAction>
-                  )}
-                  <WalletAction
-                    style={{ fontSize: '.825rem', fontWeight: 400 }}
-                    onClick={() => {
-                      openOptions()
-                    }}
-                  >
-                    <Trans>Change</Trans>
-                  </WalletAction>
-                </div>
-              </AccountGroupingRow>
               <AccountGroupingRow id="web3-account-identifier-row">
                 <AccountControl>
                   {ENSName ? (
                     <>
                       <div>
-                        {connector && <WrappedStatusIcon connector={connector} />}
+                        {/*connector && <WrappedStatusIcon connector={connector} />*/}
+                        {formatConnectorIcon()}
                         <p> {ENSName}</p>
                       </div>
                     </>
                   ) : (
                     <>
                       <div>
-                        {connector && <WrappedStatusIcon connector={connector} />}
+                        {/*connector && <WrappedStatusIcon connector={connector} />*/}
+                        {formatConnectorIcon()}
                         <p> {account && shortenAddress(account)}</p>
                       </div>
                     </>
                   )}
+                  {ENSName ? (
+                    <>
+                      <AccountControl>
+                        <div>
+                          {account && <Copy toCopy={account} />}
+                          {chainId && account && (
+                            <AddressLink
+                              hasENS={!!ENSName}
+                              isENS={true}
+                              href={getExplorerLink(chainId, ENSName, ExplorerDataType.ADDRESS)}
+                            >
+                              <LinkIcon size={20} />
+                            </AddressLink>
+                          )}
+                        </div>
+                      </AccountControl>
+                    </>
+                  ) : (
+                    <>
+                      <AccountControl>
+                        <div>
+                          {account && <Copy toCopy={account} />}
+                          {chainId && account && (
+                            <AddressLink
+                              hasENS={!!ENSName}
+                              isENS={false}
+                              href={getExplorerLink(chainId, account, ExplorerDataType.ADDRESS)}
+                            >
+                              <LinkIcon size={20} />
+                            </AddressLink>
+                          )}
+                        </div>
+                      </AccountControl>
+                    </>
+                  )}
                 </AccountControl>
-              </AccountGroupingRow>
-              <AccountGroupingRow>
-                {ENSName ? (
-                  <>
-                    <AccountControl>
-                      <div>
-                        {account && (
-                          <Copy toCopy={account}>
-                            <span style={{ marginLeft: '4px' }}>
-                              <Trans>Copy Address</Trans>
-                            </span>
-                          </Copy>
-                        )}
-                        {chainId && account && (
-                          <AddressLink
-                            hasENS={!!ENSName}
-                            isENS={true}
-                            href={getExplorerLink(chainId, ENSName, ExplorerDataType.ADDRESS)}
-                          >
-                            <LinkIcon size={16} />
-                            <span style={{ marginLeft: '4px' }}>
-                              <Trans>View on Explorer</Trans>
-                            </span>
-                          </AddressLink>
-                        )}
-                      </div>
-                    </AccountControl>
-                  </>
-                ) : (
-                  <>
-                    <AccountControl>
-                      <div>
-                        {account && (
-                          <Copy toCopy={account}>
-                            <span style={{ marginLeft: '4px' }}>
-                              <Trans>Copy Address</Trans>
-                            </span>
-                          </Copy>
-                        )}
-                        {chainId && account && (
-                          <AddressLink
-                            hasENS={!!ENSName}
-                            isENS={false}
-                            href={getExplorerLink(chainId, account, ExplorerDataType.ADDRESS)}
-                          >
-                            <LinkIcon size={16} />
-                            <span style={{ marginLeft: '4px' }}>
-                              <Trans>View on Explorer</Trans>
-                            </span>
-                          </AddressLink>
-                        )}
-                      </div>
-                    </AccountControl>
-                  </>
-                )}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'right',
+                    alignItems: 'end',
+                    width: '50%',
+                  }}
+                >
+                  <WalletAction
+                    style={{ fontSize: '.825rem', fontWeight: 400 }}
+                    onClick={() => {
+                      openOptions()
+                    }}
+                  >
+                    <Trans>Change Wallet</Trans>
+                  </WalletAction>
+                  {connector !== injected && connector !== walletlink && (
+                    <WalletAction
+                      style={{ fontSize: '.825rem', fontWeight: 400 }}
+                      onClick={() => {
+                        ;(connector as any).close()
+                      }}
+                    >
+                      <Trans>Disconnect Wallet</Trans>
+                    </WalletAction>
+                  )}
+                </div>
               </AccountGroupingRow>
             </InfoCard>
           </YourAccount>
         </AccountSection>
       </UpperSection>
-      {!!pendingTransactions.length || !!confirmedTransactions.length ? (
+      {!!recentTx || !!pendingTransactions.length || !!confirmedTransactions.length ? (
         <LowerSection>
           <AutoRow mb={'1rem'} style={{ justifyContent: 'space-between' }}>
             <ThemedText.Body>
               <Trans>Recent Transactions</Trans>
             </ThemedText.Body>
-            <LinkStyledButton onClick={clearAllTransactionsCallback}>
+            {/* <LinkStyledButton onClick={clearAllTransactionsCallback}>
               <Trans>(clear all)</Trans>
-            </LinkStyledButton>
+            </LinkStyledButton> */}
+            <LinkStyledButton onClick={() => openHistory()}>View All</LinkStyledButton>
           </AutoRow>
+          {recentTx && renderRecentTx(recentTx)}
           {renderTransactions(pendingTransactions)}
           {renderTransactions(confirmedTransactions)}
         </LowerSection>

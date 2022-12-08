@@ -43,14 +43,14 @@ export default function CopyHelper({ color, toCopy, children }: CopyHelperProps)
       &nbsp;
       {isCopied ? (
         <TransactionStatusText>
-          <CheckCircle size={'12'} />
+          <CheckCircle size={'20'} />
           <TransactionStatusText>
             <Trans>Copied</Trans>
           </TransactionStatusText>
         </TransactionStatusText>
       ) : (
         <TransactionStatusText>
-          <Copy size={'12'} />
+          <Copy size={'20'} />
         </TransactionStatusText>
       )}
     </CopyIcon>

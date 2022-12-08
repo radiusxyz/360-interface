@@ -253,7 +253,7 @@ export default function CurrencyInputPanel({
         </FixedContainer>
       )}
       <Container hideInput={hideInput}>
-        {showMaxButton && selectedCurrencyBalance ? (
+        {showMaxButton ? (
           <div style={{ display: 'flex', justifyContent: 'right', width: '100%', padding: '15px 15px 0px 0px' }}>
             <StyledBalanceHalf onClick={onHalf}>
               <Trans>50%</Trans>
@@ -313,43 +313,41 @@ export default function CurrencyInputPanel({
             />
           )}
         </InputRow>
-        {!hideInput && !hideBalance && currency && (
-          <FiatRow style={{ padding: '0px 20px 16px 20px' }}>
-            <RowBetween style={{ height: '30px' }}>
-              {account ? (
-                <RowFixed style={{ height: '10px' }}>
-                  <ThemedText.Body
-                    color={theme.text3}
-                    fontWeight={500}
-                    fontSize={14}
-                    style={{ display: 'inline', cursor: 'pointer' }}
-                  >
-                    {!hideBalance && currency && selectedCurrencyBalance ? (
-                      renderBalance ? (
-                        renderBalance(selectedCurrencyBalance)
-                      ) : (
-                        <Trans>Balance: {formatCurrencyAmount(selectedCurrencyBalance, 4)}</Trans>
-                      )
-                    ) : null}
-                  </ThemedText.Body>
-                </RowFixed>
-              ) : (
-                <span />
-              )}
-              <LoadingOpacityContainer $loading={loading}>
-                <FiatValue fiatValue={fiatValue} priceImpact={priceImpact} />
-              </LoadingOpacityContainer>
-              <ThemedText.Body
-                color={theme.text3}
-                fontWeight={500}
-                fontSize={14}
-                style={{ display: 'inline', cursor: 'pointer' }}
-              >
-                {fiatValue && '$' + fiatValue}
-              </ThemedText.Body>
-            </RowBetween>
-          </FiatRow>
-        )}
+        <FiatRow style={{ padding: '0px 20px 16px 20px' }}>
+          <RowBetween style={{ height: '30px' }}>
+            {account ? (
+              <RowFixed style={{ height: '10px' }}>
+                <ThemedText.Body
+                  color={theme.text3}
+                  fontWeight={500}
+                  fontSize={14}
+                  style={{ display: 'inline', cursor: 'pointer' }}
+                >
+                  {currency && selectedCurrencyBalance ? (
+                    renderBalance ? (
+                      renderBalance(selectedCurrencyBalance)
+                    ) : (
+                      <Trans>Balance: {formatCurrencyAmount(selectedCurrencyBalance, 4)}</Trans>
+                    )
+                  ) : null}
+                </ThemedText.Body>
+              </RowFixed>
+            ) : (
+              <span />
+            )}
+            <LoadingOpacityContainer $loading={loading}>
+              <FiatValue fiatValue={fiatValue} priceImpact={priceImpact} />
+            </LoadingOpacityContainer>
+            <ThemedText.Body
+              color={theme.text3}
+              fontWeight={500}
+              fontSize={14}
+              style={{ display: 'inline', cursor: 'pointer' }}
+            >
+              {fiatValue && '$' + fiatValue}
+            </ThemedText.Body>
+          </RowBetween>
+        </FiatRow>
       </Container>
       {onCurrencySelect && (
         <CurrencySearchModal
