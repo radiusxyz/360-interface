@@ -21,6 +21,7 @@ import { BsArrowDown, BsArrowDownUp } from 'react-icons/bs'
 import { RouteComponentProps } from 'react-router-dom'
 import { Text } from 'rebass'
 import { addPopup } from 'state/application/reducer'
+import { useAppDispatch } from 'state/hooks'
 import { fetchVdfParam, fetchVdfSnarkParam } from 'state/parameters/fetch'
 import { useParametersManager, useVdfParamManager, useVdfSnarkParamManager } from 'state/parameters/hooks'
 import { TradeState } from 'state/routing/types'
@@ -38,6 +39,7 @@ import ConfirmSwapModal from '../../components/swap/ConfirmSwapModal'
 import { ArrowWrapper, SwapCallbackError, Wrapper } from '../../components/swap/styleds'
 import SwapHeader from '../../components/swap/SwapHeader'
 import TokenWarningModal from '../../components/TokenWarningModal'
+import { ModalTest } from '../../components/TransactionConfirmationModal'
 import { TOKEN_SHORTHANDS } from '../../constants/tokens'
 import { useAllTokens, useCurrency } from '../../hooks/Tokens'
 import { ApprovalState, useApprovalOptimizedTrade, useApproveCallbackFromTrade } from '../../hooks/useApproveCallback'
@@ -182,6 +184,27 @@ export default function Swap({ history }: RouteComponentProps) {
     console.log(got)
   }
 
+  const dispatch = useAppDispatch()
+  const showPopUp = () => {
+    dispatch(
+      addPopup({
+        content: {
+          title: 'Transaction pending',
+          status: 'success',
+          data: { hash: '0x1111111111111111111111111111111111111111' },
+        },
+        key: `popup-test`,
+        removeAfterMs: 1000000,
+      })
+    )
+  }
+
+  const [showTest, setShowTest] = useState(false)
+
+  const showModal = () => {
+    setShowTest(!showTest)
+  }
+
   const { account, chainId } = useActiveWeb3React()
   const loadedUrlParams = useDefaultsFromURLSearch()
 
@@ -202,8 +225,6 @@ export default function Swap({ history }: RouteComponentProps) {
   const handleConfirmTokenWarning = useCallback(() => {
     setDismissTokenWarning(true)
   }, [])
-
-  // const dispatch = useAppDispatch()
 
   const allTransactions = useAllTransactions()
   // const recorderContract = useRecorderContract() as Contract
@@ -705,6 +726,8 @@ export default function Swap({ history }: RouteComponentProps) {
         <button onClick={() => addPending()}>inputPending</button>
         <button onClick={() => addTx()}>inputTx</button>
         <button onClick={() => showDB()}>log</button>
+        <button onClick={() => showModal()}>modal</button>
+        <button onClick={() => showPopUp()}>popup</button>
         <div
           style={{
             background: '#000000',
@@ -730,6 +753,7 @@ export default function Swap({ history }: RouteComponentProps) {
               swapResponse={swapResponse}
               showVdf={showVdf}
             />
+            <ModalTest isOpen={showTest} onDismiss={showModal} />
 
             <AutoColumn gap={'sm'}>
               <div style={{ display: 'relative' }}>

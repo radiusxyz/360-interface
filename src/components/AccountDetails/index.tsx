@@ -239,13 +239,16 @@ function renderRecentTx(recentTx: any) {
           <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }} key={i}>
             <div style={{ display: 'flex', flexDirection: 'row' }}>
               <div style={{ padding: '0px 5px', color: '#a8a8a8', fontSize: '14px' }}>
-                {i.from.amount.substring(0, i.from.amount.length - 18) +
-                  ' ' +
-                  i.from.token +
-                  ' to ' +
-                  i.from.amount.substring(0, i.to.amount.length - 18) +
-                  ' ' +
-                  i.to.token}
+                {
+                  // TODO: amount 000,000,000.00 형식으로 바꾸기
+                  i.from.amount.substring(0, i.from.amount.length - 18) +
+                    ' ' +
+                    i.from.token +
+                    ' to ' +
+                    i.to.amount.substring(0, i.to.amount.length - 18) +
+                    ' ' +
+                    i.to.token
+                }
               </div>
               <div style={{ padding: '0px 5px' }}>
                 <AddressLink
