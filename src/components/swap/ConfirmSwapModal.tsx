@@ -18,6 +18,7 @@ import { tradeMeaningfullyDiffers } from 'utils/tradeMeaningFullyDiffer'
 import { useRecorderContract } from '../../hooks/useContract'
 import { useCurrencyBalance } from '../../state/wallet/hooks'
 import { CloseIcon } from '../../theme'
+import { db, Status } from '../../utils/db'
 import { ButtonError, ButtonPrimary } from '../Button'
 import { AutoColumn, ColumnCenter } from '../Column'
 import Modal from '../Modal'
@@ -497,6 +498,16 @@ function TransactionCancelSuggest({ onDismiss }: { onDismiss: any }) {
   const sendCancelTx = () => {
     // TODO: send cancel tx
     recorderContract.disableTxHash('txHash')
+    // TODO: add right data to db
+    db.txHistory.add({
+      round: 0,
+      order: 0,
+      txId: '',
+      txDate: 0,
+      from: { token: '', amount: '' },
+      to: { token: '', amount: '' },
+      status: Status.CANCELED,
+    })
   }
 
   return (
