@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import { t, Trans } from '@lingui/macro'
 import { Connector } from '@web3-react/types'
+import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { darken } from 'polished'
 import { useMemo } from 'react'
 import { Activity } from 'react-feather'
@@ -9,12 +10,14 @@ import { AbstractConnector } from 'web3-react-abstract-connector'
 import { UnsupportedChainIdError, useWeb3React } from 'web3-react-core'
 
 import { NetworkContextName } from '../../constants/misc'
+import { useV2RouterContract } from '../../hooks/useContract'
 import useENSName from '../../hooks/useENSName'
 import { useHasSocks } from '../../hooks/useSocksBalance'
 import { useWalletModalToggle } from '../../state/application/hooks'
 import { isTransactionRecent, useAllTransactions } from '../../state/transactions/hooks'
 import { TransactionDetails } from '../../state/transactions/types'
 import { shortenAddress } from '../../utils'
+import { db } from '../../utils/db'
 import { ButtonSecondary } from '../Button'
 import StatusIcon from '../Identicon/StatusIcon'
 import Loader from '../Loader'
@@ -36,19 +39,18 @@ const Web3StatusGeneric = styled(ButtonSecondary)`
   width: 100%;
   align-items: center;
   padding: 0.5rem;
-  border-radius: 14px;
+  border-radius: 0px;
   cursor: pointer;
   user-select: none;
   height: 36px;
-  margin-right: 2px;
-  margin-left: 1px;
   :focus {
     outline: none;
   }
 `
 const Web3StatusError = styled(Web3StatusGeneric)`
   background-color: ${({ theme }) => theme.red1};
-  border: 1px solid ${({ theme }) => theme.red1};
+  // border: 1px solid ${({ theme }) => theme.red1};
+  border: none;
   color: ${({ theme }) => theme.white};
   font-weight: 500;
   :hover,
@@ -66,7 +68,8 @@ const Web3StatusConnect = styled(Web3StatusGeneric)<{ faded?: boolean }>`
 
   :hover,
   :focus {
-    border: 1px solid ${({ theme }) => darken(0.05, theme.primary4)};
+    border: none;
+    // border: 1px solid ${({ theme }) => darken(0.05, theme.primary4)};
     color: ${({ theme }) => theme.primaryText1};
   }
 
@@ -74,12 +77,14 @@ const Web3StatusConnect = styled(Web3StatusGeneric)<{ faded?: boolean }>`
     faded &&
     css`
       background-color: ${({ theme }) => theme.primary5};
-      border: 1px solid ${({ theme }) => theme.primary5};
+      border: none;
+      // border: 1px solid ${({ theme }) => theme.primary5};
       color: ${({ theme }) => theme.primaryText1};
 
       :hover,
       :focus {
-        border: 1px solid ${({ theme }) => darken(0.05, theme.primary4)};
+        border: none;
+        // border: 1px solid ${({ theme }) => darken(0.05, theme.primary4)};
         color: ${({ theme }) => darken(0.05, theme.primaryText1)};
       }
     `}
@@ -87,7 +92,8 @@ const Web3StatusConnect = styled(Web3StatusGeneric)<{ faded?: boolean }>`
 
 const Web3StatusConnected = styled(Web3StatusGeneric)<{ pending?: boolean }>`
   background-color: ${({ pending, theme }) => (pending ? theme.primary1 : theme.bg1)};
-  border: 1px solid ${({ pending, theme }) => (pending ? theme.primary1 : theme.bg1)};
+  border: none;
+  // border: 1px solid ${({ pending, theme }) => (pending ? theme.primary1 : theme.bg1)};
   color: ${({ pending, theme }) => (pending ? theme.white : theme.text1)};
   font-weight: 500;
   :hover,
@@ -195,6 +201,89 @@ function Web3StatusInner() {
   }
 }
 
+async function CheckPendingTx(id: number) {
+  const { chainId, account, connector } = useActiveWeb3React()
+  const routerContract = useV2RouterContract()
+
+  const pendingTx = await db.pendingTxs.where({ id }).first()
+
+  console.log('raynear test check pending tx')
+
+  setTimeout(() => {
+    const getTxIdPolling = setInterval(async () => {
+      const roundResponse = await fetch(
+        `${process.env.REACT_APP_360_OPERATOR}/tx?chainId=${chainId}&routerAddress=${routerContract?.address}&round=${pendingTx?.round}`
+      )
+      if (roundResponse.ok) {
+        roundResponse.json().then(async (json) => {
+          if (json?.txHash) {
+            clearInterval(getTxIdPolling)
+
+            // if (!allTransactions[json.txHash]) {
+            //   let input = approvalOptimizedTrade?.inputAmount?.numerator
+            //   let output = approvalOptimizedTrade?.outputAmount?.numerator
+            //   input = !input ? JSBI.BigInt(0) : input
+            //   output = !output ? JSBI.BigInt(0) : output
+
+            //   dispatch(
+            //     addTransaction({
+            //       hash: json.txHash,
+            //       from: account,
+            //       info: {
+            //         type: TransactionType.SWAP,
+            //         tradeType: TradeType.EXACT_OUTPUT,
+            //         inputCurrencyId: approvalOptimizedTrade?.inputAmount?.currency?.wrapped.address,
+            //         outputCurrencyId: approvalOptimizedTrade?.outputAmount?.currency?.wrapped.address,
+            //         outputCurrencyAmountRaw: output.toString(),
+            //         expectedInputCurrencyAmountRaw: input.toString(),
+            //         maximumInputCurrencyAmountRaw: '0',
+            //       },
+            //       chainId,
+            //     })
+            //   )
+
+            //   dispatch(
+            //     addPopup({
+            //       content: {
+            //         txn: { hash: json.txHash },
+            //       },
+            //       key: `this-is-popup`,
+            //       removeAfterMs: 10000,
+            //     })
+            //   )
+            // }
+          }
+        })
+      }
+    }, 500)
+    setTimeout(() => {
+      clearInterval(getTxIdPolling)
+    }, 30000)
+  }, 10000)
+
+  // await fetch('https://operator.360swap.io/txId?round=' + pendingTx?.round).then(async (txId) => {
+  //   const res = await fetch('endpoint')
+
+  //   if (res) {
+  //     // TODO: input tx data to tx history
+  //     // TODO: or make claim things
+  //   }
+  // })
+}
+
+async function GetNonce() {
+  const { account, connector, error } = useWeb3React()
+  const routerContract = useV2RouterContract()
+
+  const nonce = await routerContract?.nonces(account)
+
+  const localNonce = window.localStorage.getItem('nonce')
+
+  if (!localNonce || nonce > localNonce) {
+    window.localStorage.setItem('nonce', nonce)
+  }
+}
+
 export default function Web3Status() {
   const { active, account } = useWeb3React()
   const contextNetwork = useWeb3React(NetworkContextName)
@@ -210,6 +299,10 @@ export default function Web3Status() {
 
   const pending = sortedRecentTransactions.filter((tx) => !tx.receipt).map((tx) => tx.hash)
   const confirmed = sortedRecentTransactions.filter((tx) => tx.receipt).map((tx) => tx.hash)
+
+  CheckPendingTx(1)
+
+  GetNonce()
 
   return (
     <>

@@ -1,5 +1,4 @@
 import { Trans } from '@lingui/macro'
-import contractsAddress from '@radiusxyz/tex-contracts-migration/contracts.json'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, CurrencyAmount, Token, TradeType } from '@uniswap/sdk-core'
 import { Percent } from '@uniswap/sdk-core'
@@ -24,6 +23,7 @@ import { addPopup } from 'state/application/reducer'
 import { useAppDispatch } from 'state/hooks'
 import { fetchVdfParam, fetchVdfSnarkParam } from 'state/parameters/fetch'
 import { useParametersManager, useVdfParamManager, useVdfSnarkParamManager } from 'state/parameters/hooks'
+import { setProgress } from 'state/parameters/reducer'
 import { TradeState } from 'state/routing/types'
 import styled, { ThemeContext } from 'styled-components/macro'
 
@@ -35,11 +35,10 @@ import CurrencyLogo from '../../components/CurrencyLogo'
 import Loader from '../../components/Loader'
 import { AutoRow } from '../../components/Row'
 import confirmPriceImpactWithoutFee from '../../components/swap/confirmPriceImpactWithoutFee'
-import ConfirmSwapModal from '../../components/swap/ConfirmSwapModal'
+import ConfirmSwapModal, { ModalTest } from '../../components/swap/ConfirmSwapModal'
 import { ArrowWrapper, SwapCallbackError, Wrapper } from '../../components/swap/styleds'
 import SwapHeader from '../../components/swap/SwapHeader'
 import TokenWarningModal from '../../components/TokenWarningModal'
-import { ModalTest } from '../../components/TransactionConfirmationModal'
 import { TOKEN_SHORTHANDS } from '../../constants/tokens'
 import { useAllTokens, useCurrency } from '../../hooks/Tokens'
 import { ApprovalState, useApprovalOptimizedTrade, useApproveCallbackFromTrade } from '../../hooks/useApproveCallback'
@@ -58,8 +57,6 @@ import {
   useSwapState,
 } from '../../state/swap/hooks'
 import { useAllTransactions } from '../../state/transactions/hooks'
-import { addTransaction } from '../../state/transactions/reducer'
-import { TransactionType } from '../../state/transactions/types'
 import { useExpertModeManager } from '../../state/user/hooks'
 import { LinkStyledButton, ThemedText } from '../../theme'
 import { computeFiatValuePriceImpact } from '../../utils/computeFiatValuePriceImpact'
@@ -156,7 +153,6 @@ export default function Swap({ history }: RouteComponentProps) {
   const addPending = async () => {
     await db.pendingTxs.add({
       sendDate: Date.now(),
-      tx: '{}',
       round: 3,
       order: 4,
       mimcHash: 'mimcHash',
@@ -198,6 +194,10 @@ export default function Swap({ history }: RouteComponentProps) {
       })
     )
   }
+
+  useEffect(() => {
+    dispatch(setProgress({ newParam: 0 }))
+  }, [])
 
   const [showTest, setShowTest] = useState(false)
 
@@ -471,6 +471,7 @@ export default function Swap({ history }: RouteComponentProps) {
     if (priceImpact && !confirmPriceImpactWithoutFee(priceImpact)) {
       return
     }
+
     setSwapState({
       attemptingTxn: true,
       tradeToConfirm,
@@ -509,71 +510,6 @@ export default function Swap({ history }: RouteComponentProps) {
 
         // TODO: add transaction to db and tracking execute result.
         // TODO: if tx success, remove tx and add result to db for history
-
-        setTimeout(() => {
-          const getTxIdPolling = setInterval(async () => {
-            const roundResponse = await fetch(
-              `${process.env.REACT_APP_360_OPERATOR}/tx?chainId=${chainId}&routerAddress=${contractsAddress.router}&round=${res.data.txOrderMsg.round}`
-            )
-            if (roundResponse.ok) {
-              roundResponse.json().then(async (json) => {
-                if (json?.txHash) {
-                  clearInterval(getTxIdPolling)
-
-                  // // TODO: 수동 cancel 버튼
-                  // // TODO: Contract에서 getArray 함수 요청하기
-                  // const txIdList = recorderContract.getRoundTxIdList(json.round)
-                  // let currXor = JSBI.BigInt(txIdList[0])
-                  // for (let i = 1; i < json.order - 1; i++) {
-                  //   currXor = JSBI.bitwiseXor(currXor, JSBI.BigInt(txIdList[i]))
-                  // }
-
-                  // if (txIdList[json.order] !== res.txOrderMsg.txHash || currXor !== JSBI.BigInt(json.proofHash)) {
-                  //   // TODO: go to challenge
-                  //   console.log('there is problem. try challenge?')
-                  // }
-
-                  if (!allTransactions[json.txHash]) {
-                    let input = approvalOptimizedTrade?.inputAmount?.numerator
-                    let output = approvalOptimizedTrade?.outputAmount?.numerator
-                    input = !input ? JSBI.BigInt(0) : input
-                    output = !output ? JSBI.BigInt(0) : output
-
-                    dispatch(
-                      addTransaction({
-                        hash: json.txHash,
-                        from: account,
-                        info: {
-                          type: TransactionType.SWAP,
-                          tradeType: TradeType.EXACT_OUTPUT,
-                          inputCurrencyId: approvalOptimizedTrade?.inputAmount?.currency?.wrapped.address,
-                          outputCurrencyId: approvalOptimizedTrade?.outputAmount?.currency?.wrapped.address,
-                          outputCurrencyAmountRaw: output.toString(),
-                          expectedInputCurrencyAmountRaw: input.toString(),
-                          maximumInputCurrencyAmountRaw: '0',
-                        },
-                        chainId,
-                      })
-                    )
-
-                    dispatch(
-                      addPopup({
-                        content: {
-                          txn: { hash: json.txHash },
-                        },
-                        key: `this-is-popup`,
-                        removeAfterMs: 10000,
-                      })
-                    )
-                  }
-                }
-              })
-            }
-          }, 500)
-          setTimeout(() => {
-            clearInterval(getTxIdPolling)
-          }, 30000)
-        }, 10000)
       })
       .catch((error) => {
         console.log(error.message)

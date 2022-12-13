@@ -56,8 +56,6 @@ export default function SwapModalHeader({
   const fiatValueInput = useUSDCValue(trade.inputAmount)
   const fiatValueOutput = useUSDCValue(trade.outputAmount)
 
-  console.log('raynear', trade.inputAmount.currency)
-
   return (
     <AutoRow
       gap={'4px'}
