@@ -134,7 +134,7 @@ export default function SwapDetailsDropdown({
 
   return (
     <Wrapper>
-      <AutoColumn gap={'8px'} style={{ width: '100%', marginBottom: '-8px' }}>
+      <AutoColumn gap={'8px'} style={{ width: '100%' }}>
         <RowBetween
           // onClick={() => setShowDetails(!showDetails)}
           disabled={!trade}

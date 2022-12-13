@@ -19,7 +19,7 @@ import { swapErrorToUserReadableMessage } from 'utils/swapErrorToUserReadableMes
 import { poseidonEncryptWithTxHash } from 'wasm/encryptor'
 import { getVdfProof } from 'wasm/timelockPuzzle'
 
-import { useRecorderContract, useV2RouterContract } from '../../../hooks/useContract'
+import { useV2RouterContract } from '../../../hooks/useContract'
 import { db } from '../../../utils/db'
 
 type AnyTrade =
@@ -32,11 +32,11 @@ export interface TxInfo {
   function_selector: string
   amount_in: string
   amount_out: string
+  path: string[] // length MUST be 6 -> for compatibility with rust-wasm
   to: string
+  nonce: string
   available_from: string
   deadline: string
-  nonce: string
-  path: string[] // length MUST be 6 -> for compatibility with rust-wasm
 }
 
 const MAXIMUM_PATH_LENGTH = 3
@@ -112,7 +112,7 @@ export default function useSendSwapTransaction(
   const dispatch = useAppDispatch()
 
   const routerContract = useV2RouterContract() as Contract
-  const recorderContract = useRecorderContract() as Contract
+  // const recorderContract = useRecorderContract() as Contract
 
   return useMemo(() => {
     if (!trade || !library || !account || !chainId) {
@@ -143,8 +143,11 @@ export default function useSendSwapTransaction(
         const signAddress = await signer.getAddress()
 
         // TODO: 한 round에 2개의 tx를 날리면 contract에서 가져오지 않고 nonce값을 ++ 해야 한다.
-        const _txNonce = await routerContract.nonces(signAddress)
-        const txNonce = BigNumber.from(_txNonce).toNumber()
+        // const _txNonce = await routerContract.nonces(signAddress)
+        // const txNonce = BigNumber.from(_txNonce).toNumber()
+
+        const _txNonce = window.localStorage.getItem('nonce')
+        const txNonce = !_txNonce ? 0 : BigNumber.from(_txNonce).toNumber()
 
         // console.log('nonce from contract', txNonce)
 
@@ -305,6 +308,15 @@ export default function useSendSwapTransaction(
           mimcHash: '0x' + encryptData.tx_id,
         }
 
+        await db.pendingTxs.add({
+          txHash,
+          mimcHash: '0x' + encryptData.tx_id,
+          tx: signMessage,
+          sendDate: Date.now() / 1000,
+        })
+
+        window.localStorage.setItem('nonce', (txNonce + 1).toString())
+
         const sendResponse = await sendEIP712Tx(chainId, routerContract, encryptedSwapTx, sig, library)
 
         dispatch(setProgress({ newParam: 4 }))
@@ -362,18 +374,6 @@ async function sendEIP712Tx(
   signature: Signature,
   library: JsonRpcProvider | undefined
 ): Promise<RadiusSwapResponse> {
-  const timeLimit = setTimeout(async () => {
-    // const res = await library?.getSigner().provider.sendTransaction(disableTxHash)
-    const res = ''
-    // console.log(res)
-  }, 5000)
-
-  // console.log('set timeout')
-  // window.localStorage.setItem(
-  //   encryptedSwapTx.txHash,
-  //   JSON.stringify({ txOrderMsg: { mimcHash: encryptedSwapTx.mimcHash, txHash: encryptedSwapTx.txHash } })
-  // )
-
   const sendResponse = await fetchWithTimeout(
     `${process.env.REACT_APP_360_OPERATOR}/tx`,
     {
@@ -394,7 +394,7 @@ async function sendEIP712Tx(
   )
     .then(async (res) => res.json())
     .then(async (res) => {
-      // console.log('jsoned response', res)
+      // console.log('json response', res)
 
       const signature = {
         r: res.signature.r,
@@ -418,9 +418,9 @@ async function sendEIP712Tx(
         // console.log('clear disableTxHash tx')
 
         // window.localStorage.setItem(res.txOrderMsg.txHash, JSON.stringify({ txOrderMsg: res.txOrderMsg, signature }))
-        await db.pendingTxs.add({ ...res.txOrderMsg, signature })
-
-        clearTimeout(timeLimit)
+        await db.pendingTxs
+          .where({ txHash: encryptedSwapTx.txHash, mimcHash: encryptedSwapTx.mimcHash })
+          .modify({ ...res.txOrderMsg, signature })
 
         return {
           data: res,

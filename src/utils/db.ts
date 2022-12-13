@@ -9,16 +9,40 @@ export enum Status {
   REIMBURSED,
 }
 
+/*
+  txOwner: signAddress,
+  functionSelector: swapExactTokensForTokens,
+  amountIn: `${amountIn}`,
+  amountOut: `${amountOut}`,
+  path,
+  to: signAddress,
+  nonce: txNonce,
+  availableFrom,
+  deadline,
+*/
+
+export interface TX {
+  txOwner: string
+  functionSelector: string
+  amountIn: string
+  amountOut: string
+  path: string[]
+  to: string
+  nonce: number
+  availableFrom: number
+  deadline: number
+}
+
 export interface PendingTx {
   id?: number
   sendDate: number
-  round: number
-  order: number
-  tx: string
+  round?: number
+  order?: number
+  tx?: TX
   mimcHash: string
   txHash: string
-  proofHash: string
-  operatorSignature: { r: string; s: string; v: number }
+  proofHash?: string
+  operatorSignature?: { r: string; s: string; v: number }
 }
 
 export interface TokenAmount {
@@ -44,7 +68,7 @@ export class MySubClassedDexie extends Dexie {
   constructor() {
     super('ThreeSixty')
     this.version(1).stores({
-      pendingTxs: '++id, sendDate, round, txHash',
+      pendingTxs: '++id, sendDate, txOwner, nonce, round, txHash',
       txHistory: '++id, txDate, round, txId, fromToken, toToken',
     })
   }

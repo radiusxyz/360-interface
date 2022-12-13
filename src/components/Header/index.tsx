@@ -114,7 +114,6 @@ const AccountElement = styled.div<{ active: boolean }>`
   flex-direction: row;
   align-items: center;
   background-color: #15151e;
-  border-radius: 16px;
   white-space: nowrap;
   width: 100%;
   height: 40px;
