@@ -5,6 +5,8 @@ import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { darken } from 'polished'
 import { useMemo } from 'react'
 import { Activity } from 'react-feather'
+import { addPopup } from 'state/application/reducer'
+import { useAppDispatch } from 'state/hooks'
 import styled, { css } from 'styled-components/macro'
 import { AbstractConnector } from 'web3-react-abstract-connector'
 import { UnsupportedChainIdError, useWeb3React } from 'web3-react-core'
@@ -17,7 +19,7 @@ import { useWalletModalToggle } from '../../state/application/hooks'
 import { isTransactionRecent, useAllTransactions } from '../../state/transactions/hooks'
 import { TransactionDetails } from '../../state/transactions/types'
 import { shortenAddress } from '../../utils'
-import { db } from '../../utils/db'
+import { db, Status } from '../../utils/db'
 import { ButtonSecondary } from '../Button'
 import StatusIcon from '../Identicon/StatusIcon'
 import Loader from '../Loader'
@@ -201,78 +203,88 @@ function Web3StatusInner() {
   }
 }
 
-async function CheckPendingTx(id: number) {
-  const { chainId, account, connector } = useActiveWeb3React()
+async function CheckPendingTx() {
+  const { chainId, account, connector, library } = useActiveWeb3React()
   const routerContract = useV2RouterContract()
 
-  const pendingTx = await db.pendingTxs.where({ id }).first()
+  const dispatch = useAppDispatch()
 
-  console.log('raynear test check pending tx')
+  // const txReceipt = await library?.getTransactionReceipt(
+  //   '0xcfe81af9ed2fa6d889e4e8c45bd0f167b899ee6b0ff1de94a8a194537afd7a6e'
+  // )
+  // console.log(txReceipt)
 
-  setTimeout(() => {
-    const getTxIdPolling = setInterval(async () => {
-      const roundResponse = await fetch(
-        `${process.env.REACT_APP_360_OPERATOR}/tx?chainId=${chainId}&routerAddress=${routerContract?.address}&round=${pendingTx?.round}`
-      )
-      if (roundResponse.ok) {
-        roundResponse.json().then(async (json) => {
-          if (json?.txHash) {
-            clearInterval(getTxIdPolling)
+  const keys = await db.pendingTxs.orderBy('id').keys()
+  for (const key of keys) {
+    const pendingTx = await db.pendingTxs.get(key)
 
-            // if (!allTransactions[json.txHash]) {
-            //   let input = approvalOptimizedTrade?.inputAmount?.numerator
-            //   let output = approvalOptimizedTrade?.outputAmount?.numerator
-            //   input = !input ? JSBI.BigInt(0) : input
-            //   output = !output ? JSBI.BigInt(0) : output
+    // 1. round에 해당하는 txId 받아오기
+    const roundResponse = await fetch(
+      `${process.env.REACT_APP_360_OPERATOR}/tx?chainId=${chainId}&routerAddress=${routerContract?.address}&round=${pendingTx?.round}`
+    )
 
-            //   dispatch(
-            //     addTransaction({
-            //       hash: json.txHash,
-            //       from: account,
-            //       info: {
-            //         type: TransactionType.SWAP,
-            //         tradeType: TradeType.EXACT_OUTPUT,
-            //         inputCurrencyId: approvalOptimizedTrade?.inputAmount?.currency?.wrapped.address,
-            //         outputCurrencyId: approvalOptimizedTrade?.outputAmount?.currency?.wrapped.address,
-            //         outputCurrencyAmountRaw: output.toString(),
-            //         expectedInputCurrencyAmountRaw: input.toString(),
-            //         maximumInputCurrencyAmountRaw: '0',
-            //       },
-            //       chainId,
-            //     })
-            //   )
+    if (roundResponse.ok) {
+      roundResponse.json().then(async (json) => {
+        if (json?.txHash) {
+          // const txReceipt = await library?.getTransactionReceipt(json?.txHash)
 
-            //   dispatch(
-            //     addPopup({
-            //       content: {
-            //         txn: { hash: json.txHash },
-            //       },
-            //       key: `this-is-popup`,
-            //       removeAfterMs: 10000,
-            //     })
-            //   )
-            // }
+          // 2. txId 실행되었는지 확인
+          const txReceipt = await library?.getTransactionReceipt(
+            '0xcfe81af9ed2fa6d889e4e8c45bd0f167b899ee6b0ff1de94a8a194537afd7a6e'
+          )
+          console.log(txReceipt)
+          // 2.1. 내 tx가 알고 있는 순서대로 실행되었는지 확인(inner transaction 분석)
+          // receipt event parsing
+          const isSuccess = true
+
+          if (isSuccess) {
+            // 2.1.1 제대로 수행 되었다면 history에 넣음
+            await db.txHistory.add({
+              round: pendingTx?.round ? pendingTx?.round : 0,
+              order: pendingTx?.order ? pendingTx?.order : 0,
+              txId: json?.txHash,
+              txDate: pendingTx?.sendDate ? pendingTx?.sendDate : 0,
+              from: { token: '', amount: '' },
+              to: { token: '', amount: '' },
+              status: Status.COMPLETED,
+            })
+            await db.pendingTxs.delete(key)
+          } else {
+            // 2.1.2 문제가 있다면 claim 할 수 있도록 진행
+            await db.txHistory.add({
+              round: pendingTx?.round ? pendingTx?.round : 0,
+              order: pendingTx?.order ? pendingTx?.order : 0,
+              txId: json?.txHash,
+              txDate: pendingTx?.sendDate ? pendingTx?.sendDate : 0,
+              from: { token: '', amount: '' },
+              to: { token: '', amount: '' },
+              status: Status.REIMBURSE_AVAILABLE,
+            })
+            dispatch(
+              addPopup({
+                content: {
+                  title: 'Transaction pending',
+                  status: 'success',
+                  data: { hash: '0x1111111111111111111111111111111111111111' },
+                },
+                key: `popup-test`,
+                removeAfterMs: 1000000,
+              })
+            )
           }
-        })
-      }
-    }, 500)
-    setTimeout(() => {
-      clearInterval(getTxIdPolling)
-    }, 30000)
-  }, 10000)
+        }
+      })
+    }
+  }
 
-  // await fetch('https://operator.360swap.io/txId?round=' + pendingTx?.round).then(async (txId) => {
-  //   const res = await fetch('endpoint')
-
-  //   if (res) {
-  //     // TODO: input tx data to tx history
-  //     // TODO: or make claim things
-  //   }
-  // })
+  //   let input = approvalOptimizedTrade?.inputAmount?.numerator
+  //   let output = approvalOptimizedTrade?.outputAmount?.numerator
+  //   input = !input ? JSBI.BigInt(0) : input
+  //   output = !output ? JSBI.BigInt(0) : output
 }
 
 async function GetNonce() {
-  const { account, connector, error } = useWeb3React()
+  const { account } = useWeb3React()
   const routerContract = useV2RouterContract()
 
   const nonce = await routerContract?.nonces(account)
@@ -300,7 +312,7 @@ export default function Web3Status() {
   const pending = sortedRecentTransactions.filter((tx) => !tx.receipt).map((tx) => tx.hash)
   const confirmed = sortedRecentTransactions.filter((tx) => tx.receipt).map((tx) => tx.hash)
 
-  CheckPendingTx(1)
+  CheckPendingTx()
 
   GetNonce()
 
