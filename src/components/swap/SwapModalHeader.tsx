@@ -38,12 +38,16 @@ const ArrowWrapper = styled.div`
 
 export default function SwapModalHeader({
   trade,
+  inputCurrency,
+  outputCurrency,
   allowedSlippage,
   recipient,
   showAcceptChanges,
   onAcceptChanges,
 }: {
   trade: InterfaceTrade<Currency, Currency, TradeType>
+  inputCurrency: Currency | null | undefined
+  outputCurrency: Currency | null | undefined
   allowedSlippage: Percent
   recipient: string | null
   showAcceptChanges: boolean
@@ -88,7 +92,7 @@ export default function SwapModalHeader({
             }}
           >
             <CurrencyLogo
-              currency={trade.inputAmount.currency}
+              currency={inputCurrency}
               size={'60px'}
               style={{ marginRight: '12px', marginBottom: '15px' }}
             />
@@ -133,7 +137,7 @@ export default function SwapModalHeader({
             }}
           >
             <CurrencyLogo
-              currency={trade.outputAmount.currency}
+              currency={outputCurrency}
               size={'60px'}
               style={{ marginRight: '12px', marginBottom: '15px' }}
             />

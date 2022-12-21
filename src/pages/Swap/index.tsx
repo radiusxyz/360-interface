@@ -239,8 +239,6 @@ export default function Swap({ history }: RouteComponentProps) {
   const [showTest, setShowTest] = useState(false)
   const [showReimbursement, setShowReimbursement] = useState(false)
 
-  // const [showHistory, setShowHistory] = useState(false)
-
   const showModal = () => {
     setShowTest(!showTest)
   }
@@ -694,6 +692,7 @@ export default function Swap({ history }: RouteComponentProps) {
         onConfirm={handleConfirmTokenWarning}
         onDismiss={handleDismissTokenWarning}
       />
+      <HistoryModal isOpen={showHistory} onDismiss={() => setShowHistory(false)} />
       <AppBody>
         <button onClick={() => addPending()}>inputPending</button>
         <button onClick={() => addTxHistory()}>inputTx</button>
@@ -716,6 +715,8 @@ export default function Swap({ history }: RouteComponentProps) {
               isOpen={showConfirm}
               trade={trade}
               originalTrade={tradeToConfirm}
+              inputCurrency={currencies[Field.INPUT]}
+              outputCurrency={currencies[Field.OUTPUT]}
               onAcceptChanges={handleAcceptChanges}
               attemptingTxn={attemptingTxn}
               txHash={txHash}
@@ -728,7 +729,6 @@ export default function Swap({ history }: RouteComponentProps) {
               showVdf={showVdf}
             />
             {/* TODO: fix me */}
-            <HistoryModal isOpen={showHistory} onDismiss={() => setShowHistory(false)} />
             <ReimbursementModal
               isOpen={reimbursement !== 0}
               historyId={reimbursement}

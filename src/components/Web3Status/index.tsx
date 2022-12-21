@@ -224,7 +224,6 @@ async function CheckPendingTx() {
   setLastCall(Date.now())
 
   const pendingTx = await db.pendingTxs.get({ progressHere: 1 }).catch((e) => console.log(e))
-  console.log(pendingTx)
 
   // TODO: order=-1 인 것을 확인해서 round를 찾고 다른 데이터를 찾아서 db에 넣는다.
   // 내 txId를 찾을 때 까지 반복
