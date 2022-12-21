@@ -24,6 +24,11 @@ export const RECORDER_ADDRESS = {
   [SupportedChainId.POLYGON_MUMBAI]: contracts.recorder,
 }
 
+export const VAULT_ADDRESS = {
+  ...constructSameAddressMap(contracts.vault),
+  [SupportedChainId.POLYGON_MUMBAI]: contracts.vault,
+}
+
 export const V2_ROUTER_ADDRESS: AddressMap = {
   ...constructSameAddressMap(contracts.router),
   [SupportedChainId.POLYGON_MUMBAI]: contracts.router,

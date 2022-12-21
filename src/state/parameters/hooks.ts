@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { useAppDispatch, useAppSelector } from 'state/hooks'
 
-import { ParameterState, setProgress, setVdfParam, setVdfSnarkParam, setZkpParameters } from './reducer'
+import { ParameterState, setVdfParam, setVdfSnarkParam, setZkpParameters } from './reducer'
 
 export function useVdfParam(): boolean {
   return useAppSelector((state) => state.parameters.vdfParam)
@@ -9,10 +9,6 @@ export function useVdfParam(): boolean {
 
 export function useVdfSnarkParam(): boolean {
   return useAppSelector((state) => state.parameters.vdfSnarkParam)
-}
-
-export function useProgress(): number {
-  return useAppSelector((state) => state.parameters.progress)
 }
 
 export function useParameters(): ParameterState {
@@ -59,18 +55,4 @@ export function useParametersManager(): [ParameterState, (newParam: ParameterSta
   )
 
   return [parameters, updateParameters]
-}
-
-export function useProgressManager(): [number, (newParam: number) => void] {
-  const dispatch = useAppDispatch()
-  const progress = useProgress()
-
-  const updateProgress = useCallback(
-    (newParam: number) => {
-      dispatch(setProgress({ newParam }))
-    },
-    [dispatch]
-  )
-
-  return [progress, updateProgress]
 }

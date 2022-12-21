@@ -1,6 +1,6 @@
 import { VdfParam } from 'state/parameters/reducer'
 
-interface VdfResponse {
+export interface VdfResponse {
   r1: string
   r3: string
   s1: string

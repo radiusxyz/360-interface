@@ -10,6 +10,7 @@ import { updateVersion } from './global/actions'
 import lists from './lists/reducer'
 import logs from './logs/slice'
 import mint from './mint/reducer'
+import modal from './modal/reducer'
 import parameters from './parameters/reducer'
 import { routingApi } from './routing/slice'
 import swap from './swap/reducer'
@@ -26,6 +27,7 @@ const store = configureStore({
     swap,
     mint,
     parameters,
+    modal,
     burn,
     multicall: multicall.reducer,
     lists,

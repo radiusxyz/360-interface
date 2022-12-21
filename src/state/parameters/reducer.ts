@@ -14,13 +14,11 @@ export interface VdfParam {
 export interface ParameterState {
   readonly vdfParam: boolean
   readonly vdfSnarkParam: boolean
-  readonly progress: number
 }
 
 const initialState: ParameterState = {
   vdfParam: false,
   vdfSnarkParam: false,
-  progress: 0,
 }
 
 const parameterSlice = createSlice({
@@ -36,11 +34,8 @@ const parameterSlice = createSlice({
     setZkpParameters(state, action: { payload: { newParam: ParameterState } }) {
       state = action.payload.newParam
     },
-    setProgress(state, action: { payload: { newParam: number } }) {
-      state.progress = action.payload.newParam
-    },
   },
 })
 
-export const { setVdfParam, setVdfSnarkParam, setZkpParameters, setProgress } = parameterSlice.actions
+export const { setVdfParam, setVdfSnarkParam, setZkpParameters } = parameterSlice.actions
 export default parameterSlice.reducer

@@ -10,14 +10,17 @@ import { Trade as V2Trade } from '@uniswap/v2-sdk'
 import { Trade as V3Trade } from '@uniswap/v3-sdk'
 import { CLAIM_TYPE, domain, DOMAIN_TYPE, SWAP_TYPE } from 'constants/eip712'
 import { SwapCall } from 'hooks/useSwapCallArguments'
+import JSBI from 'jsbi'
 import localForage from 'localforage'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useAppDispatch } from 'state/hooks'
+import { useCancelManager } from 'state/modal/hooks'
+import { setProgress } from 'state/modal/reducer'
 import { fetchVdfParam, fetchVdfSnarkParam } from 'state/parameters/fetch'
-import { ParameterState, setProgress, setVdfParam, setVdfSnarkParam, VdfParam } from 'state/parameters/reducer'
+import { ParameterState, setVdfParam, setVdfSnarkParam, VdfParam } from 'state/parameters/reducer'
 import { swapErrorToUserReadableMessage } from 'utils/swapErrorToUserReadableMessage'
 import { poseidonEncryptWithTxHash } from 'wasm/encrypt'
-import { getVdfProof } from 'wasm/vdf'
+import { getVdfProof, VdfResponse } from 'wasm/vdf'
 
 import { useV2RouterContract } from '../../../hooks/useContract'
 import { db } from '../../../utils/db'
@@ -35,7 +38,6 @@ export interface TxInfo {
   path: string[] // length MUST be 6 -> for compatibility with rust-wasm
   to: string
   nonce: string
-  available_from: string
   deadline: string
 }
 
@@ -96,6 +98,183 @@ const headers = new Headers({ 'content-type': 'application/json', accept: 'appli
 
 const swapExactTokensForTokens = '0x375734d9'
 
+export function useTimeLockPuzzleParam(parameters: ParameterState) {
+  const dispatch = useAppDispatch()
+
+  let vdfParam: VdfParam | null = null
+  let vdfSnarkParam: string | null = null
+
+  useEffect(() => {
+    const load = async () => {
+      vdfParam = await localForage.getItem('vdf_param')
+      vdfSnarkParam = await localForage.getItem('vdf_snark_param')
+      // if save flag is false or getItem result is null
+      if (!parameters.vdfParam || !vdfParam) {
+        vdfParam = await fetchVdfParam((newParam: boolean) => {
+          dispatch(setVdfParam({ newParam }))
+        })
+      }
+
+      if (!parameters.vdfSnarkParam || !vdfSnarkParam) {
+        vdfSnarkParam = await fetchVdfSnarkParam((newParam: boolean) => {
+          dispatch(setVdfSnarkParam({ newParam }))
+        })
+      }
+    }
+    load()
+  }, [])
+
+  return { vdfParam, vdfSnarkParam }
+  // const vdfData = await getVdfProof(vdfParam, vdfSnarkParam)
+}
+
+export async function getEncryptProof(
+  vdfData: VdfResponse,
+  signAddress: string,
+  swapCalls: Promise<SwapCall[]>,
+  sigHandler: () => void
+) {
+  const resolvedCalls = await swapCalls
+  const { address, availableFrom, deadline, amountIn, amountOut, path, idPath } = resolvedCalls[0]
+
+  // const signer = library.getSigner()
+  // const signAddress = await signer.getAddress()
+
+  const _txNonce = window.localStorage.getItem(signAddress + ':nonce')
+  const txNonce = !_txNonce ? 0 : BigNumber.from(_txNonce).toNumber()
+
+  // console.log('nonce from contract', txNonce)
+
+  if (path.length > 3) {
+    console.error('Cannot encrypt path which length is over 3')
+  }
+
+  const pathToHash: string[] = new Array(MAXIMUM_PATH_LENGTH)
+
+  for (let i = 0; i < MAXIMUM_PATH_LENGTH; i++) {
+    pathToHash[i] = i < path.length ? path[i].split('x')[1] : '0'
+  }
+
+  const txInfoToHash: TxInfo = {
+    tx_owner: signAddress.split('x')[1],
+    function_selector: swapExactTokensForTokens.split('x')[1],
+    amount_in: `${amountIn}`,
+    amount_out: `${amountOut}`,
+    to: signAddress.split('x')[1],
+    deadline: `${deadline}`,
+    nonce: `${txNonce}`,
+    path: pathToHash,
+  }
+
+  sigHandler()
+
+  const encryptData = await poseidonEncryptWithTxHash(
+    txInfoToHash,
+    vdfData.s2_string,
+    vdfData.s2_field_hex,
+    vdfData.commitment_hex,
+    idPath
+  )
+
+  return encryptData
+}
+
+export async function getSignTransaction(
+  vdfData: any,
+  encryptData: any,
+  chainId: number,
+  signAddress: string,
+  library: JsonRpcProvider,
+  swapCalls: Promise<SwapCall[]>
+) {
+  const resolvedCalls = await swapCalls
+  const { address, availableFrom, deadline, amountIn, amountOut, path, idPath } = resolvedCalls[0]
+
+  const _txNonce = window.localStorage.getItem(signAddress + ':nonce')
+  const txNonce = !_txNonce ? 0 : BigNumber.from(_txNonce).toNumber()
+
+  const encryptedPath = {
+    message_length: encryptData.message_length,
+    nonce: encryptData.nonce,
+    commitment: vdfData.commitment_hex,
+    cipher_text: [encryptData.cipher_text],
+    r1: vdfData.r1,
+    r3: vdfData.r3,
+    s1: vdfData.s1,
+    s3: vdfData.s3,
+    k: vdfData.k,
+    vdf_snark_proof: vdfData.vdf_snark_proof,
+    encryption_proof: encryptData.proof,
+  }
+
+  const signMessage = {
+    txOwner: signAddress,
+    functionSelector: swapExactTokensForTokens,
+    amountIn: `${amountIn}`,
+    amountOut: `${amountOut}`,
+    path,
+    to: signAddress,
+    nonce: txNonce,
+    availableFrom,
+    deadline,
+  }
+
+  const typedData = JSON.stringify({
+    types: {
+      EIP712Domain: DOMAIN_TYPE,
+      Swap: SWAP_TYPE,
+    },
+    primaryType: 'Swap',
+    domain: domain(chainId),
+    message: signMessage,
+  })
+
+  const sig = await signWithEIP712(library, signAddress, typedData)
+
+  const txHash = typedDataEncoder.hash(domain(chainId), { Swap: SWAP_TYPE }, signMessage)
+
+  const encryptedSwapTx: EncryptedSwapTx = {
+    txOwner: signAddress,
+    functionSelector: swapExactTokensForTokens,
+    amountIn: `${amountIn}`,
+    amountOut: `${amountOut}`,
+    path: encryptedPath,
+    to: signAddress,
+    nonce: txNonce,
+    availableFrom,
+    deadline,
+    txHash,
+    mimcHash: '0x' + encryptData.tx_id,
+  }
+
+  await db.readyTxs.add({
+    txHash,
+    mimcHash: '0x' + encryptData.tx_id,
+    tx: signMessage,
+    progressHere: 1,
+    from: { token: 'fromToken', amount: '123000000000000000000', decimal: '1000000000000000000' },
+    to: { token: 'toToken', amount: '321000000000000000000', decimal: '1000000000000000000' },
+  })
+
+  window.localStorage.setItem(signAddress + ':nonce', (txNonce + 1).toString())
+
+  return { encryptedSwapTx, sig }
+}
+
+// async function useAAA() {
+//   const routerContract = useV2RouterContract() as Contract
+
+//   const sendResponse = await sendEIP712Tx(chainId, routerContract, encryptedSwapTx, sig)
+
+//   // console.log('sendResponse', sendResponse)
+
+//   const finalResponse: RadiusSwapResponse = {
+//     data: sendResponse.data,
+//     msg: sendResponse.msg,
+//   }
+//   return finalResponse
+// }
+
 // returns a function that will execute a swap, if the parameters are all valid
 export default function useSendSwapTransaction(
   account: string | null | undefined,
@@ -113,6 +292,7 @@ export default function useSendSwapTransaction(
 
   const routerContract = useV2RouterContract() as Contract
   // const recorderContract = useRecorderContract() as Contract
+  const [cancel, setCancel] = useCancelManager()
 
   return useMemo(() => {
     if (!trade || !library || !account || !chainId) {
@@ -137,7 +317,6 @@ export default function useSendSwapTransaction(
         }
 
         const resolvedCalls = await swapCalls
-        const { address, availableFrom, deadline, amountIn, amountOut, path, idPath } = resolvedCalls[0]
 
         const signer = library.getSigner()
         const signAddress = await signer.getAddress()
@@ -146,12 +325,14 @@ export default function useSendSwapTransaction(
         // const _txNonce = await routerContract.nonces(signAddress)
         // const txNonce = BigNumber.from(_txNonce).toNumber()
 
-        const _txNonce = window.localStorage.getItem('nonce')
+        const _txNonce = window.localStorage.getItem(account + ':nonce')
         const txNonce = !_txNonce ? 0 : BigNumber.from(_txNonce).toNumber()
 
         // console.log('nonce from contract', txNonce)
 
-        const signMessage = {
+        const { address, deadline, amountIn, amountOut, path, idPath } = resolvedCalls[0]
+
+        const message = {
           txOwner: signAddress,
           functionSelector: swapExactTokensForTokens,
           amountIn: `${amountIn}`,
@@ -159,7 +340,6 @@ export default function useSendSwapTransaction(
           path,
           to: signAddress,
           nonce: txNonce,
-          availableFrom,
           deadline,
         }
 
@@ -179,7 +359,6 @@ export default function useSendSwapTransaction(
           amount_in: `${amountIn}`,
           amount_out: `${amountOut}`,
           to: signAddress.split('x')[1],
-          available_from: `${availableFrom}`,
           deadline: `${deadline}`,
           nonce: `${txNonce}`,
           path: pathToHash,
@@ -278,6 +457,10 @@ export default function useSendSwapTransaction(
           encryption_proof: encryptData.proof,
         }
 
+        const availableFrom = Date.now() / 1000 + 60
+
+        const signMessage = { ...message, availableFrom }
+
         const typedData = JSON.stringify({
           types: {
             EIP712Domain: DOMAIN_TYPE,
@@ -308,16 +491,32 @@ export default function useSendSwapTransaction(
           mimcHash: '0x' + encryptData.tx_id,
         }
 
-        await db.pendingTxs.add({
+        let input = trade?.inputAmount?.numerator
+        let output = trade?.outputAmount?.numerator
+        input = !input ? JSBI.BigInt(0) : input
+        output = !output ? JSBI.BigInt(0) : output
+
+        const inDecimal =
+          trade?.inputAmount?.decimalScale !== undefined ? trade?.inputAmount?.decimalScale : JSBI.BigInt(1)
+        const outDecimal =
+          trade?.outputAmount?.decimalScale !== undefined ? trade?.outputAmount?.decimalScale : JSBI.BigInt(1)
+
+        const inSymbol = trade?.inputAmount?.currency?.symbol !== undefined ? trade?.inputAmount?.currency?.symbol : ''
+        const outSymbol =
+          trade?.outputAmount?.currency?.symbol !== undefined ? trade?.outputAmount?.currency?.symbol : ''
+
+        await db.readyTxs.add({
           txHash,
           mimcHash: '0x' + encryptData.tx_id,
           tx: signMessage,
-          sendDate: Date.now() / 1000,
+          progressHere: 1,
+          from: { token: inSymbol, amount: input.toString(), decimal: inDecimal.toString() },
+          to: { token: outSymbol, amount: output.toString(), decimal: outDecimal.toString() },
         })
 
-        window.localStorage.setItem('nonce', (txNonce + 1).toString())
+        window.localStorage.setItem(account + ':nonce', (txNonce + 1).toString())
 
-        const sendResponse = await sendEIP712Tx(chainId, routerContract, encryptedSwapTx, sig, library)
+        const sendResponse = await sendEIP712Tx(chainId, routerContract, encryptedSwapTx, sig, setCancel)
 
         dispatch(setProgress({ newParam: 4 }))
 
@@ -367,13 +566,14 @@ async function signWithEIP712(library: JsonRpcProvider, signAddress: string, typ
   return sig
 }
 
-async function sendEIP712Tx(
+export async function sendEIP712Tx(
   chainId: number,
   routerContract: Contract,
   encryptedSwapTx: EncryptedSwapTx,
   signature: Signature,
-  library: JsonRpcProvider | undefined
+  setCancel: (cancel: number) => void
 ): Promise<RadiusSwapResponse> {
+  const readyTx = await db.readyTxs.where({ txHash: encryptedSwapTx.txHash }).first()
   const sendResponse = await fetchWithTimeout(
     `${process.env.REACT_APP_360_OPERATOR}/tx`,
     {
@@ -390,7 +590,7 @@ async function sendEIP712Tx(
         },
       }),
     },
-    2000
+    5000
   )
     .then(async (res) => res.json())
     .then(async (res) => {
@@ -417,10 +617,14 @@ async function sendEIP712Tx(
       ) {
         // console.log('clear disableTxHash tx')
 
-        // window.localStorage.setItem(res.txOrderMsg.txHash, JSON.stringify({ txOrderMsg: res.txOrderMsg, signature }))
-        await db.pendingTxs
-          .where({ txHash: encryptedSwapTx.txHash, mimcHash: encryptedSwapTx.mimcHash })
-          .modify({ ...res.txOrderMsg, signature })
+        await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
+        await db.pendingTxs.add({
+          ...res.txOrderMsg,
+          sendDate: Date.now(),
+          operatorSignature: signature,
+          readyTxId: readyTx?.id,
+          progressHere: 1,
+        })
 
         return {
           data: res,
@@ -433,8 +637,9 @@ async function sendEIP712Tx(
         }
       }
     })
-    .catch((error) => {
+    .catch(async (error) => {
       if (error.name === 'AbortError') {
+        setCancel(readyTx?.id as number)
         throw new Error(
           `Operator is not respond: ${swapErrorToUserReadableMessage({ ...error, message: 'Operator is not respond' })}`
         )

@@ -1,9 +1,10 @@
 // eslint-disable-next-line no-restricted-imports
-import { t, Trans } from '@lingui/macro'
+import { Trans } from '@lingui/macro'
 import { Connector } from '@web3-react/types'
+import { solidityKeccak256 } from 'ethers/lib/utils'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { darken } from 'polished'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Activity } from 'react-feather'
 import { addPopup } from 'state/application/reducer'
 import { useAppDispatch } from 'state/hooks'
@@ -12,19 +13,23 @@ import { AbstractConnector } from 'web3-react-abstract-connector'
 import { UnsupportedChainIdError, useWeb3React } from 'web3-react-core'
 
 import { NetworkContextName } from '../../constants/misc'
-import { useV2RouterContract } from '../../hooks/useContract'
+import { useRecorderContract, useV2RouterContract } from '../../hooks/useContract'
 import useENSName from '../../hooks/useENSName'
 import { useHasSocks } from '../../hooks/useSocksBalance'
 import { useWalletModalToggle } from '../../state/application/hooks'
 import { isTransactionRecent, useAllTransactions } from '../../state/transactions/hooks'
 import { TransactionDetails } from '../../state/transactions/types'
 import { shortenAddress } from '../../utils'
-import { db, Status } from '../../utils/db'
+import { db, Status, TokenAmount } from '../../utils/db'
 import { ButtonSecondary } from '../Button'
 import StatusIcon from '../Identicon/StatusIcon'
 import Loader from '../Loader'
 import { RowBetween } from '../Row'
 import WalletModal from '../WalletModal'
+
+const EventLogHashTransfer = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+const EventLogHashSwap = '0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822'
+const EventLogHashRevert = ''
 
 const IconWrapper = styled.div<{ size?: number }>`
   ${({ theme }) => theme.flexColumnNoWrap};
@@ -133,7 +138,7 @@ function newTransactionsFirst(a: TransactionDetails, b: TransactionDetails) {
 
 function Sock() {
   return (
-    <span role="img" aria-label={t`has socks emoji`} style={{ marginTop: -4, marginBottom: -4 }}>
+    <span role="img" aria-label={`has socks emoji`} style={{ marginTop: -4, marginBottom: -4 }}>
       🧦
     </span>
   )
@@ -204,95 +209,170 @@ function Web3StatusInner() {
 }
 
 async function CheckPendingTx() {
-  const { chainId, account, connector, library } = useActiveWeb3React()
-  const routerContract = useV2RouterContract()
-
+  const { chainId, account, library } = useActiveWeb3React()
   const dispatch = useAppDispatch()
 
-  // const txReceipt = await library?.getTransactionReceipt(
-  //   '0xcfe81af9ed2fa6d889e4e8c45bd0f167b899ee6b0ff1de94a8a194537afd7a6e'
-  // )
-  // console.log(txReceipt)
+  const routerContract = useV2RouterContract()
+  const recorderContract = useRecorderContract()
 
-  const keys = await db.pendingTxs.orderBy('id').keys()
-  for (const key of keys) {
-    const pendingTx = await db.pendingTxs.get(key)
+  const [lastCall, setLastCall] = useState(0)
 
-    // 1. round에 해당하는 txId 받아오기
-    const roundResponse = await fetch(
-      `${process.env.REACT_APP_360_OPERATOR}/tx?chainId=${chainId}&routerAddress=${routerContract?.address}&round=${pendingTx?.round}`
-    )
-
-    if (roundResponse.ok) {
-      roundResponse.json().then(async (json) => {
-        if (json?.txHash) {
-          // const txReceipt = await library?.getTransactionReceipt(json?.txHash)
-
-          // 2. txId 실행되었는지 확인
-          const txReceipt = await library?.getTransactionReceipt(
-            '0xcfe81af9ed2fa6d889e4e8c45bd0f167b899ee6b0ff1de94a8a194537afd7a6e'
-          )
-          console.log(txReceipt)
-          // 2.1. 내 tx가 알고 있는 순서대로 실행되었는지 확인(inner transaction 분석)
-          // receipt event parsing
-          const isSuccess = true
-
-          if (isSuccess) {
-            // 2.1.1 제대로 수행 되었다면 history에 넣음
-            await db.txHistory.add({
-              round: pendingTx?.round ? pendingTx?.round : 0,
-              order: pendingTx?.order ? pendingTx?.order : 0,
-              txId: json?.txHash,
-              txDate: pendingTx?.sendDate ? pendingTx?.sendDate : 0,
-              from: { token: '', amount: '' },
-              to: { token: '', amount: '' },
-              status: Status.COMPLETED,
-            })
-            await db.pendingTxs.delete(key)
-          } else {
-            // 2.1.2 문제가 있다면 claim 할 수 있도록 진행
-            await db.txHistory.add({
-              round: pendingTx?.round ? pendingTx?.round : 0,
-              order: pendingTx?.order ? pendingTx?.order : 0,
-              txId: json?.txHash,
-              txDate: pendingTx?.sendDate ? pendingTx?.sendDate : 0,
-              from: { token: '', amount: '' },
-              to: { token: '', amount: '' },
-              status: Status.REIMBURSE_AVAILABLE,
-            })
-            dispatch(
-              addPopup({
-                content: {
-                  title: 'Transaction pending',
-                  status: 'success',
-                  data: { hash: '0x1111111111111111111111111111111111111111' },
-                },
-                key: `popup-test`,
-                removeAfterMs: 1000000,
-              })
-            )
-          }
-        }
-      })
-    }
+  if (Date.now() < lastCall + 2000) {
+    return
   }
 
-  //   let input = approvalOptimizedTrade?.inputAmount?.numerator
-  //   let output = approvalOptimizedTrade?.outputAmount?.numerator
-  //   input = !input ? JSBI.BigInt(0) : input
-  //   output = !output ? JSBI.BigInt(0) : output
+  setLastCall(Date.now())
+
+  const pendingTx = await db.pendingTxs.get({ progressHere: 1 }).catch((e) => console.log(e))
+  console.log(pendingTx)
+
+  // TODO: order=-1 인 것을 확인해서 round를 찾고 다른 데이터를 찾아서 db에 넣는다.
+  // 내 txId를 찾을 때 까지 반복
+  // 이 경우에는 cancel 할 수 있는 버튼이 활성화 되어 있어야 한다.
+
+  // 1. round에 해당하는 txId 받아오기
+  if (pendingTx && pendingTx.progressHere) {
+    const readyTx = await db.readyTxs.get(pendingTx.readyTxId)
+
+    await fetch(
+      `${process.env.REACT_APP_360_OPERATOR}/tx?chainId=${chainId}&routerAddress=${routerContract?.address}&round=${pendingTx.round}`
+    )
+      .then((roundResponse) => {
+        if (roundResponse.ok) {
+          roundResponse.json().then(async (json) => {
+            if (json?.txHash) {
+              // 2. txId 실행되었는지 확인
+              const txReceipt = await library?.getTransactionReceipt(json?.txHash)
+
+              // TODO: rejected Tx 구분하기
+              if (txReceipt) {
+                console.log(txReceipt)
+                const Logs = txReceipt?.logs as Array<{ topics: Array<any> }>
+
+                // 2.1. 내 tx가 알고 있는 순서대로 실행되었는지 확인(inner transaction 분석)
+                let rightOrder = false
+                let count = 0
+                let from: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
+                let to: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
+                for (const log of Logs) {
+                  if (log.topics[0] === EventLogHashTransfer) {
+                    if (log.topics[1] === account) {
+                      // TODO: From? To?
+                      // TODO: actual trade amount
+                      from = { token: '', amount: '', decimal: '1000000000000000000' }
+                    }
+                    if (log.topics[2] === account) {
+                      // TODO: From? To?
+                      // TODO: actual trade amount
+                      to = { token: '', amount: '', decimal: '1000000000000000000' }
+                    }
+                  }
+                  if (log.topics[0] === EventLogHashSwap || log.topics[0] === EventLogHashRevert) {
+                    count++
+                    if (count === pendingTx.order && log.topics[2] === readyTx?.tx.txOwner) {
+                      rightOrder = true
+                    }
+                  }
+                }
+
+                // 2.2 HashChain 검증
+                const txHashes = await recorderContract?.roundTxHashes(pendingTx.round)
+
+                let hashChain = txHashes[0]
+                for (let i = 1; i < pendingTx.order; i++) {
+                  hashChain = solidityKeccak256(['bytes32', 'bytes32'], [hashChain, txHashes[i]])
+                }
+
+                if (rightOrder && hashChain === pendingTx.proofHash) {
+                  // 2.1.1 제대로 수행 되었다면 history에 넣음
+                  await db.txHistory.add({
+                    pendingTxId: pendingTx.id as number,
+                    txId: json?.txHash,
+                    txDate: 0, // TODO: tx receipt timestamp
+                    from,
+                    to,
+                    status: Status.COMPLETED,
+                  })
+                  await db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
+                } else {
+                  // 2.1.2 문제가 있다면 claim 할 수 있도록 진행
+                  await db.txHistory.add({
+                    pendingTxId: pendingTx.id as number,
+                    txId: json?.txHash,
+                    txDate: 0, // TODO: tx receipt timestamp
+                    from,
+                    to,
+                    status: Status.REIMBURSE_AVAILABLE,
+                  })
+                  await db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
+                  // TODO: Fix me
+                  dispatch(
+                    addPopup({
+                      content: {
+                        title: 'Reimbursement available',
+                        status: 'success',
+                        data: { hash: '0x1111111111111111111111111111111111111111' },
+                      },
+                      key: `popup-test`,
+                      removeAfterMs: 1000000,
+                    })
+                  )
+                }
+              } else {
+                // TODO: add pending tx to history
+                // no receipt => pending
+                const from: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
+                const to: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
+
+                await db.txHistory.add({
+                  pendingTxId: pendingTx.id as number,
+                  txId: json?.txHash,
+                  txDate: 0, // TODO: tx receipt timestamp
+                  from,
+                  to,
+                  status: Status.REIMBURSE_AVAILABLE,
+                })
+                await db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
+                // TODO: Fix me
+                dispatch(
+                  addPopup({
+                    content: {
+                      title: 'Pending',
+                      status: 'success',
+                      data: { hash: '0x1111111111111111111111111111111111111111' },
+                    },
+                    key: `popup-test`,
+                    removeAfterMs: 1000000,
+                  })
+                )
+              }
+            }
+          })
+        }
+      })
+      .catch((e) => console.error(e))
+  }
 }
 
 async function GetNonce() {
   const { account } = useWeb3React()
   const routerContract = useV2RouterContract()
+  const [lastCall, setLastCall] = useState(0)
 
-  const nonce = await routerContract?.nonces(account)
+  if (Date.now() < lastCall + 2000) {
+    return
+  }
 
-  const localNonce = window.localStorage.getItem('nonce')
+  setLastCall(Date.now())
 
-  if (!localNonce || nonce > localNonce) {
-    window.localStorage.setItem('nonce', nonce)
+  if (account) {
+    const nonce = await routerContract?.nonces(account)
+
+    const localNonce = window.localStorage.getItem(account + ':nonce')
+
+    if (!localNonce || nonce > localNonce) {
+      window.localStorage.setItem(account + ':nonce', nonce)
+    }
   }
 }
 
@@ -300,7 +380,11 @@ export default function Web3Status() {
   const { active, account } = useWeb3React()
   const contextNetwork = useWeb3React(NetworkContextName)
 
+  // console.log('account', account)
+
   const { ENSName } = useENSName(account ?? undefined)
+
+  // console.log('ENSName', ENSName)
 
   const allTransactions = useAllTransactions()
 
@@ -309,12 +393,11 @@ export default function Web3Status() {
     return txs.filter(isTransactionRecent).sort(newTransactionsFirst)
   }, [allTransactions])
 
+  CheckPendingTx()
+  GetNonce()
+
   const pending = sortedRecentTransactions.filter((tx) => !tx.receipt).map((tx) => tx.hash)
   const confirmed = sortedRecentTransactions.filter((tx) => tx.receipt).map((tx) => tx.hash)
-
-  CheckPendingTx()
-
-  GetNonce()
 
   return (
     <>
