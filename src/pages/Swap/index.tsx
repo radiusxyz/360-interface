@@ -21,9 +21,10 @@ import { RouteComponentProps } from 'react-router-dom'
 import { Text } from 'rebass'
 import { addPopup } from 'state/application/reducer'
 import { useAppDispatch } from 'state/hooks'
+import { useCancelManager, useReimbursementManager, useShowHistoryManager } from 'state/modal/hooks'
+import { setProgress } from 'state/modal/reducer'
 import { fetchVdfParam, fetchVdfSnarkParam } from 'state/parameters/fetch'
-import { useParametersManager, useVdfParamManager, useVdfSnarkParamManager } from 'state/parameters/hooks'
-import { setProgress } from 'state/parameters/reducer'
+import { useParameters, useVdfParamManager, useVdfSnarkParamManager } from 'state/parameters/hooks'
 import { TradeState } from 'state/routing/types'
 import styled, { ThemeContext } from 'styled-components/macro'
 
@@ -34,8 +35,11 @@ import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import CurrencyLogo from '../../components/CurrencyLogo'
 import Loader from '../../components/Loader'
 import { AutoRow } from '../../components/Row'
+import { CancelSuggestModal } from '../../components/swap/CancelModal'
 import confirmPriceImpactWithoutFee from '../../components/swap/confirmPriceImpactWithoutFee'
-import ConfirmSwapModal, { ModalTest } from '../../components/swap/ConfirmSwapModal'
+import ConfirmSwapModal from '../../components/swap/ConfirmSwapModal'
+import { HistoryModal } from '../../components/swap/HistoryModal'
+import { ReimbursementModal } from '../../components/swap/ReimburseModal'
 import { ArrowWrapper, SwapCallbackError, Wrapper } from '../../components/swap/styleds'
 import SwapHeader from '../../components/swap/SwapHeader'
 import TokenWarningModal from '../../components/TokenWarningModal'
@@ -56,7 +60,6 @@ import {
   useSwapActionHandlers,
   useSwapState,
 } from '../../state/swap/hooks'
-import { useAllTransactions } from '../../state/transactions/hooks'
 import { useExpertModeManager } from '../../state/user/hooks'
 import { LinkStyledButton, ThemedText } from '../../theme'
 import { computeFiatValuePriceImpact } from '../../utils/computeFiatValuePriceImpact'
@@ -65,11 +68,6 @@ import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { warningSeverity } from '../../utils/prices'
 import { supportedChainId } from '../../utils/supportedChainId'
 import AppBody from '../AppBody'
-
-const AlertWrapper = styled.div`
-  max-width: 460px;
-  width: 100%;
-`
 
 const SwapButtonConfirmed = styled(ButtonConfirmed)`
   margin: 10px 0px 16px 0px;
@@ -150,27 +148,55 @@ export const FadeWrapper = styled.div`
 `
 
 export default function Swap({ history }: RouteComponentProps) {
-  const addPending = async () => {
-    await db.pendingTxs.add({
-      sendDate: Date.now(),
-      round: 3,
-      order: 4,
+  const addReady = async () => {
+    await db.readyTxs.add({
+      tx: {
+        txOwner: '',
+        functionSelector: '',
+        amountIn: '',
+        amountOut: '',
+        path: [],
+        to: '',
+        nonce: 0,
+        availableFrom: 0,
+        deadline: 0,
+      },
       mimcHash: 'mimcHash',
       txHash: 'txHash',
-      proofHash: 'proofHash',
-      operatorSignature: { r: 'r', s: 's', v: 27 },
+      progressHere: 0,
+      from: {
+        token: '',
+        amount: '0',
+        decimal: '1000000000000000000',
+      },
+      to: {
+        token: '',
+        amount: '0',
+        decimal: '1000000000000000000',
+      },
     })
   }
 
-  const addTx = async () => {
-    await db.txHistory.add({
+  const addPending = async () => {
+    await db.pendingTxs.add({
+      readyTxId: 0,
+      sendDate: Date.now(),
       round: 3,
-      order: 5,
+      order: 4,
+      proofHash: 'proofHash',
+      operatorSignature: { r: 'r', s: 's', v: 27 },
+      progressHere: 1,
+    })
+  }
+
+  const addTxHistory = async () => {
+    await db.txHistory.add({
+      pendingTxId: 0,
       txId: 'txId',
       txDate: Date.now(),
-      from: { token: 'fromToken', amount: '123000000000000000000' },
-      to: { token: 'toToken', amount: '321000000000000000000' },
       status: Status.COMPLETED,
+      from: { token: 'fromToken', amount: '123000000000000000000', decimal: '1000000000000000000' },
+      to: { token: 'toToken', amount: '321000000000000000000', decimal: '1000000000000000000' },
     })
   }
 
@@ -180,7 +206,6 @@ export default function Swap({ history }: RouteComponentProps) {
     console.log(got)
   }
 
-  const dispatch = useAppDispatch()
   const showPopUp = () => {
     dispatch(
       addPopup({
@@ -195,14 +220,32 @@ export default function Swap({ history }: RouteComponentProps) {
     )
   }
 
+  const showCancel = () => {
+    console.log(cancel)
+    setCancel(1)
+    console.log(cancel)
+  }
+
+  const dispatch = useAppDispatch()
+
   useEffect(() => {
     dispatch(setProgress({ newParam: 0 }))
   }, [])
 
+  const [cancel, setCancel] = useCancelManager()
+  const [reimbursement, setReimbursement] = useReimbursementManager()
+  const [showHistory, setShowHistory] = useShowHistoryManager()
+
   const [showTest, setShowTest] = useState(false)
+  const [showReimbursement, setShowReimbursement] = useState(false)
+
+  // const [showHistory, setShowHistory] = useState(false)
 
   const showModal = () => {
     setShowTest(!showTest)
+  }
+  const showReimbursementModal = () => {
+    setShowReimbursement(!showReimbursement)
   }
 
   const { account, chainId } = useActiveWeb3React()
@@ -225,9 +268,6 @@ export default function Swap({ history }: RouteComponentProps) {
   const handleConfirmTokenWarning = useCallback(() => {
     setDismissTokenWarning(true)
   }, [])
-
-  const allTransactions = useAllTransactions()
-  // const recorderContract = useRecorderContract() as Contract
 
   // dismiss warning if all imported tokens are in active lists
   const defaultTokens = useAllTokens()
@@ -258,7 +298,7 @@ export default function Swap({ history }: RouteComponentProps) {
   // for expert mode
   const [isExpertMode] = useExpertModeManager()
 
-  const [parameters, updateParameters] = useParametersManager()
+  const parameters = useParameters()
   const [vdfParam, updateVdfParam] = useVdfParamManager()
   const [vdfSnarkParam, updateVdfSnarkParam] = useVdfSnarkParamManager()
 
@@ -492,28 +532,24 @@ export default function Swap({ history }: RouteComponentProps) {
           swapResponse: res,
           showVdf,
         })
-        ReactGA.event({
-          category: 'Swap',
-          action:
-            recipient === null
-              ? 'Swap w/o Send'
-              : (recipientAddress ?? recipient) === account
-              ? 'Swap w/o Send + recipient'
-              : 'Swap w/ Send',
-          label: [
-            approvalOptimizedTradeString,
-            approvalOptimizedTrade?.inputAmount?.currency?.symbol,
-            approvalOptimizedTrade?.outputAmount?.currency?.symbol,
-            'MH',
-          ].join('/'),
-        })
-
-        // TODO: add transaction to db and tracking execute result.
-        // TODO: if tx success, remove tx and add result to db for history
+        // ReactGA.event({
+        //   category: 'Swap',
+        //   action:
+        //     recipient === null
+        //       ? 'Swap w/o Send'
+        //       : (recipientAddress ?? recipient) === account
+        //       ? 'Swap w/o Send + recipient'
+        //       : 'Swap w/ Send',
+        //   label: [
+        //     approvalOptimizedTradeString,
+        //     approvalOptimizedTrade?.inputAmount?.currency?.symbol,
+        //     approvalOptimizedTrade?.outputAmount?.currency?.symbol,
+        //     'MH',
+        //   ].join('/'),
+        // })
       })
       .catch((error) => {
         console.log(error.message)
-        // TODO: toss to send cancel tx page
         setSwapState({
           attemptingTxn: false,
           tradeToConfirm,
@@ -660,10 +696,12 @@ export default function Swap({ history }: RouteComponentProps) {
       />
       <AppBody>
         <button onClick={() => addPending()}>inputPending</button>
-        <button onClick={() => addTx()}>inputTx</button>
+        <button onClick={() => addTxHistory()}>inputTx</button>
         <button onClick={() => showDB()}>log</button>
         <button onClick={() => showModal()}>modal</button>
         <button onClick={() => showPopUp()}>popup</button>
+        <button onClick={() => showReimbursementModal()}>reimbursement</button>
+        <button onClick={() => showCancel()}>cancel</button>
         <div
           style={{
             background: '#000000',
@@ -689,8 +727,14 @@ export default function Swap({ history }: RouteComponentProps) {
               swapResponse={swapResponse}
               showVdf={showVdf}
             />
-            <ModalTest isOpen={showTest} onDismiss={showModal} />
-
+            {/* TODO: fix me */}
+            <HistoryModal isOpen={showHistory} onDismiss={() => setShowHistory(false)} />
+            <ReimbursementModal
+              isOpen={reimbursement !== 0}
+              historyId={reimbursement}
+              onDismiss={() => setReimbursement(0)}
+            />
+            <CancelSuggestModal isOpen={cancel !== 0} readyTxId={cancel} onDismiss={() => setCancel(0)} />
             <AutoColumn gap={'sm'}>
               <div style={{ display: 'relative' }}>
                 <CurrencyInputPanel
@@ -896,6 +940,7 @@ export default function Swap({ history }: RouteComponentProps) {
             ) : (
               <SwapButtonError
                 onClick={() => {
+                  dispatch(setProgress({ newParam: 0 }))
                   if (isExpertMode) {
                     handleSwap()
                   } else {

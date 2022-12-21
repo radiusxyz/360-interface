@@ -5,6 +5,7 @@ import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useCallback, useContext } from 'react'
 import { ExternalLink as LinkIcon } from 'react-feather'
 import { useAppDispatch } from 'state/hooks'
+import { setShowHistory } from 'state/modal/reducer'
 import styled, { ThemeContext } from 'styled-components/macro'
 import { AbstractConnector } from 'web3-react-abstract-connector'
 
@@ -275,7 +276,6 @@ interface AccountDetailsProps {
   confirmedTransactions: string[]
   ENSName?: string
   openOptions: () => void
-  openHistory: () => void
 }
 
 export default function AccountDetails({
@@ -284,7 +284,6 @@ export default function AccountDetails({
   confirmedTransactions,
   ENSName,
   openOptions,
-  openHistory,
 }: AccountDetailsProps) {
   const { chainId, account, connector } = useActiveWeb3React()
   const theme = useContext(ThemeContext)
@@ -438,7 +437,7 @@ export default function AccountDetails({
             {/* <LinkStyledButton onClick={clearAllTransactionsCallback}>
               <Trans>(clear all)</Trans>
             </LinkStyledButton> */}
-            <LinkStyledButton onClick={() => openHistory()}>View All</LinkStyledButton>
+            <LinkStyledButton onClick={() => setShowHistory({ showHistory: true })}>View All</LinkStyledButton>
           </AutoRow>
           {recentTx && renderRecentTx(recentTx)}
           {renderTransactions(pendingTransactions)}
