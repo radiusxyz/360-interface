@@ -119,6 +119,8 @@ const GradientSpinner = styled.div<{ background: string }>`
 export default function ConfirmSwapModal({
   trade,
   originalTrade,
+  inputCurrency,
+  outputCurrency,
   onAcceptChanges,
   allowedSlippage,
   onConfirm,
@@ -134,6 +136,8 @@ export default function ConfirmSwapModal({
   isOpen: boolean
   trade: InterfaceTrade<Currency, Currency, TradeType> | undefined
   originalTrade: Trade<Currency, Currency, TradeType> | undefined
+  inputCurrency: Currency | null | undefined
+  outputCurrency: Currency | null | undefined
   attemptingTxn: boolean
   txHash: string | undefined
   recipient: string | null
@@ -158,6 +162,8 @@ export default function ConfirmSwapModal({
     return trade ? (
       <SwapModalHeader
         trade={trade}
+        inputCurrency={inputCurrency}
+        outputCurrency={outputCurrency}
         allowedSlippage={allowedSlippage}
         recipient={recipient}
         showAcceptChanges={showAcceptChanges}
@@ -245,6 +251,8 @@ export default function ConfirmSwapModal({
 export function AAA({
   trade,
   originalTrade,
+  inputCurrency,
+  outputCurrency,
   onAcceptChanges,
   allowedSlippage,
   onConfirm,
@@ -261,6 +269,8 @@ export function AAA({
   isOpen: boolean
   trade: InterfaceTrade<Currency, Currency, TradeType> | undefined
   originalTrade: Trade<Currency, Currency, TradeType> | undefined
+  inputCurrency: Currency | undefined
+  outputCurrency: Currency | undefined
   recipient: string | null
   allowedSlippage: Percent
   onAcceptChanges: () => void
@@ -339,6 +349,8 @@ export function AAA({
           {trade && (
             <SwapModalHeader
               trade={trade}
+              inputCurrency={inputCurrency}
+              outputCurrency={outputCurrency}
               allowedSlippage={allowedSlippage}
               recipient={recipient}
               showAcceptChanges={showAcceptChanges}

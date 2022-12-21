@@ -160,7 +160,6 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
               key={i}
               style={{ padding: '5px' }}
               onClick={() => {
-                console.log(i)
                 setActivePage(i)
               }}
             >
@@ -192,7 +191,7 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
           >
             <div style={{ fontSize: '18', fontWeight: 'normal' }}>Recent Transactions</div>
             <div>
-              <div onClick={() => onDismiss}>
+              <div onClick={() => onDismiss()}>
                 <X />
               </div>
             </div>

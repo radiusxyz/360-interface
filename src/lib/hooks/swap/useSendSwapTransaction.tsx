@@ -583,11 +583,7 @@ export async function sendEIP712Tx(
         chainId,
         routerAddress: routerContract.address,
         encryptedSwapTx,
-        signature: {
-          r: `${signature.r}`,
-          s: `${signature.s}`,
-          v: `${signature.v}`,
-        },
+        signature,
       }),
     },
     5000
@@ -638,6 +634,7 @@ export async function sendEIP712Tx(
       }
     })
     .catch(async (error) => {
+      console.log(error)
       if (error.name === 'AbortError') {
         setCancel(readyTx?.id as number)
         throw new Error(
