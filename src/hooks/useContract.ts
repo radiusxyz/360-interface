@@ -1,7 +1,8 @@
 import { Contract } from '@ethersproject/contracts'
 import RECORDER_JSON from '@radiusxyz/threesixty-contracts/artifacts/contracts/Tex/Recorder.sol/Recorder.json'
 import ROUTER_JSON from '@radiusxyz/threesixty-contracts/artifacts/contracts/Tex/TexRouter02.sol/TexRouter02.json'
-import VAULT_JSON from '@radiusxyz/threesixty-contracts/artifacts/contracts/Tex/Vault.sol/Vault.json'
+// TODO: uncomment
+// import VAULT_JSON from '@radiusxyz/threesixty-contracts/artifacts/contracts/Tex/Vault.sol/Vault.json'
 import IUniswapV2PairJson from '@uniswap/v2-core/build/IUniswapV2Pair.json'
 import QuoterJson from '@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Quoter.json'
 import TickLensJson from '@uniswap/v3-periphery/artifacts/contracts/lens/TickLens.sol/TickLens.json'
@@ -41,7 +42,8 @@ import { getContract } from '../utils'
 const { abi: IUniswapV2PairABI } = IUniswapV2PairJson
 const { abi: RouterABI } = ROUTER_JSON
 const { abi: RecorderABI } = RECORDER_JSON
-const { abi: VaultABI } = VAULT_JSON
+// TODO: RECORDER_JSON => VAULT_JSON
+const { abi: VaultABI } = RECORDER_JSON
 const { abi: QuoterABI } = QuoterJson
 const { abi: TickLensABI } = TickLensJson
 const { abi: MulticallABI } = UniswapInterfaceMulticallJson
