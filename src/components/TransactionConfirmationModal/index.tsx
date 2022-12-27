@@ -375,7 +375,7 @@ interface ConfirmationModalProps {
   attemptingTxn: boolean
   pendingText: ReactNode
   swapResponse?: RadiusSwapResponse | undefined
-  showVdf?: boolean
+  showTimeLockPuzzle?: boolean
 }
 
 export default function TransactionConfirmationModal({
@@ -387,7 +387,7 @@ export default function TransactionConfirmationModal({
   pendingText,
   content,
   swapResponse,
-  showVdf,
+  showTimeLockPuzzle,
 }: ConfirmationModalProps) {
   const { chainId } = useActiveWeb3React()
 
@@ -395,7 +395,7 @@ export default function TransactionConfirmationModal({
 
   if (!chainId) return null
 
-  // console.log('raynear', isL2, swapResponse, hash, attemptingTxn, showVdf)
+  // console.log('raynear', isL2, swapResponse, hash, attemptingTxn, showTimeLockPuzzle)
 
   // confirmation screen
   return (
@@ -414,7 +414,7 @@ export default function TransactionConfirmationModal({
         //  <ConfirmationPendingContent onDismiss={onDismiss} pendingText={pendingText} />
         // ) :
         // hash ||
-        // showVdf ? (
+        // showTimeLockPuzzle ? (
         // <TransactionSubmittedContent
         //   chainId={chainId}
         //   hash={hash}

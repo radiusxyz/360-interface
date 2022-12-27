@@ -1,46 +1,46 @@
 import { useCallback } from 'react'
 import { useAppDispatch, useAppSelector } from 'state/hooks'
 
-import { ParameterState, setVdfParam, setVdfSnarkParam, setZkpParameters } from './reducer'
+import { ParameterState, setTimeLockPuzzleParam, setTimeLockPuzzleSnarkParam, setZkpParameters } from './reducer'
 
-export function useVdfParam(): boolean {
-  return useAppSelector((state) => state.parameters.vdfParam)
+export function useTimeLockPuzzleParam(): boolean {
+  return useAppSelector((state) => state.parameters.timeLockPuzzleParam)
 }
 
-export function useVdfSnarkParam(): boolean {
-  return useAppSelector((state) => state.parameters.vdfSnarkParam)
+export function useTimeLockPuzzleSnarkParam(): boolean {
+  return useAppSelector((state) => state.parameters.timeLockPuzzleSnarkParam)
 }
 
 export function useParameters(): ParameterState {
   return useAppSelector((state) => state.parameters)
 }
 
-export function useVdfParamManager(): [boolean, (newParam: boolean) => void] {
+export function useTimeLockPuzzleParamManager(): [boolean, (newParam: boolean) => void] {
   const dispatch = useAppDispatch()
-  const vdfParam = useVdfParam()
+  const timeLockPuzzleParam = useTimeLockPuzzleParam()
 
-  const updateVdfParam = useCallback(
+  const updateTimeLockPuzzleParam = useCallback(
     (newParam: boolean) => {
-      dispatch(setVdfParam({ newParam }))
+      dispatch(setTimeLockPuzzleParam({ newParam }))
     },
     [dispatch]
   )
 
-  return [vdfParam, updateVdfParam]
+  return [timeLockPuzzleParam, updateTimeLockPuzzleParam]
 }
 
-export function useVdfSnarkParamManager(): [boolean, (newParam: boolean) => void] {
+export function useTimeLockPuzzleSnarkParamManager(): [boolean, (newParam: boolean) => void] {
   const dispatch = useAppDispatch()
-  const vdfSnarkParam = useVdfSnarkParam()
+  const timeLockPuzzleSnarkParam = useTimeLockPuzzleSnarkParam()
 
-  const updateVdfSnarkParam = useCallback(
+  const updateTimeLockPuzzleSnarkParam = useCallback(
     (newParam: boolean) => {
-      dispatch(setVdfSnarkParam({ newParam }))
+      dispatch(setTimeLockPuzzleSnarkParam({ newParam }))
     },
     [dispatch]
   )
 
-  return [vdfSnarkParam, updateVdfSnarkParam]
+  return [timeLockPuzzleSnarkParam, updateTimeLockPuzzleSnarkParam]
 }
 
 export function useParametersManager(): [ParameterState, (newParam: ParameterState) => void] {

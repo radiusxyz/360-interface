@@ -1,6 +1,8 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import JSBI from 'jsbi'
 import { useState } from 'react'
 import { ExternalLink as LinkIcon, X } from 'react-feather'
+import { useCancelManager } from 'state/modal/hooks'
 import styled from 'styled-components/macro'
 
 import { ExternalLink } from '../../theme'
@@ -17,6 +19,9 @@ const Wrapper = styled.div`
 `
 
 export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss: () => void }) {
+  // TODO: order === -1 이면 cancel 버튼 활성화
+  const [cancel, setCancel] = useCancelManager()
+
   const Columns = [
     {
       label: 'ID',
@@ -34,14 +39,12 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
     {
       label: 'From',
       accessor: 'from',
-      // TODO: fix decimal
-      format: (i: TokenAmount) => i.amount.substring(0, i.amount.length - 18) + ' ' + i.token,
+      format: (i: TokenAmount) => JSBIDivide(JSBI.BigInt(i.amount), JSBI.BigInt(i.decimal), 6) + ' ' + i.token,
     },
     {
       label: 'To',
       accessor: 'to',
-      // TODO: fix decimal
-      format: (i: TokenAmount) => i.amount.substring(0, i.amount.length - 18) + ' ' + i.token,
+      format: (i: TokenAmount) => JSBIDivide(JSBI.BigInt(i.amount), JSBI.BigInt(i.decimal), 6) + ' ' + i.token,
     },
     {
       label: 'Status',
@@ -67,6 +70,7 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
     {
       label: 'Transaction Hash',
       accessor: 'txId',
+      subAccessor: 'txHash',
       format: (i: string) => {
         if (i.length > 20)
           return (
@@ -77,7 +81,7 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
               </ExternalLink>
             </>
           )
-        else
+        else if (i.length > 0) {
           return (
             <>
               <span style={{ color: '#cccccc' }}>{i}</span>
@@ -86,6 +90,13 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
               </ExternalLink>
             </>
           )
+        } else {
+          return (
+            <button onClick={() => setCancel(0)}>
+              <span style={{ color: '#ff8888' }}>cancel</span>
+            </button>
+          )
+        }
       },
     },
   ]
@@ -95,12 +106,18 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
     const rowsPerPage = 10
     const [activePage, setActivePage] = useState(0)
     const rows = useLiveQuery(async () => {
-      return await db.txHistory
+      const history = await db.txHistory
         .orderBy('txDate')
         .reverse()
         .offset(activePage * rowsPerPage)
         .limit(rowsPerPage)
-        .toArray()
+
+      // await history.each(async (obj, cursor) => {
+      //   console.log(obj, cursor)
+      //   const a = await db.getTxHistoryWithPendingTxById(obj.id as number)
+      //   console.log(a)
+      // })
+      return history.toArray()
     }, [activePage])
 
     const count = useLiveQuery(async () => {
@@ -211,4 +228,16 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
       <Wrapper>{contentsInfo.content}</Wrapper>
     </Modal>
   )
+}
+
+export function JSBIDivide(numerator: JSBI, denominator: JSBI, precision: number) {
+  // if (precision < 0) return Error('precision must bigger than 0')
+  // if (denominator === JSBI.BigInt(0)) return Error('divide by zero')
+
+  const division = JSBI.divide(numerator, denominator).toString()
+  let remain = JSBI.remainder(numerator, denominator).toString()
+
+  remain = remain.length > precision ? remain.substring(0, precision) : remain
+
+  return division + '.' + remain
 }

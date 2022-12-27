@@ -1,10 +1,14 @@
 // eslint-disable-next-line no-restricted-imports
+import { Contract } from '@ethersproject/contracts'
 import { Trans } from '@lingui/macro'
 import { Connector } from '@web3-react/types'
+import ERC20_ABI from 'abis/erc20.json'
 import { solidityKeccak256 } from 'ethers/lib/utils'
+import { formatBytes32String } from 'ethers/lib/utils'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
+import JSBI from 'jsbi'
 import { darken } from 'polished'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Activity } from 'react-feather'
 import { addPopup } from 'state/application/reducer'
 import { useAppDispatch } from 'state/hooks'
@@ -225,12 +229,33 @@ async function CheckPendingTx() {
 
   const pendingTx = await db.pendingTxs.get({ progressHere: 1 }).catch((e) => console.log(e))
 
-  // TODO: order=-1 인 것을 확인해서 round를 찾고 다른 데이터를 찾아서 db에 넣는다.
-  // 내 txId를 찾을 때 까지 반복
-  // 이 경우에는 cancel 할 수 있는 버튼이 활성화 되어 있어야 한다.
+  const noOrdered = await db.pendingTxs.get({ order: -1 }).catch((e) => console.log(e))
+  if (noOrdered && noOrdered.id) {
+    const noOrderedTx = await db.getPendingTxWithReadyTxById(noOrdered?.id)
+    let round = noOrderedTx.round
+
+    if (noOrderedTx && noOrderedTx.txHash) {
+      const currentRound = await recorderContract?.currentRound()
+      while (round <= currentRound) {
+        // const txHashes = await recorderContract?.roundTxHashList(round) // TODO: change to roundTxHash list
+        const txHashes = [formatBytes32String('0000000000000000'), formatBytes32String('0000000000000000')]
+
+        for (const order in txHashes) {
+          const txHash = txHashes[order]
+          if (noOrderedTx.txHash === txHash) {
+            await db.pendingTxs.update(noOrderedTx.id as number, {
+              round,
+              order: order + 1,
+            })
+          }
+        }
+        round++
+      }
+    }
+  }
 
   // 1. round에 해당하는 txId 받아오기
-  if (pendingTx && pendingTx.progressHere) {
+  if (pendingTx && pendingTx.progressHere === 1) {
     const readyTx = await db.readyTxs.get(pendingTx.readyTxId)
 
     await fetch(
@@ -246,26 +271,52 @@ async function CheckPendingTx() {
               // TODO: rejected Tx 구분하기
               if (txReceipt) {
                 console.log(txReceipt)
-                const Logs = txReceipt?.logs as Array<{ topics: Array<any> }>
+                const block = await library?.getBlock(txReceipt.blockNumber)
+                const txTime = block?.timestamp as number
+                const Logs = txReceipt?.logs as Array<{ address: string; topics: Array<any>; data: string }>
 
-                // 2.1. 내 tx가 알고 있는 순서대로 실행되었는지 확인(inner transaction 분석)
                 let rightOrder = false
                 let count = 0
                 let from: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
+                let fee: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
                 let to: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
                 for (const log of Logs) {
+                  // from, to, fee set real exchanged amount
                   if (log.topics[0] === EventLogHashTransfer) {
+                    const token = new Contract(log.address, ERC20_ABI, library)
+                    const decimal = await token.decimal()
+                    const tokenName = await token.name()
                     if (log.topics[1] === account) {
-                      // TODO: From? To?
-                      // TODO: actual trade amount
-                      from = { token: '', amount: '', decimal: '1000000000000000000' }
+                      if (from.token === '')
+                        from = {
+                          token: tokenName,
+                          amount: hexToNumberString(log.data),
+                          decimal: '1' + '0'.repeat(decimal),
+                        }
+                      else if (from.amount < hexToNumberString(log.data)) {
+                        fee = {
+                          token: tokenName,
+                          amount: from.amount,
+                          decimal: '1' + '0'.repeat(decimal),
+                        }
+                        from = {
+                          token: tokenName,
+                          amount: hexToNumberString(log.data),
+                          decimal: '1' + '0'.repeat(decimal),
+                        }
+                      } else {
+                        fee = {
+                          token: tokenName,
+                          amount: hexToNumberString(log.data),
+                          decimal: '1' + '0'.repeat(decimal),
+                        }
+                      }
                     }
                     if (log.topics[2] === account) {
-                      // TODO: From? To?
-                      // TODO: actual trade amount
-                      to = { token: '', amount: '', decimal: '1000000000000000000' }
+                      to = { token: tokenName, amount: hexToNumberString(log.data), decimal: '1' + '0'.repeat(decimal) }
                     }
                   }
+                  // 2.1 Order 검증
                   if (log.topics[0] === EventLogHashSwap || log.topics[0] === EventLogHashRevert) {
                     count++
                     if (count === pendingTx.order && log.topics[2] === readyTx?.tx.txOwner) {
@@ -275,7 +326,14 @@ async function CheckPendingTx() {
                 }
 
                 // 2.2 HashChain 검증
-                const txHashes = await recorderContract?.roundTxHashes(pendingTx.round)
+                // const txHashes = await recorderContract?.roundTxHashList(pendingTx.round) // TODO: change to roundTxHash list
+                const txHashes = [
+                  formatBytes32String('0000000000000000'),
+                  formatBytes32String('0000000000000000'),
+                  formatBytes32String('0000000000000000'),
+                  formatBytes32String('0000000000000000'),
+                  formatBytes32String('0000000000000000'),
+                ]
 
                 let hashChain = txHashes[0]
                 for (let i = 1; i < pendingTx.order; i++) {
@@ -287,18 +345,29 @@ async function CheckPendingTx() {
                   await db.txHistory.add({
                     pendingTxId: pendingTx.id as number,
                     txId: json?.txHash,
-                    txDate: 0, // TODO: tx receipt timestamp
+                    txDate: txTime,
                     from,
                     to,
                     status: Status.COMPLETED,
                   })
                   await db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
+                  dispatch(
+                    addPopup({
+                      content: {
+                        title: 'Success',
+                        status: 'success',
+                        data: { hash: json.txHash },
+                      },
+                      key: `success`,
+                      removeAfterMs: 10000,
+                    })
+                  )
                 } else {
                   // 2.1.2 문제가 있다면 claim 할 수 있도록 진행
                   await db.txHistory.add({
                     pendingTxId: pendingTx.id as number,
                     txId: json?.txHash,
-                    txDate: 0, // TODO: tx receipt timestamp
+                    txDate: txTime,
                     from,
                     to,
                     status: Status.REIMBURSE_AVAILABLE,
@@ -310,26 +379,26 @@ async function CheckPendingTx() {
                       content: {
                         title: 'Reimbursement available',
                         status: 'success',
-                        data: { hash: '0x1111111111111111111111111111111111111111' },
+                        data: { hash: json.txHash },
                       },
-                      key: `popup-test`,
-                      removeAfterMs: 1000000,
+                      key: `reimbursement`,
+                      removeAfterMs: 10000,
                     })
                   )
                 }
               } else {
                 // TODO: add pending tx to history
                 // no receipt => pending
-                const from: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
-                const to: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
+                const from: TokenAmount = { token: '_', amount: '0', decimal: '1000000000000000000' }
+                const to: TokenAmount = { token: '_', amount: '0', decimal: '1000000000000000000' }
 
                 await db.txHistory.add({
                   pendingTxId: pendingTx.id as number,
                   txId: json?.txHash,
-                  txDate: 0, // TODO: tx receipt timestamp
+                  txDate: 0,
                   from,
                   to,
-                  status: Status.REIMBURSE_AVAILABLE,
+                  status: Status.PENDING,
                 })
                 await db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
                 // TODO: Fix me
@@ -337,11 +406,11 @@ async function CheckPendingTx() {
                   addPopup({
                     content: {
                       title: 'Pending',
-                      status: 'success',
-                      data: { hash: '0x1111111111111111111111111111111111111111' },
+                      status: 'pending',
+                      data: { hash: json.txHash },
                     },
-                    key: `popup-test`,
-                    removeAfterMs: 1000000,
+                    key: `pending`,
+                    removeAfterMs: 10000,
                   })
                 )
               }
@@ -376,7 +445,7 @@ async function GetNonce() {
 }
 
 export default function Web3Status() {
-  const { active, account } = useWeb3React()
+  const { active, account, library } = useWeb3React()
   const contextNetwork = useWeb3React(NetworkContextName)
 
   // console.log('account', account)
@@ -392,6 +461,14 @@ export default function Web3Status() {
     return txs.filter(isTransactionRecent).sort(newTransactionsFirst)
   }, [allTransactions])
 
+  useEffect(() => {
+    library
+      ?.getTransactionReceipt('0xd138ba1a06353361145880d890175d3723bb8fb70f24f78bdb87eb5f180b802b')
+      .then((receipt: any) => {
+        console.log('log', receipt)
+      })
+  }, [])
+
   CheckPendingTx()
   GetNonce()
 
@@ -406,4 +483,9 @@ export default function Web3Status() {
       )}
     </>
   )
+}
+
+function hexToNumberString(hex: string) {
+  if (hex.substring(0, 1) !== '0x') hex = '0x' + hex
+  return JSBI.BigInt(hex).toString()
 }

@@ -37,8 +37,6 @@ export function CancelSuggestModal({
   readyTxId: number
   onDismiss: () => void
 }) {
-  // TODO: fix me
-
   return (
     <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={500}>
       <TransactionCancelSuggest onDismiss={onDismiss} readyTxId={readyTxId} />
@@ -58,14 +56,13 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
 
   const sendCancelTx = async () => {
     if (readyTx !== undefined) {
-      // TODO: send cancel tx
       recorderContract.disableTxHash(readyTx.txHash)
-      // TODO: add data to db
 
+      const currentRound = (await recorderContract.currentRound()) - 1
       await db.readyTxs.where({ id: readyTx.id }).modify({ progressHere: 0 })
       await db.pendingTxs.add({
-        round: 0,
-        order: 0,
+        round: currentRound,
+        order: -1,
         proofHash: '',
         operatorSignature: { r: '', s: '', v: 27 },
 
@@ -78,7 +75,7 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setTime(Date.now())
+      setTime(Date.now() / 1000)
     }, 1000)
 
     const updateReadyTx = async () => {
@@ -93,18 +90,19 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
     }
   }, [])
 
-  useEffect(() => {
-    if (readyTx && readyTx.tx.availableFrom - Math.floor(Date.now() / 1000) < 0) {
-      console.log('raynear', readyTx.tx.availableFrom - Math.floor(Date.now() / 1000))
-      onDismiss()
-    }
-  }, [time])
+  // 시간이 지나면 자동으로 modal 사라짐
+  // useEffect(() => {
+  //   if (readyTx && readyTx.tx.availableFrom - Math.floor(Date.now() / 1000) < 0) {
+  //     onDismiss()
+  //   }
+  // }, [time])
 
   const continueTx = async () => {
     if (readyTx !== undefined) {
+      const currentRound = (await recorderContract.currentRound()) - 1
       await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
       await db.pendingTxs.add({
-        round: 0, // TODO: round를 알아야 함.
+        round: currentRound,
         order: -1,
         proofHash: '',
         operatorSignature: { r: '', s: '', v: 27 },
@@ -114,6 +112,7 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
         progressHere: 1,
       })
     }
+    onDismiss()
   }
 
   return (
@@ -186,7 +185,7 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
               <span>Cancel transaction in </span>
               <span style={{ color: 'red', fontWeight: 'bold' }}>
                 &nbsp;
-                {readyTx.tx.availableFrom - Math.floor(time / 1000)}
+                {readyTx.tx.availableFrom - Math.floor(time)}
               </span>
             </ButtonPrimary>
             <ProceedButton

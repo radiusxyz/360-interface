@@ -2,6 +2,7 @@ import { Trans } from '@lingui/macro'
 import { Connector } from '@web3-react/types'
 import { useLiveQuery } from 'dexie-react-hooks'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
+import JSBI from 'jsbi'
 import { useCallback, useContext } from 'react'
 import { ExternalLink as LinkIcon } from 'react-feather'
 import { useAppDispatch } from 'state/hooks'
@@ -208,7 +209,7 @@ function renderTransactions(transactions: string[]) {
   return (
     <TransactionListWrapper>
       {transactions.map((hash, i) => {
-        return <Transaction key={i} hash={hash} />
+        return <Transaction key={hash} hash={hash} />
       })}
     </TransactionListWrapper>
   )
@@ -229,7 +230,6 @@ function getStatus(status: Status) {
     case Status.REJECTED:
       return <span style={{ color: '#FFFFFF' }}>Rejected</span>
   }
-  return <span style={{ color: '#FFFFFF' }}>Rejected</span>
 }
 
 function renderRecentTx(recentTx: any) {
@@ -237,19 +237,16 @@ function renderRecentTx(recentTx: any) {
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       {recentTx.map((i: any) => {
         return (
-          <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }} key={i}>
+          <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }} key={i.id}>
             <div style={{ display: 'flex', flexDirection: 'row' }}>
               <div style={{ padding: '0px 5px', color: '#a8a8a8', fontSize: '14px' }}>
-                {
-                  // TODO: amount 000,000,000.00 형식으로 바꾸기
-                  i.from.amount.substring(0, i.from.amount.length - 18) +
-                    ' ' +
-                    i.from.token +
-                    ' to ' +
-                    i.to.amount.substring(0, i.to.amount.length - 18) +
-                    ' ' +
-                    i.to.token
-                }
+                {JSBIDivide(JSBI.BigInt(i.from.amount), JSBI.BigInt(i.from.decimal), 6) +
+                  ' ' +
+                  i.from.token +
+                  ' to ' +
+                  JSBIDivide(JSBI.BigInt(i.to.amount), JSBI.BigInt(i.to.decimal), 6) +
+                  ' ' +
+                  i.to.token}
               </div>
               <div style={{ padding: '0px 5px' }}>
                 <AddressLink
@@ -441,8 +438,8 @@ export default function AccountDetails({
             )}
           </AutoRow>
           {recentTx && renderRecentTx(recentTx)}
-          {renderTransactions(pendingTransactions)}
-          {renderTransactions(confirmedTransactions)}
+          {/* renderTransactions(pendingTransactions) */}
+          {/* renderTransactions(confirmedTransactions) */}
         </LowerSection>
       ) : (
         <LowerSection>
@@ -453,4 +450,16 @@ export default function AccountDetails({
       )}
     </>
   )
+}
+
+export function JSBIDivide(numerator: JSBI, denominator: JSBI, precision: number) {
+  // if (precision < 0) return Error('precision must bigger than 0')
+  // if (denominator === JSBI.BigInt(0)) return Error('divide by zero')
+
+  const division = JSBI.divide(numerator, denominator).toString()
+  let remain = JSBI.remainder(numerator, denominator).toString()
+
+  remain = remain.length > precision ? remain.substring(0, precision) : remain
+
+  return division + '.' + remain
 }
