@@ -72,7 +72,7 @@ export class MySubClassedDexie extends Dexie {
     super('ThreeSixty')
     this.version(1).stores({
       readyTxs: '++id, txHash, progressHere',
-      pendingTxs: '++id, sendDate, txOwner, nonce, round, txHash, progressHere',
+      pendingTxs: '++id, sendDate, txOwner, nonce, round, order, txHash, progressHere',
       txHistory: '++id, txDate, txId, fromToken, toToken',
     })
   }

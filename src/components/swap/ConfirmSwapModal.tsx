@@ -20,9 +20,9 @@ import styled from 'styled-components/macro'
 import { ThemedText } from 'theme'
 import { formatCurrencyAmount } from 'utils/formatCurrencyAmount'
 import { tradeMeaningfullyDiffers } from 'utils/tradeMeaningFullyDiffer'
-import { getVdfProof } from 'wasm/vdf'
+import { getTimeLockPuzzleProof } from 'wasm/timeLockPuzzle'
 
-import { useV2RouterContract } from '../../hooks/useContract'
+import { useRecorderContract, useV2RouterContract } from '../../hooks/useContract'
 import {
   getEncryptProof,
   getSignTransaction,
@@ -131,7 +131,7 @@ export default function ConfirmSwapModal({
   attemptingTxn,
   txHash,
   swapResponse,
-  showVdf,
+  showTimeLockPuzzle,
 }: {
   isOpen: boolean
   trade: InterfaceTrade<Currency, Currency, TradeType> | undefined
@@ -147,7 +147,7 @@ export default function ConfirmSwapModal({
   swapErrorMessage: ReactNode | undefined
   onDismiss: () => void
   swapResponse?: RadiusSwapResponse | undefined
-  showVdf: boolean
+  showTimeLockPuzzle: boolean
 }) {
   const showAcceptChanges = useMemo(
     () => Boolean(trade && originalTrade && tradeMeaningfullyDiffers(trade, originalTrade)),
@@ -212,14 +212,12 @@ export default function ConfirmSwapModal({
 
   const progress = useProgress()
 
-  // <TransactionErrorContent onDismiss={onDismiss} message={swapErrorMessage} />
-  /*TODO: fix me*/
   const confirmationContent = useCallback(
     () =>
-      progress === 1 || progress === 2 ? (
-        <PreparingForSwap onDismiss={onDismiss} progress={progress} />
-      ) : progress === 3 ? (
+      progress === 1 ? (
         <WaitingForSwapConfirmation onDismiss={onDismiss} progress={progress} trade={trade} />
+      ) : progress === 2 || progress === 3 ? (
+        <PreparingForSwap onDismiss={onDismiss} progress={progress} />
       ) : progress === 4 ? (
         <TransactionSubmitted onDismiss={onDismiss} progress={progress} />
       ) : (
@@ -243,7 +241,7 @@ export default function ConfirmSwapModal({
       content={confirmationContent}
       pendingText={pendingText}
       swapResponse={swapResponse}
-      showVdf={showVdf}
+      showTimeLockPuzzle={showTimeLockPuzzle}
     />
   )
 }
@@ -292,7 +290,8 @@ export function AAA({
     [originalTrade, trade]
   )
   const routerContract = useV2RouterContract() as Contract
-  const { vdfParam, vdfSnarkParam } = useTimeLockPuzzleParam(parameters)
+  const recorderContract = useRecorderContract() as Contract
+  const { timeLockPuzzleParam, timeLockPuzzleSnarkParam } = useTimeLockPuzzleParam(parameters)
 
   const swapCalls = useSwapCallArguments(
     trade,
@@ -304,14 +303,14 @@ export function AAA({
   )
 
   const runSwap = useCallback(async () => {
-    if (vdfParam && vdfSnarkParam) {
+    if (timeLockPuzzleParam && timeLockPuzzleSnarkParam) {
       setProgress(1)
-      const vdfData = await getVdfProof(vdfParam, vdfSnarkParam)
+      const timeLockPuzzleData = await getTimeLockPuzzleProof(timeLockPuzzleParam, timeLockPuzzleSnarkParam)
       setProgress(2)
-      const encryptData = await getEncryptProof(vdfData, account as string, swapCalls, sigHandler)
+      const encryptData = await getEncryptProof(timeLockPuzzleData, account as string, swapCalls, sigHandler)
       setProgress(3)
       const { encryptedSwapTx, sig } = await getSignTransaction(
-        vdfData,
+        timeLockPuzzleData,
         encryptData,
         chainId as number,
         account as string,
@@ -320,9 +319,16 @@ export function AAA({
       )
       setProgress(4)
 
-      const sendResponse = await sendEIP712Tx(chainId as number, routerContract, encryptedSwapTx, sig, () => {
-        console.log('cancel')
-      })
+      const sendResponse = await sendEIP712Tx(
+        chainId as number,
+        routerContract,
+        recorderContract,
+        encryptedSwapTx,
+        sig,
+        () => {
+          console.log('cancel')
+        }
+      )
       //   const finalResponse: RadiusSwapResponse = {
       //     data: sendResponse.data,
       //     msg: sendResponse.msg,
@@ -330,7 +336,7 @@ export function AAA({
       //   return finalResponse
       // }
     }
-  }, [vdfParam, vdfSnarkParam])
+  }, [timeLockPuzzleParam, timeLockPuzzleSnarkParam])
 
   const currencyBalance = useCurrencyBalance(account ?? undefined, trade?.inputAmount.currency ?? undefined)
 
@@ -402,13 +408,13 @@ export function AAA({
     [onDismiss, swapErrorMessage]
   )
 
-  return progress === 1 || progress === 2 ? (
-    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={500}>
-      <PreparingForSwap onDismiss={onDismiss} progress={progress} />
-    </Modal>
-  ) : progress === 3 ? (
+  return progress === 1 ? (
     <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={500}>
       <WaitingForSwapConfirmation onDismiss={onDismiss} progress={progress} trade={trade} />
+    </Modal>
+  ) : progress === 2 || progress === 3 ? (
+    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={500}>
+      <PreparingForSwap onDismiss={onDismiss} progress={progress} />
     </Modal>
   ) : progress === 4 ? (
     <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={500}>
@@ -497,7 +503,7 @@ function PreparingForSwap({ onDismiss, progress }: { onDismiss: any; progress: n
               color: 'transparent',
             }}
           >
-            {progress === 1 ? (
+            {progress === 2 ? (
               <>Generating proofs for your transaction...</>
             ) : (
               <div style={{ width: '100%', textAlign: 'center' }}>
@@ -655,7 +661,7 @@ function TransactionSubmitted({ onDismiss, progress }: { onDismiss: any; progres
   )
 }
 
-function JSBIDivide(numerator: JSBI, denominator: JSBI, precision: number) {
+export function JSBIDivide(numerator: JSBI, denominator: JSBI, precision: number) {
   // if (precision < 0) return Error('precision must bigger than 0')
   // if (denominator === JSBI.BigInt(0)) return Error('divide by zero')
 

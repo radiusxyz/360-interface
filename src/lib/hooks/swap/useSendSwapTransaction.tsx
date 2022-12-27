@@ -16,13 +16,18 @@ import { useEffect, useMemo } from 'react'
 import { useAppDispatch } from 'state/hooks'
 import { useCancelManager } from 'state/modal/hooks'
 import { setProgress } from 'state/modal/reducer'
-import { fetchVdfParam, fetchVdfSnarkParam } from 'state/parameters/fetch'
-import { ParameterState, setVdfParam, setVdfSnarkParam, VdfParam } from 'state/parameters/reducer'
+import { fetchTimeLockPuzzleParam, fetchTimeLockPuzzleSnarkParam } from 'state/parameters/fetch'
+import {
+  ParameterState,
+  setTimeLockPuzzleParam,
+  setTimeLockPuzzleSnarkParam,
+  TimeLockPuzzleParam,
+} from 'state/parameters/reducer'
 import { swapErrorToUserReadableMessage } from 'utils/swapErrorToUserReadableMessage'
 import { poseidonEncryptWithTxHash } from 'wasm/encrypt'
-import { getVdfProof, VdfResponse } from 'wasm/vdf'
+import { getTimeLockPuzzleProof, TimeLockPuzzleResponse } from 'wasm/timeLockPuzzle'
 
-import { useV2RouterContract } from '../../../hooks/useContract'
+import { useRecorderContract, useV2RouterContract } from '../../../hooks/useContract'
 import { db } from '../../../utils/db'
 
 type AnyTrade =
@@ -67,7 +72,7 @@ interface Path {
   s1: string
   s3: string
   k: string
-  vdf_snark_proof: string
+  time_lock_puzzle_snark_proof: string
   encryption_proof: string
 }
 
@@ -101,35 +106,35 @@ const swapExactTokensForTokens = '0x375734d9'
 export function useTimeLockPuzzleParam(parameters: ParameterState) {
   const dispatch = useAppDispatch()
 
-  let vdfParam: VdfParam | null = null
-  let vdfSnarkParam: string | null = null
+  let timeLockPuzzleParam: TimeLockPuzzleParam | null = null
+  let timeLockPuzzleSnarkParam: string | null = null
 
   useEffect(() => {
     const load = async () => {
-      vdfParam = await localForage.getItem('vdf_param')
-      vdfSnarkParam = await localForage.getItem('vdf_snark_param')
+      timeLockPuzzleParam = await localForage.getItem('time_lock_puzzle_param')
+      timeLockPuzzleSnarkParam = await localForage.getItem('time_lock_puzzle_snark_param')
       // if save flag is false or getItem result is null
-      if (!parameters.vdfParam || !vdfParam) {
-        vdfParam = await fetchVdfParam((newParam: boolean) => {
-          dispatch(setVdfParam({ newParam }))
+      if (!parameters.timeLockPuzzleParam || !timeLockPuzzleParam) {
+        timeLockPuzzleParam = await fetchTimeLockPuzzleParam((newParam: boolean) => {
+          dispatch(setTimeLockPuzzleParam({ newParam }))
         })
       }
 
-      if (!parameters.vdfSnarkParam || !vdfSnarkParam) {
-        vdfSnarkParam = await fetchVdfSnarkParam((newParam: boolean) => {
-          dispatch(setVdfSnarkParam({ newParam }))
+      if (!parameters.timeLockPuzzleSnarkParam || !timeLockPuzzleSnarkParam) {
+        timeLockPuzzleSnarkParam = await fetchTimeLockPuzzleSnarkParam((newParam: boolean) => {
+          dispatch(setTimeLockPuzzleSnarkParam({ newParam }))
         })
       }
     }
     load()
   }, [])
 
-  return { vdfParam, vdfSnarkParam }
-  // const vdfData = await getVdfProof(vdfParam, vdfSnarkParam)
+  return { timeLockPuzzleParam, timeLockPuzzleSnarkParam }
+  // const timeLockPuzzleData = await getTimeLockPuzzleProof(timeLockPuzzleParam, timeLockPuzzleSnarkParam)
 }
 
 export async function getEncryptProof(
-  vdfData: VdfResponse,
+  timeLockPuzzleData: TimeLockPuzzleResponse,
   signAddress: string,
   swapCalls: Promise<SwapCall[]>,
   sigHandler: () => void
@@ -170,9 +175,9 @@ export async function getEncryptProof(
 
   const encryptData = await poseidonEncryptWithTxHash(
     txInfoToHash,
-    vdfData.s2_string,
-    vdfData.s2_field_hex,
-    vdfData.commitment_hex,
+    timeLockPuzzleData.s2_string,
+    timeLockPuzzleData.s2_field_hex,
+    timeLockPuzzleData.commitment_hex,
     idPath
   )
 
@@ -180,7 +185,7 @@ export async function getEncryptProof(
 }
 
 export async function getSignTransaction(
-  vdfData: any,
+  timeLockPuzzleData: any,
   encryptData: any,
   chainId: number,
   signAddress: string,
@@ -196,14 +201,14 @@ export async function getSignTransaction(
   const encryptedPath = {
     message_length: encryptData.message_length,
     nonce: encryptData.nonce,
-    commitment: vdfData.commitment_hex,
+    commitment: timeLockPuzzleData.commitment_hex,
     cipher_text: [encryptData.cipher_text],
-    r1: vdfData.r1,
-    r3: vdfData.r3,
-    s1: vdfData.s1,
-    s3: vdfData.s3,
-    k: vdfData.k,
-    vdf_snark_proof: vdfData.vdf_snark_proof,
+    r1: timeLockPuzzleData.r1,
+    r3: timeLockPuzzleData.r3,
+    s1: timeLockPuzzleData.s1,
+    s3: timeLockPuzzleData.s3,
+    k: timeLockPuzzleData.k,
+    time_lock_puzzle_snark_proof: timeLockPuzzleData.time_lock_puzzle_snark_proof,
     encryption_proof: encryptData.proof,
   }
 
@@ -291,7 +296,7 @@ export default function useSendSwapTransaction(
   const dispatch = useAppDispatch()
 
   const routerContract = useV2RouterContract() as Contract
-  // const recorderContract = useRecorderContract() as Contract
+  const recorderContract = useRecorderContract() as Contract
   const [cancel, setCancel] = useCancelManager()
 
   return useMemo(() => {
@@ -300,19 +305,19 @@ export default function useSendSwapTransaction(
     }
     return {
       callback: async function onSwap(): Promise<RadiusSwapResponse> {
-        let vdfParam: VdfParam | null = await localForage.getItem('vdf_param')
-        let vdfSnarkParam: string | null = await localForage.getItem('vdf_snark_param')
+        let timeLockPuzzleParam: TimeLockPuzzleParam | null = await localForage.getItem('time_lock_puzzle_param')
+        let timeLockPuzzleSnarkParam: string | null = await localForage.getItem('time_lock_puzzle_snark_param')
 
         // if save flag is false or getItem result is null
-        if (!parameters.vdfParam || !vdfParam) {
-          vdfParam = await fetchVdfParam((newParam: boolean) => {
-            dispatch(setVdfParam({ newParam }))
+        if (!parameters.timeLockPuzzleParam || !timeLockPuzzleParam) {
+          timeLockPuzzleParam = await fetchTimeLockPuzzleParam((newParam: boolean) => {
+            dispatch(setTimeLockPuzzleParam({ newParam }))
           })
         }
 
-        if (!parameters.vdfSnarkParam || !vdfSnarkParam) {
-          vdfSnarkParam = await fetchVdfSnarkParam((newParam: boolean) => {
-            dispatch(setVdfSnarkParam({ newParam }))
+        if (!parameters.timeLockPuzzleSnarkParam || !timeLockPuzzleSnarkParam) {
+          timeLockPuzzleSnarkParam = await fetchTimeLockPuzzleSnarkParam((newParam: boolean) => {
+            dispatch(setTimeLockPuzzleSnarkParam({ newParam }))
           })
         }
 
@@ -320,10 +325,6 @@ export default function useSendSwapTransaction(
 
         const signer = library.getSigner()
         const signAddress = await signer.getAddress()
-
-        // TODO: 한 round에 2개의 tx를 날리면 contract에서 가져오지 않고 nonce값을 ++ 해야 한다.
-        // const _txNonce = await routerContract.nonces(signAddress)
-        // const txNonce = BigNumber.from(_txNonce).toNumber()
 
         const _txNonce = window.localStorage.getItem(account + ':nonce')
         const txNonce = !_txNonce ? 0 : BigNumber.from(_txNonce).toNumber()
@@ -422,42 +423,7 @@ export default function useSendSwapTransaction(
 
         // console.log('disableTxHash', disableTxHash)
         // console.log(signer, signAddress)
-
-        dispatch(setProgress({ newParam: 1 }))
-
-        const vdfData = await getVdfProof(vdfParam, vdfSnarkParam)
-
-        // console.log(vdfData)
-
-        dispatch(setProgress({ newParam: 2 }))
-
-        const encryptData = await poseidonEncryptWithTxHash(
-          txInfoToHash,
-          vdfData.s2_string,
-          vdfData.s2_field_hex,
-          vdfData.commitment_hex,
-          idPath
-        )
-
-        // console.log(encryptData)
-
-        dispatch(setProgress({ newParam: 3 }))
-
-        const encryptedPath = {
-          message_length: encryptData.message_length,
-          nonce: encryptData.nonce,
-          commitment: vdfData.commitment_hex,
-          cipher_text: [encryptData.cipher_text],
-          r1: vdfData.r1,
-          r3: vdfData.r3,
-          s1: vdfData.s1,
-          s3: vdfData.s3,
-          k: vdfData.k,
-          vdf_snark_proof: vdfData.vdf_snark_proof,
-          encryption_proof: encryptData.proof,
-        }
-
-        const availableFrom = Date.now() / 1000 + 60
+        const availableFrom = Math.floor(Date.now() / 1000) + 70
 
         const signMessage = { ...message, availableFrom }
 
@@ -471,7 +437,41 @@ export default function useSendSwapTransaction(
           message: signMessage,
         })
 
+        dispatch(setProgress({ newParam: 1 }))
+
         const sig = await signWithEIP712(library, signAddress, typedData)
+
+        dispatch(setProgress({ newParam: 2 }))
+
+        const timeLockPuzzleData = await getTimeLockPuzzleProof(timeLockPuzzleParam, timeLockPuzzleSnarkParam)
+
+        // console.log(timeLockPuzzleData)
+
+        dispatch(setProgress({ newParam: 3 }))
+
+        const encryptData = await poseidonEncryptWithTxHash(
+          txInfoToHash,
+          timeLockPuzzleData.s2_string,
+          timeLockPuzzleData.s2_field_hex,
+          timeLockPuzzleData.commitment_hex,
+          idPath
+        )
+
+        // console.log(encryptData)
+
+        const encryptedPath = {
+          message_length: encryptData.message_length,
+          nonce: encryptData.nonce,
+          commitment: timeLockPuzzleData.commitment_hex,
+          cipher_text: [encryptData.cipher_text],
+          r1: timeLockPuzzleData.r1,
+          r3: timeLockPuzzleData.r3,
+          s1: timeLockPuzzleData.s1,
+          s3: timeLockPuzzleData.s3,
+          k: timeLockPuzzleData.k,
+          time_lock_puzzle_snark_proof: timeLockPuzzleData.time_lock_puzzle_snark_proof,
+          encryption_proof: encryptData.proof,
+        }
 
         // console.log(sig)
 
@@ -516,7 +516,14 @@ export default function useSendSwapTransaction(
 
         window.localStorage.setItem(account + ':nonce', (txNonce + 1).toString())
 
-        const sendResponse = await sendEIP712Tx(chainId, routerContract, encryptedSwapTx, sig, setCancel)
+        const sendResponse = await sendEIP712Tx(
+          chainId,
+          routerContract,
+          recorderContract,
+          encryptedSwapTx,
+          sig,
+          setCancel
+        )
 
         dispatch(setProgress({ newParam: 4 }))
 
@@ -569,6 +576,7 @@ async function signWithEIP712(library: JsonRpcProvider, signAddress: string, typ
 export async function sendEIP712Tx(
   chainId: number,
   routerContract: Contract,
+  recorderContract: Contract,
   encryptedSwapTx: EncryptedSwapTx,
   signature: Signature,
   setCancel: (cancel: number) => void
@@ -612,13 +620,16 @@ export async function sendEIP712Tx(
         encryptedSwapTx.mimcHash === res.txOrderMsg.mimcHash
       ) {
         // console.log('clear disableTxHash tx')
+        console.log('txOrderMsg', res.txOrderMsg)
 
         await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
         await db.pendingTxs.add({
-          ...res.txOrderMsg,
+          round: res.txOrderMsg.round,
+          order: res.txOrderMsg.order,
+          proofHash: res.txOrderMsg.proofHash,
           sendDate: Date.now(),
           operatorSignature: signature,
-          readyTxId: readyTx?.id,
+          readyTxId: readyTx?.id as number,
           progressHere: 1,
         })
 
@@ -635,8 +646,21 @@ export async function sendEIP712Tx(
     })
     .catch(async (error) => {
       console.log(error)
+
+      const currentRound = await recorderContract.currentRound()
+      await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
+      await db.pendingTxs.add({
+        round: currentRound,
+        order: -1,
+        proofHash: '',
+        sendDate: Date.now(),
+        operatorSignature: { r: '', s: '', v: 27 },
+        readyTxId: readyTx?.id as number,
+        progressHere: 1,
+      })
+      setCancel(readyTx?.id as number)
+
       if (error.name === 'AbortError') {
-        setCancel(readyTx?.id as number)
         throw new Error(
           `Operator is not respond: ${swapErrorToUserReadableMessage({ ...error, message: 'Operator is not respond' })}`
         )

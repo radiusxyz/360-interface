@@ -1,5 +1,5 @@
 // import contracts from '@radiusxyz/tex-contracts/contracts.json'
-import tokens from '@radiusxyz/tex-contracts-migration/tokens.json'
+import tokens from '@radiusxyz/threesixty-contracts/tokens.json'
 import { createReducer } from '@reduxjs/toolkit'
 import { getVersionUpgrade, TokenList, VersionUpgrade } from '@uniswap/token-lists'
 

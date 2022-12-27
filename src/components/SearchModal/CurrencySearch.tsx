@@ -215,8 +215,8 @@ export function CurrencySearch({
           <ImportRow token={searchToken} showImportView={showImportView} setImportToken={setImportToken} />
         </Column>
       ) : filteredSortedTokens?.length > 0 || filteredInactiveTokens?.length > 0 ? (
-        <div style={{ flex: '1' }}>
-          <AutoSizer disableWidth>
+        <div style={{ flex: '1', width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+          <AutoSizer disableWidth style={{ display: 'flex', width: '100%', height: '100%', justifyContent: 'center' }}>
             {({ height }) => (
               <CurrencyList
                 height={height}

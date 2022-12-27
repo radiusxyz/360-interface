@@ -23,8 +23,12 @@ import { addPopup } from 'state/application/reducer'
 import { useAppDispatch } from 'state/hooks'
 import { useCancelManager, useReimbursementManager, useShowHistoryManager } from 'state/modal/hooks'
 import { setProgress } from 'state/modal/reducer'
-import { fetchVdfParam, fetchVdfSnarkParam } from 'state/parameters/fetch'
-import { useParameters, useVdfParamManager, useVdfSnarkParamManager } from 'state/parameters/hooks'
+import { fetchTimeLockPuzzleParam, fetchTimeLockPuzzleSnarkParam } from 'state/parameters/fetch'
+import {
+  useParameters,
+  useTimeLockPuzzleParamManager,
+  useTimeLockPuzzleSnarkParamManager,
+} from 'state/parameters/hooks'
 import { TradeState } from 'state/routing/types'
 import styled, { ThemeContext } from 'styled-components/macro'
 
@@ -179,7 +183,7 @@ export default function Swap({ history }: RouteComponentProps) {
 
   const addPending = async () => {
     await db.pendingTxs.add({
-      readyTxId: 0,
+      readyTxId: 1,
       sendDate: Date.now(),
       round: 3,
       order: 4,
@@ -191,12 +195,12 @@ export default function Swap({ history }: RouteComponentProps) {
 
   const addTxHistory = async () => {
     await db.txHistory.add({
-      pendingTxId: 0,
+      pendingTxId: 1,
       txId: 'txId',
       txDate: Date.now(),
       status: Status.COMPLETED,
-      from: { token: 'fromToken', amount: '123000000000000000000', decimal: '1000000000000000000' },
-      to: { token: 'toToken', amount: '321000000000000000000', decimal: '1000000000000000000' },
+      from: { token: 'fromToken', amount: '123345222222000000000', decimal: '1000000000000000000' },
+      to: { token: 'toToken', amount: '321333388888000000000', decimal: '1000000000000000000' },
     })
   }
 
@@ -297,24 +301,24 @@ export default function Swap({ history }: RouteComponentProps) {
   const [isExpertMode] = useExpertModeManager()
 
   const parameters = useParameters()
-  const [vdfParam, updateVdfParam] = useVdfParamManager()
-  const [vdfSnarkParam, updateVdfSnarkParam] = useVdfSnarkParamManager()
+  const [timeLockPuzzleParam, updateTimeLockPuzzleParam] = useTimeLockPuzzleParamManager()
+  const [timeLockPuzzleSnarkParam, updateTimeLockPuzzleSnarkParam] = useTimeLockPuzzleSnarkParamManager()
 
   useEffect(() => {
-    if (!vdfParam) {
-      fetchVdfParam((newParam: boolean) => {
-        updateVdfParam(newParam)
+    if (!timeLockPuzzleParam) {
+      fetchTimeLockPuzzleParam((newParam: boolean) => {
+        updateTimeLockPuzzleParam(newParam)
       })
     }
-  }, [vdfParam, updateVdfParam])
+  }, [timeLockPuzzleParam, updateTimeLockPuzzleParam])
 
   useEffect(() => {
-    if (!vdfSnarkParam) {
-      fetchVdfSnarkParam((newParam: boolean) => {
-        updateVdfSnarkParam(newParam)
+    if (!timeLockPuzzleSnarkParam) {
+      fetchTimeLockPuzzleSnarkParam((newParam: boolean) => {
+        updateTimeLockPuzzleSnarkParam(newParam)
       })
     }
-  }, [updateVdfSnarkParam, vdfSnarkParam])
+  }, [updateTimeLockPuzzleSnarkParam, timeLockPuzzleSnarkParam])
 
   // swap state
   const { independentField, typedValue, recipient } = useSwapState()
@@ -386,7 +390,7 @@ export default function Swap({ history }: RouteComponentProps) {
 
   // modal and loading
   const [
-    { showConfirm, tradeToConfirm, swapErrorMessage, attemptingTxn, txHash, swapResponse, showVdf },
+    { showConfirm, tradeToConfirm, swapErrorMessage, attemptingTxn, txHash, swapResponse, showTimeLockPuzzle },
     setSwapState,
   ] = useState<{
     showConfirm: boolean
@@ -395,7 +399,7 @@ export default function Swap({ history }: RouteComponentProps) {
     swapErrorMessage: string | undefined
     txHash: string | undefined
     swapResponse: RadiusSwapResponse | undefined
-    showVdf: boolean
+    showTimeLockPuzzle: boolean
   }>({
     showConfirm: false,
     tradeToConfirm: undefined,
@@ -403,7 +407,7 @@ export default function Swap({ history }: RouteComponentProps) {
     swapErrorMessage: undefined,
     txHash: undefined,
     swapResponse: undefined,
-    showVdf: false,
+    showTimeLockPuzzle: false,
   })
 
   const formattedAmounts = useMemo(
@@ -488,7 +492,7 @@ export default function Swap({ history }: RouteComponentProps) {
       swapErrorMessage: undefined,
       txHash,
       swapResponse: undefined,
-      showVdf: true,
+      showTimeLockPuzzle: true,
     })
   }
 
@@ -517,7 +521,7 @@ export default function Swap({ history }: RouteComponentProps) {
       swapErrorMessage: undefined,
       txHash: undefined,
       swapResponse: undefined,
-      showVdf: false,
+      showTimeLockPuzzle: false,
     })
     swapCallback()
       .then((res) => {
@@ -528,7 +532,7 @@ export default function Swap({ history }: RouteComponentProps) {
           swapErrorMessage: undefined,
           txHash: 'test',
           swapResponse: res,
-          showVdf,
+          showTimeLockPuzzle,
         })
         // ReactGA.event({
         //   category: 'Swap',
@@ -547,15 +551,16 @@ export default function Swap({ history }: RouteComponentProps) {
         // })
       })
       .catch((error) => {
+        dispatch(setProgress({ newParam: 0 }))
         console.log(error.message)
         setSwapState({
           attemptingTxn: false,
           tradeToConfirm,
-          showConfirm,
+          showConfirm: false,
           swapErrorMessage: error.message,
           txHash: undefined,
           swapResponse: undefined,
-          showVdf,
+          showTimeLockPuzzle,
         })
       })
   }, [
@@ -569,7 +574,7 @@ export default function Swap({ history }: RouteComponentProps) {
     approvalOptimizedTradeString,
     approvalOptimizedTrade?.inputAmount?.currency?.symbol,
     approvalOptimizedTrade?.outputAmount?.currency?.symbol,
-    showVdf,
+    showTimeLockPuzzle,
   ])
 
   // errors
@@ -600,16 +605,32 @@ export default function Swap({ history }: RouteComponentProps) {
     !(priceImpactSeverity > 3 && !isExpertMode)
 
   const handleConfirmDismiss = useCallback(() => {
-    setSwapState({ showConfirm: false, tradeToConfirm, attemptingTxn, swapErrorMessage, txHash, swapResponse, showVdf })
+    setSwapState({
+      showConfirm: false,
+      tradeToConfirm,
+      attemptingTxn,
+      swapErrorMessage,
+      txHash,
+      swapResponse,
+      showTimeLockPuzzle,
+    })
     // if there was a tx hash, we want to clear the input
     if (txHash) {
       onUserInput(Field.INPUT, '')
     }
-  }, [attemptingTxn, onUserInput, showVdf, swapErrorMessage, swapResponse, tradeToConfirm, txHash])
+  }, [attemptingTxn, onUserInput, showTimeLockPuzzle, swapErrorMessage, swapResponse, tradeToConfirm, txHash])
 
   const handleAcceptChanges = useCallback(() => {
-    setSwapState({ tradeToConfirm: trade, swapErrorMessage, txHash, attemptingTxn, showConfirm, swapResponse, showVdf })
-  }, [attemptingTxn, showConfirm, showVdf, swapErrorMessage, swapResponse, trade, txHash])
+    setSwapState({
+      tradeToConfirm: trade,
+      swapErrorMessage,
+      txHash,
+      attemptingTxn,
+      showConfirm,
+      swapResponse,
+      showTimeLockPuzzle,
+    })
+  }, [attemptingTxn, showConfirm, showTimeLockPuzzle, swapErrorMessage, swapResponse, trade, txHash])
 
   const handleInputSelect = useCallback(
     (inputCurrency) => {
@@ -678,6 +699,8 @@ export default function Swap({ history }: RouteComponentProps) {
     }
   }, [isValid, routeIsSyncing, routeIsLoading, swapCallbackError, controls])
 
+  console.log(allowedSlippage.toSignificant())
+
   const minimum = trade
     ?.minimumAmountOut(new Percent((100 - parseInt(allowedSlippage.toSignificant())).toString()))
     .multiply('100')
@@ -694,13 +717,13 @@ export default function Swap({ history }: RouteComponentProps) {
       />
       <HistoryModal isOpen={showHistory} onDismiss={() => setShowHistory(false)} />
       <AppBody>
-        <button onClick={() => addPending()}>inputPending</button>
+        {/* <button onClick={() => addPending()}>inputPending</button>
         <button onClick={() => addTxHistory()}>inputTx</button>
         <button onClick={() => showDB()}>log</button>
         <button onClick={() => showModal()}>modal</button>
         <button onClick={() => showPopUp()}>popup</button>
         <button onClick={() => showReimbursementModal()}>reimbursement</button>
-        <button onClick={() => showCancel()}>cancel</button>
+        <button onClick={() => showCancel()}>cancel</button> */}
         <div
           style={{
             background: '#000000',
@@ -726,9 +749,8 @@ export default function Swap({ history }: RouteComponentProps) {
               swapErrorMessage={swapErrorMessage}
               onDismiss={handleConfirmDismiss}
               swapResponse={swapResponse}
-              showVdf={showVdf}
+              showTimeLockPuzzle={showTimeLockPuzzle}
             />
-            {/* TODO: fix me */}
             <ReimbursementModal
               isOpen={reimbursement !== 0}
               historyId={reimbursement}
@@ -910,7 +932,7 @@ export default function Swap({ history }: RouteComponentProps) {
                           showConfirm: true,
                           txHash: undefined,
                           swapResponse: undefined,
-                          showVdf: false,
+                          showTimeLockPuzzle: false,
                         })
                       }
                     }}
@@ -951,7 +973,7 @@ export default function Swap({ history }: RouteComponentProps) {
                       showConfirm: true,
                       txHash: undefined,
                       swapResponse: undefined,
-                      showVdf: false,
+                      showTimeLockPuzzle: false,
                     })
                   }
                 }}
@@ -1024,7 +1046,7 @@ export default function Swap({ history }: RouteComponentProps) {
           overflow: 'hidden',
           maxWidth: '400px',
           width: '80%',
-          transform: 'translateY(-30px) perspective(4.0em) rotateX(2deg)',
+          transform: 'translateY(-30px) perspective(4.0em) rotateX(1deg)',
           padding: '24px',
           zIndex: 300,
           opacity: 1,
@@ -1056,7 +1078,7 @@ export default function Swap({ history }: RouteComponentProps) {
               }}
             />
           </div>
-          <div>{minimum && minimum + trade?.outputAmount.currency.symbol}</div>
+          <div>{minimum && minimum + ' ' + trade?.outputAmount.currency.symbol}</div>
         </div>
         <div
           style={{
