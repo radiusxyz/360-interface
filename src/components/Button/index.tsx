@@ -16,7 +16,7 @@ export const BaseButton = styled(RebassButton)<
     altDisabledStyle?: boolean
   } & ButtonProps
 >`
-  padding: ${({ padding }) => padding ?? '16px'};
+  padding: ${({ padding }) => padding ?? '14px'};
   width: ${({ width }) => width ?? '100%'};
   font-weight: 500;
   text-align: center;

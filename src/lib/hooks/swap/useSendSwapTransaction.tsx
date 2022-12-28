@@ -424,6 +424,7 @@ export default function useSendSwapTransaction(
         // console.log('disableTxHash', disableTxHash)
         // console.log(signer, signAddress)
         const availableFrom = Math.floor(Date.now() / 1000) + 70
+        const now = Date.now()
 
         const signMessage = { ...message, availableFrom }
 
@@ -440,6 +441,27 @@ export default function useSendSwapTransaction(
         dispatch(setProgress({ newParam: 1 }))
 
         const sig = await signWithEIP712(library, signAddress, typedData)
+
+        if (now + 10000 < Date.now()) {
+          dispatch(setProgress({ newParam: 8 }))
+          return {
+            data: {
+              txOrderMsg: {
+                round: 0,
+                order: 0,
+                mimcHash: '',
+                txHash: '',
+                proofHash: '',
+              },
+              signature: {
+                r: '',
+                s: '',
+                v: 27,
+              },
+            },
+            msg: 'timeOver',
+          }
+        }
 
         dispatch(setProgress({ newParam: 2 }))
 
@@ -624,8 +646,8 @@ export async function sendEIP712Tx(
 
         await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
         await db.pendingTxs.add({
-          round: res.txOrderMsg.round,
-          order: res.txOrderMsg.order,
+          round: parseInt(res.txOrderMsg.round),
+          order: parseInt(res.txOrderMsg.order),
           proofHash: res.txOrderMsg.proofHash,
           sendDate: Date.now(),
           operatorSignature: signature,
@@ -650,7 +672,7 @@ export async function sendEIP712Tx(
       const currentRound = await recorderContract.currentRound()
       await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
       await db.pendingTxs.add({
-        round: currentRound,
+        round: parseInt(currentRound),
         order: -1,
         proofHash: '',
         sendDate: Date.now(),

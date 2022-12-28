@@ -12,7 +12,7 @@ import TradePrice from './TradePrice'
 
 export const Wrapper = styled.div`
   position: relative;
-  padding: 8px;
+  padding: 6px 16px 14px 16px;
 `
 
 export const ArrowWrapper = styled.div<{ clickable: boolean }>`
@@ -21,13 +21,13 @@ export const ArrowWrapper = styled.div<{ clickable: boolean }>`
   height: 32px;
   width: 32px;
   position: relative;
-  margin-top: -13px;
-  margin-bottom: -13px;
+  margin-top: -12px;
+  margin-bottom: -12px;
   left: calc(50% - 16px);
   /* transform: rotate(90deg); */
   /*background-color: ${({ theme }) => theme.bg1};*/
   background-color: #383b49;
-  border: 4px solid ${({ theme }) => theme.bg0};
+  border: 0px solid ${({ theme }) => theme.bg0};
   z-index: 2;
 
   ${({ clickable }) =>

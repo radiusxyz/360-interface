@@ -15,6 +15,9 @@ const SwapButtonError = styled(ButtonError)`
   border-radius: 4px;
   color: #000;
   border: 0px solid #fff;
+  &:hover {
+    border: 0px solid #fff;
+  }
 `
 
 export default function SwapModalFooter({
