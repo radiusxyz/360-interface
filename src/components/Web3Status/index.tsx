@@ -8,7 +8,7 @@ import { formatBytes32String } from 'ethers/lib/utils'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import JSBI from 'jsbi'
 import { darken } from 'polished'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Activity } from 'react-feather'
 import { addPopup } from 'state/application/reducer'
 import { useAppDispatch } from 'state/hooks'
@@ -228,14 +228,19 @@ async function CheckPendingTx() {
   setLastCall(Date.now())
 
   const pendingTx = await db.pendingTxs.get({ progressHere: 1 }).catch((e) => console.log(e))
+  console.log('pendingTx', pendingTx)
 
   const noOrdered = await db.pendingTxs.get({ order: -1 }).catch((e) => console.log(e))
   if (noOrdered && noOrdered.id) {
+    console.log('noOrdered', noOrdered)
     const noOrderedTx = await db.getPendingTxWithReadyTxById(noOrdered?.id)
+    console.log('noOrderedTx', noOrderedTx)
     let round = noOrderedTx.round
+    console.log('round', round)
 
     if (noOrderedTx && noOrderedTx.txHash) {
-      const currentRound = await recorderContract?.currentRound()
+      const currentRound = parseInt(await recorderContract?.currentRound())
+      console.log('currentRound', currentRound)
       while (round <= currentRound) {
         // const txHashes = await recorderContract?.roundTxHashList(round) // TODO: change to roundTxHash list
         const txHashes = [formatBytes32String('0000000000000000'), formatBytes32String('0000000000000000')]
@@ -254,6 +259,8 @@ async function CheckPendingTx() {
     }
   }
 
+  // TODO: history pending 확인하여 complete or reject로 갱신
+
   // 1. round에 해당하는 txId 받아오기
   if (pendingTx && pendingTx.progressHere === 1) {
     const readyTx = await db.readyTxs.get(pendingTx.readyTxId)
@@ -264,9 +271,16 @@ async function CheckPendingTx() {
       .then((roundResponse) => {
         if (roundResponse.ok) {
           roundResponse.json().then(async (json) => {
+            console.log('json', json)
+            // TODO: fixme
+            // if (false) {
             if (json?.txHash) {
               // 2. txId 실행되었는지 확인
-              const txReceipt = await library?.getTransactionReceipt(json?.txHash)
+              // TODO: FIXME
+              // const txReceipt = await library?.getTransactionReceipt(json?.txHash)
+              const txReceipt = await library?.getTransactionReceipt(
+                '0xd138ba1a06353361145880d890175d3723bb8fb70f24f78bdb87eb5f180b802b'
+              )
 
               // TODO: rejected Tx 구분하기
               if (txReceipt) {
@@ -445,7 +459,7 @@ async function GetNonce() {
 }
 
 export default function Web3Status() {
-  const { active, account, library } = useWeb3React()
+  const { active, account } = useWeb3React()
   const contextNetwork = useWeb3React(NetworkContextName)
 
   // console.log('account', account)
@@ -461,13 +475,13 @@ export default function Web3Status() {
     return txs.filter(isTransactionRecent).sort(newTransactionsFirst)
   }, [allTransactions])
 
-  useEffect(() => {
-    library
-      ?.getTransactionReceipt('0xd138ba1a06353361145880d890175d3723bb8fb70f24f78bdb87eb5f180b802b')
-      .then((receipt: any) => {
-        console.log('log', receipt)
-      })
-  }, [])
+  // useEffect(() => {
+  //   library
+  //     ?.getTransactionReceipt('0xd138ba1a06353361145880d890175d3723bb8fb70f24f78bdb87eb5f180b802b')
+  //     .then((receipt: any) => {
+  //       console.log('log', receipt)
+  //     })
+  // }, [])
 
   CheckPendingTx()
   GetNonce()

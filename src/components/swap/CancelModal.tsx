@@ -58,7 +58,7 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
     if (readyTx !== undefined) {
       recorderContract.disableTxHash(readyTx.txHash)
 
-      const currentRound = (await recorderContract.currentRound()) - 1
+      const currentRound = parseInt(await recorderContract.currentRound()) - 1
       await db.readyTxs.where({ id: readyTx.id }).modify({ progressHere: 0 })
       await db.pendingTxs.add({
         round: currentRound,
@@ -70,6 +70,7 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
         readyTxId: readyTx.id as number,
         progressHere: 1,
       })
+      // TODO: check cancel fail. if cancel successed add history
     }
   }
 
@@ -99,7 +100,7 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
 
   const continueTx = async () => {
     if (readyTx !== undefined) {
-      const currentRound = (await recorderContract.currentRound()) - 1
+      const currentRound = parseInt(await recorderContract.currentRound()) - 1
       await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
       await db.pendingTxs.add({
         round: currentRound,

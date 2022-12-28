@@ -7,7 +7,7 @@ import { RowBetween, RowFixed } from '../Row'
 import SettingsTab from '../Settings'
 
 const StyledSwapHeader = styled.div`
-  padding: 1rem 1.25rem 0.5rem 1.25rem;
+  padding: 22px 1.25rem 10px 1.25rem;
   width: 100%;
   color: ${({ theme }) => theme.text2};
 `
@@ -16,7 +16,7 @@ export default function SwapHeader({ allowedSlippage }: { allowedSlippage: Perce
   return (
     <StyledSwapHeader>
       <RowBetween>
-        <div style={{ width: '24px' }}>&nbsp;</div>
+        <div style={{ width: '24px', marginLeft: '20px' }}>&nbsp;</div>
         <div
           style={{
             position: 'static',

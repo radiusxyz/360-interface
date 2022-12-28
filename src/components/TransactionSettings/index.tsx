@@ -27,36 +27,36 @@ const FancyButton = styled.button`
   align-items: center;
   height: 2rem;
   border-radius: 36px;
-  font-size: 1rem;
+  font-size: 14px;
   width: auto;
   min-width: 3.5rem;
-  border: 1px solid ${({ theme }) => theme.bg3};
+  border: 0px solid ${({ theme }) => theme.bg3};
   outline: none;
   background: ${({ theme }) => theme.bg1};
   :hover {
-    border: 1px solid ${({ theme }) => theme.bg4};
+    border: 0px solid ${({ theme }) => theme.bg4};
   }
   :focus {
-    border: 1px solid ${({ theme }) => theme.primary1};
+    border: 0px solid ${({ theme }) => theme.primary1};
   }
 `
 
 const Option = styled(FancyButton)<{ active: boolean }>`
   height: 24px;
-  width: 57px;
   margin-right: 8px;
+  padding: 0px 10px;
   :hover {
     cursor: pointer;
   }
   background-color: ${({ active, theme }) => active && theme.primary1};
   color: #485c83;
   border: 1px solid #485c83;
-  /*color: ${({ active, theme }) => (active ? theme.white : theme.text1)};*/
+  width: 59px;
 `
 
 const Input = styled.input`
   background: ${({ theme }) => theme.bg1};
-  font-size: 16px;
+  font-size: 14px;
   width: auto;
   outline: none;
   &::-webkit-outer-spin-button,
@@ -77,7 +77,7 @@ const OptionCustom = styled(FancyButton)<{ active?: boolean; warning?: boolean }
     active ? `1px solid ${warning ? theme.red1 : theme.primary1}` : warning && `1px solid ${theme.red1}`};*/
   :hover {
     border: ${({ theme, active, warning }) =>
-      active && `1px solid ${warning ? darken(0.1, theme.red1) : darken(0.1, theme.primary1)}`};
+      active && `0px solid ${warning ? darken(0.1, theme.red1) : darken(0.1, theme.primary1)}`};
   }
 
   input {

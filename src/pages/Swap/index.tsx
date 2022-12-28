@@ -74,38 +74,42 @@ import { supportedChainId } from '../../utils/supportedChainId'
 import AppBody from '../AppBody'
 
 const SwapButtonConfirmed = styled(ButtonConfirmed)`
-  margin: 10px 0px 16px 0px;
+  margin: 10px 0px 24px 0px;
   background: #ff3187;
   border-radius: 4px;
   border: 0px solid #fff;
   &:hover {
     background: #1cde81;
+    border: 0px solid #fff;
   }
 `
 const SwapButtonError = styled(ButtonError)`
-  margin: 10px 0px 16px 0px;
+  margin: 10px 0px 24px 0px;
   background: linear-gradient(97deg, #0057ff 10%, #00ff66 65%, #2cff9a 100%);
   border-radius: 4px;
   color: #000;
   border: 0px solid #fff;
+  &:hover {
+    background: #0066ff;
+  }
 `
 const SwapButtonLight = styled(ButtonLight)`
-  margin: 10px 0px 16px 0px;
+  margin: 10px 0px 24px 0px;
   background: linear-gradient(97deg, #ff0057%, #00ff66 65%, #2cff9a 100%);
   border-radius: 4px;
   border: 0px solid #fff;
 `
 const SwapButtonPrimary = styled(ButtonPrimary)`
-  margin: 10px 0px 16px 0px;
+  margin: 10px 0px 24px 0px;
   background: #cccccc;
   border-radius: 4px;
   border: 0px solid #fff;
 `
 
 export const RotateWrapper = styled.div`
-  height: 24px;
-  width: 24px;
-  padding: 4px;
+  height: 32px;
+  width: 32px;
+  padding: 8px;
   position: absolute;
 
   @keyframes rotate {
@@ -123,15 +127,15 @@ export const RotateWrapper = styled.div`
 
   :hover {
     cursor: pointer;
-    animation: rotate linear 0.5s;
+    animation: rotate linear 0.3s;
     animation-fill-mode: forwards;
   }
 `
 
 export const FadeWrapper = styled.div`
-  height: 24px;
-  width: 24px;
-  border-radius: 12px;
+  height: 32px;
+  width: 32px;
+  border-radius: 16px;
   position: absolute;
   background: #383b49;
 
@@ -149,7 +153,7 @@ export const FadeWrapper = styled.div`
 
   :hover {
     cursor: pointer;
-    animation: fade linear 0.5s;
+    animation: fade linear 0.3s;
     animation-fill-mode: forwards;
   }
 `
@@ -367,6 +371,7 @@ export default function Swap({ history }: RouteComponentProps) {
     () => (routeIsSyncing ? undefined : computeFiatValuePriceImpact(fiatValueInput, fiatValueOutput)),
     [fiatValueInput, fiatValueOutput, routeIsSyncing]
   )
+  // console.log(trade?.inputAmount, trade?.outputAmount, fiatValueInput, fiatValueOutput, priceImpact)
 
   const { onSwitchTokens, onCurrencySelection, onUserInput, onChangeRecipient } = useSwapActionHandlers()
   const isValid = !swapInputError
@@ -528,15 +533,27 @@ export default function Swap({ history }: RouteComponentProps) {
     })
     swapCallback()
       .then((res) => {
-        setSwapState({
-          attemptingTxn: false,
-          tradeToConfirm,
-          showConfirm: false,
-          swapErrorMessage: undefined,
-          txHash: 'test',
-          swapResponse: res,
-          showTimeLockPuzzle,
-        })
+        if (res.msg === 'timeOver') {
+          setSwapState({
+            attemptingTxn: false,
+            tradeToConfirm,
+            showConfirm,
+            swapErrorMessage: undefined,
+            txHash: 'test',
+            swapResponse: res,
+            showTimeLockPuzzle,
+          })
+        } else {
+          setSwapState({
+            attemptingTxn: false,
+            tradeToConfirm,
+            showConfirm: false,
+            swapErrorMessage: undefined,
+            txHash: 'test',
+            swapResponse: res,
+            showTimeLockPuzzle,
+          })
+        }
         // ReactGA.event({
         //   category: 'Swap',
         //   action:
@@ -737,8 +754,8 @@ export default function Swap({ history }: RouteComponentProps) {
         <button onClick={() => showModal()}>modal</button>
         <button onClick={() => showPopUp()}>popup</button>
         <button onClick={() => showReimbursementModal()}>reimbursement</button>
-        <button onClick={() => showCancel()}>cancel</button> */}
         <button onClick={() => openProgress()}>Open Progress</button>
+        <button onClick={() => showCancel()}>cancel</button> */}
         <div
           style={{
             background: '#000000',
@@ -792,7 +809,7 @@ export default function Swap({ history }: RouteComponentProps) {
                   loading={independentField === Field.OUTPUT && routeIsSyncing}
                 />
                 <ArrowWrapper clickable>
-                  <div style={{ position: 'absolute', margin: '4px' }}>
+                  <div style={{ position: 'absolute', margin: '8px' }}>
                     <BsArrowDownUp
                       size="16"
                       color={
@@ -851,7 +868,7 @@ export default function Swap({ history }: RouteComponentProps) {
               <AddressInputPanel id="recipient" value={recipient} onChange={onChangeRecipient} />
             </>
           ) : null}
-          {!showWrap && userHasSpecifiedInputOutput && (trade || routeIsLoading || routeIsSyncing) && (
+          {!showWrap && userHasSpecifiedInputOutput && (trade || routeIsLoading || routeIsSyncing) ? (
             <SwapDetailsDropdown
               trade={trade}
               syncing={routeIsSyncing}
@@ -860,6 +877,8 @@ export default function Swap({ history }: RouteComponentProps) {
               setShowInverted={setShowInverted}
               allowedSlippage={allowedSlippage}
             />
+          ) : (
+            <div style={{ height: '32px' }}></div>
           )}
           <div style={{ border: 'none' }}>
             {swapIsUnsupported ? (
@@ -1000,16 +1019,18 @@ export default function Swap({ history }: RouteComponentProps) {
               borderRadius: '4px',
               display: 'flex',
               justifyContent: 'center',
+              marginBottom: '10px',
             }}
           >
             <motion.div
               custom={'in'}
               animate={controls}
-              initial={{ height: '0px' }}
+              initial={{ height: '0px', border: '0px solid #000' }}
               style={{
                 background: 'black',
-                width: '98%',
-                height: '12px',
+                width: '99%',
+                height: '10px',
+                border: '1px solid #323860',
               }}
             ></motion.div>
           </motion.div>
@@ -1024,7 +1045,7 @@ export default function Swap({ history }: RouteComponentProps) {
           overflow: 'hidden',
           maxWidth: '400px',
           width: '80%',
-          transform: 'translateY(-30px) perspective(4.0em) rotateX(1deg)',
+          transform: 'translateY(-40px) perspective(4.0em) rotateX(2deg)',
           padding: '24px',
           zIndex: 300,
           opacity: 1,
@@ -1045,6 +1066,7 @@ export default function Swap({ history }: RouteComponentProps) {
             style={{
               justifyContent: 'center',
               alignItems: 'center',
+              verticalAlign: 'middle',
             }}
           >
             You receive minimum{' '}
@@ -1128,12 +1150,10 @@ export default function Swap({ history }: RouteComponentProps) {
             {priceImpactTooHigh ? (
               <div style={{ color: 'red', fontSize: '10', fontWeight: 'normal' }}>
                 {'Warning: Price Impact High '}
-                <span style={{ fontSize: '12', fontWeight: 'bold' }}>{trade?.priceImpact.toSignificant(3) + ' %'}</span>
+                <span style={{ fontSize: '12', fontWeight: 'bold' }}>{priceImpact + ' %'}</span>
               </div>
             ) : (
-              <div style={{ color: '#008c27', fontSize: '12', fontWeight: 'bold' }}>
-                {trade?.priceImpact.toSignificant(3) + ' %'}
-              </div>
+              <div style={{ color: '#008c27', fontSize: '12', fontWeight: 'bold' }}>{priceImpact + ' %'}</div>
             )}
           </div>
         </div>

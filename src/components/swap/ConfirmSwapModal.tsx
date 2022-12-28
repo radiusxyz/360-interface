@@ -2,7 +2,7 @@ import { BigNumber } from '@ethersproject/bignumber'
 import { Contract } from '@ethersproject/contracts'
 import { Trans } from '@lingui/macro'
 import { Trade } from '@uniswap/router-sdk'
-import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
+import { Currency, Fraction, Percent, TradeType } from '@uniswap/sdk-core'
 import { FeeOptions } from '@uniswap/v3-sdk'
 import { RowBetween, RowCenter, RowFixed } from 'components/Row'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
@@ -10,7 +10,7 @@ import { SignatureData } from 'hooks/useERC20Permit'
 import { useSwapCallArguments } from 'hooks/useSwapCallArguments'
 import JSBI from 'jsbi'
 import { RadiusSwapResponse } from 'lib/hooks/swap/useSendSwapTransaction'
-import { ReactNode, useCallback, useMemo, useState } from 'react'
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 import { ArrowRight } from 'react-feather'
 import { Text } from 'rebass'
 import { useProgress } from 'state/modal/hooks'
@@ -220,6 +220,8 @@ export default function ConfirmSwapModal({
         <PreparingForSwap onDismiss={onDismiss} progress={progress} />
       ) : progress === 4 ? (
         <TransactionSubmitted onDismiss={onDismiss} progress={progress} />
+      ) : progress === 8 ? (
+        <WaitingForSwapConfirmation onDismiss={onDismiss} progress={progress} trade={trade} />
       ) : (
         <ConfirmationModalContent
           title={<Trans>You are swapping</Trans>}
@@ -552,6 +554,21 @@ function WaitingForSwapConfirmation({
   const inAmount = JSBIDivide(input, inDecimal, 6)
   const outAmount = JSBIDivide(output, outDecimal, 6)
 
+  const waitMsg = 'Confirm the transaction on your wallet'
+  const hurryMsg = 'Please confirm the transaction now or the transaction will be canceled'
+  const retryMsg = 'Retry Swap'
+
+  const [comment, setComment] = useState(waitMsg)
+
+  useEffect(() => {
+    setTimeout(() => {
+      setComment(hurryMsg)
+    }, 5000)
+    setTimeout(() => {
+      setComment(retryMsg)
+    }, 10000)
+  }, [])
+
   return (
     <Wrapper>
       <Section
@@ -569,7 +586,7 @@ function WaitingForSwapConfirmation({
         <br />
         <RowCenter>
           <ThemedText.Black fontSize={24} fontWeight={600}>
-            Waiting for swap confirmation...
+            Waiting for confirmation...
           </ThemedText.Black>
         </RowCenter>
         <br />
@@ -582,8 +599,8 @@ function WaitingForSwapConfirmation({
           }}
         >
           <div style={{ width: '90%' }}>
-            <ThemedText.Black fontSize={14} fontWeight={500} color={'#a8a8a8'}>
-              confirm the transaction on your wallet
+            <ThemedText.Black fontSize={14} fontWeight={500} color={comment !== waitMsg ? '#ff0000' : '#a8a8a8'}>
+              {progress === 1 ? comment : retryMsg}
             </ThemedText.Black>
           </div>
         </RowCenter>
@@ -662,13 +679,5 @@ function TransactionSubmitted({ onDismiss, progress }: { onDismiss: any; progres
 }
 
 export function JSBIDivide(numerator: JSBI, denominator: JSBI, precision: number) {
-  // if (precision < 0) return Error('precision must bigger than 0')
-  // if (denominator === JSBI.BigInt(0)) return Error('divide by zero')
-
-  const division = JSBI.divide(numerator, denominator).toString()
-  let remain = JSBI.remainder(numerator, denominator).toString()
-
-  remain = remain.length > precision ? remain.substring(0, precision) : remain
-
-  return division + '.' + remain
+  return new Fraction(numerator, denominator).toSignificant(precision).toString()
 }

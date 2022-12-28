@@ -11,15 +11,20 @@ const StyledInput = styled.input<{ error?: boolean; fontSize?: string; align?: s
   outline: none;
   border: none;
   flex: 1 1 auto;
-  background-color: ${({ theme }) => theme.bg1};
+  background: #101010;
+  border-radius: 20px;
+  height: 40px;
   font-size: ${({ fontSize }) => fontSize ?? '28px'};
   text-align: ${({ align }) => align && align};
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 0px;
+  padding: 0px 12px;
   -webkit-appearance: textfield;
   text-align: right;
+  &:hover {
+    background: #1b1b1b;
+  }
 
   ::-webkit-search-decoration {
     -webkit-appearance: none;

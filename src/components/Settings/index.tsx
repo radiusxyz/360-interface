@@ -16,8 +16,8 @@ import { RowCenter } from '../Row'
 import TransactionSettings from '../TransactionSettings'
 
 const StyledMenuIcon = styled(Settings)`
-  height: 20px;
-  width: 20px;
+  height: 24px;
+  width: 24px;
 
   > * {
     stroke: ${({ theme }) => theme.text1};
@@ -78,7 +78,7 @@ const StyledMenu = styled.div`
 const MenuFlyout = styled.span`
   min-width: 20.125rem;
   width: 450px;
-  background: rgba(44, 47, 63);
+  background: #272b3e;
   /*background-color: ${({ theme }) => theme.bg2};*/
   /*border: 1px solid ${({ theme }) => theme.bg3};*/
   border: 1px solid rgba(58, 61, 86);
@@ -177,7 +177,13 @@ export default function SettingsTab({ placeholderSlippage }: { placeholderSlippa
         </ModalContentWrapper>
       </Modal> */}
       <StyledMenuButton onClick={toggle} id="open-settings-dialog-button" aria-label={t`Transaction Settings`}>
-        <StyledMenuIcon />
+        <img
+          src={'/images/BTN_Setting.png'}
+          width={'24px'}
+          height={'24px'}
+          alt={'settings'}
+          style={{ marginRight: '20px' }}
+        />
         {expertMode ? (
           <EmojiWrapper>
             <span role="img" aria-label="wizard-icon">
@@ -189,7 +195,7 @@ export default function SettingsTab({ placeholderSlippage }: { placeholderSlippa
       {open && (
         <MenuFlyout>
           <AutoColumn gap="md" style={{ padding: '10px' }}>
-            <RowCenter>
+            <RowCenter style={{ marginTop: '18px', marginBottom: '2px' }}>
               <Text color={'#ffffff'} fontWeight={600} fontSize={20}>
                 <Trans>Setting</Trans>
               </Text>
