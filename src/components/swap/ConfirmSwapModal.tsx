@@ -71,16 +71,16 @@ const ProceedButton = styled(ButtonError)`
 `
 
 const GradientSpinner = styled.div<{ background: string }>`
-  @keyframes rotate {
+  @keyframes rotates {
     from {
       transform: rotate(0deg);
     }
     to {
-      transform: rotate(360deg);
+      transform: rotate(-360deg);
     }
   }
 
-  animation: rotate 1s linear reverse infinite;
+  animation: rotates 2s linear reverse infinite;
   border-radius: 50%;
   height: 90px;
   width: 90px;
@@ -93,17 +93,17 @@ const GradientSpinner = styled.div<{ background: string }>`
   }
 
   ::before {
-    border-radius: 50%;
     background: linear-gradient(0deg, #272b3e00 0%, #272b3ea0 100%) 0% 0%,
       linear-gradient(90deg, #272b3ea0 0%, #01f76eff 100%) 100% 0%,
       linear-gradient(180deg, #01f76eff 0%, #0157ffff 100%) 100% 100%,
       linear-gradient(360deg, #0157ffff 0%, #0157ffff 100%) 0% 100%;
     background-repeat: no-repeat;
     background-size: 50% 50%;
-    top: -1px;
-    bottom: -1px;
-    left: -1px;
-    right: -1px;
+    border-radius: 50%;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
   }
 
   ::after {
