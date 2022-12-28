@@ -75,9 +75,12 @@ import AppBody from '../AppBody'
 
 const SwapButtonConfirmed = styled(ButtonConfirmed)`
   margin: 10px 0px 16px 0px;
-  background: linear-gradient(97deg, #00ff57 10%, #00ff66 65%, #2cff9a 100%);
+  background: #ff3187;
   border-radius: 4px;
   border: 0px solid #fff;
+  &:hover {
+    background: #1cde81;
+  }
 `
 const SwapButtonError = styled(ButtonError)`
   margin: 10px 0px 16px 0px;
@@ -676,9 +679,9 @@ export default function Swap({ history }: RouteComponentProps) {
           case 'in':
             return { height: '12px', transition: { duration: 0.4 } }
           case 'paper':
-            return { height: '200px', opacity: 1, transition: { delay: 0.5, duration: 0.3 } }
+            return { height: '100%', opacity: 1, transition: { delay: 0.5, duration: 0.3 } }
           default:
-            return { height: '200px', opacity: 1, transition: { delay: 0.5, duration: 0.3 } }
+            return { height: '100%', opacity: 1, transition: { delay: 0.5, duration: 0.3 } }
         }
       })
       setToggle(true)
@@ -699,13 +702,24 @@ export default function Swap({ history }: RouteComponentProps) {
     }
   }, [isValid, routeIsSyncing, routeIsLoading, swapCallbackError, controls])
 
-  console.log(allowedSlippage.toSignificant())
-
   const minimum = trade
     ?.minimumAmountOut(new Percent((100 - parseInt(allowedSlippage.toSignificant())).toString()))
     .multiply('100')
     .toSignificant()
     .toString()
+
+  function openProgress() {
+    dispatch(setProgress({ newParam: 2 }))
+    setSwapState({
+      tradeToConfirm: trade,
+      swapErrorMessage,
+      txHash,
+      attemptingTxn,
+      showConfirm,
+      swapResponse,
+      showTimeLockPuzzle,
+    })
+  }
 
   return (
     <>
@@ -724,6 +738,7 @@ export default function Swap({ history }: RouteComponentProps) {
         <button onClick={() => showPopUp()}>popup</button>
         <button onClick={() => showReimbursementModal()}>reimbursement</button>
         <button onClick={() => showCancel()}>cancel</button> */}
+        <button onClick={() => openProgress()}>Open Progress</button>
         <div
           style={{
             background: '#000000',
@@ -887,7 +902,7 @@ export default function Swap({ history }: RouteComponentProps) {
                       approvalState === ApprovalState.APPROVED || signatureState === UseERC20PermitState.SIGNED
                     }
                   >
-                    <AutoRow justify="space-between" style={{ flexWrap: 'nowrap' }}>
+                    <AutoRow justify="center" style={{ flexWrap: 'nowrap' }}>
                       <span style={{ display: 'flex', alignItems: 'center' }}>
                         <CurrencyLogo
                           currency={currencies[Field.INPUT]}
@@ -898,7 +913,7 @@ export default function Swap({ history }: RouteComponentProps) {
                         {approvalState === ApprovalState.APPROVED || signatureState === UseERC20PermitState.SIGNED ? (
                           <Trans>You can now trade {currencies[Field.INPUT]?.symbol}</Trans>
                         ) : (
-                          <Trans>Allow the 360° Protocol to use your {currencies[Field.INPUT]?.symbol}</Trans>
+                          <Trans>Allow the 360° to use your {currencies[Field.INPUT]?.symbol}</Trans>
                         )}
                       </span>
                       {approvalState === ApprovalState.PENDING ? (
@@ -920,43 +935,6 @@ export default function Swap({ history }: RouteComponentProps) {
                       )}
                     </AutoRow>
                   </SwapButtonConfirmed>
-                  <SwapButtonError
-                    onClick={() => {
-                      if (isExpertMode) {
-                        handleSwap()
-                      } else {
-                        setSwapState({
-                          tradeToConfirm: trade,
-                          attemptingTxn: false,
-                          swapErrorMessage: undefined,
-                          showConfirm: true,
-                          txHash: undefined,
-                          swapResponse: undefined,
-                          showTimeLockPuzzle: false,
-                        })
-                      }
-                    }}
-                    width="100%"
-                    id="swap-button"
-                    disabled={
-                      !isValid ||
-                      routeIsSyncing ||
-                      routeIsLoading ||
-                      (approvalState !== ApprovalState.APPROVED && signatureState !== UseERC20PermitState.SIGNED) ||
-                      priceImpactTooHigh
-                    }
-                    error={isValid && priceImpactSeverity > 2}
-                  >
-                    <Text fontSize={16} fontWeight={500}>
-                      {priceImpactTooHigh ? (
-                        <Trans>High Price Impact</Trans>
-                      ) : trade && priceImpactSeverity > 2 ? (
-                        <Trans>Swap Anyway</Trans>
-                      ) : (
-                        <Trans>Swap</Trans>
-                      )}
-                    </Text>
-                  </SwapButtonError>
                 </AutoColumn>
               </AutoRow>
             ) : (
@@ -1056,7 +1034,7 @@ export default function Swap({ history }: RouteComponentProps) {
           style={{
             color: '#333333',
             fontWeight: 'bold',
-            fontSize: '12',
+            fontSize: '14px',
             justifyContent: 'space-between',
             display: 'flex',
             flexDirection: 'row',
@@ -1070,13 +1048,22 @@ export default function Swap({ history }: RouteComponentProps) {
             }}
           >
             You receive minimum{' '}
-            <Info
-              style={{
-                stroke: '1px',
-                width: '18px',
-                height: '18px',
-              }}
-            />
+            <MouseoverTooltip
+              text={
+                <Trans>
+                  The minimum amount of tokens you will receive after slippage. You may receive a greater amount
+                  depending on the market conditions as your transaction is pending.
+                </Trans>
+              }
+            >
+              <Info
+                style={{
+                  stroke: '1px',
+                  width: '18px',
+                  height: '18px',
+                }}
+              />
+            </MouseoverTooltip>
           </div>
           <div>{minimum && minimum + ' ' + trade?.outputAmount.currency.symbol}</div>
         </div>
@@ -1084,7 +1071,7 @@ export default function Swap({ history }: RouteComponentProps) {
           style={{
             color: '#333333',
             fontWeight: 'normal',
-            fontSize: '12',
+            fontSize: '14px',
             justifyContent: 'space-between',
             display: 'flex',
             flexDirection: 'row',
@@ -1093,13 +1080,22 @@ export default function Swap({ history }: RouteComponentProps) {
         >
           <div>
             Slippage Tolerance{' '}
-            <Info
-              style={{
-                stroke: '1px',
-                width: '18px',
-                height: '18px',
-              }}
-            />
+            <MouseoverTooltip
+              text={
+                <Trans>
+                  The maximum change in price you are willing to accept. Your transaction will revert if the price
+                  decreases further.
+                </Trans>
+              }
+            >
+              <Info
+                style={{
+                  stroke: '1px',
+                  width: '18px',
+                  height: '18px',
+                }}
+              />
+            </MouseoverTooltip>
           </div>
           <div>{allowedSlippage.toSignificant()}%</div>
         </div>
@@ -1107,7 +1103,7 @@ export default function Swap({ history }: RouteComponentProps) {
           style={{
             color: '#333333',
             fontWeight: 'normal',
-            fontSize: '12',
+            fontSize: '14px',
             justifyContent: 'space-between',
             display: 'flex',
             flexDirection: 'row',
@@ -1116,13 +1112,17 @@ export default function Swap({ history }: RouteComponentProps) {
         >
           <div>
             Price Impact{' '}
-            <Info
-              style={{
-                stroke: '1px',
-                width: '18px',
-                height: '18px',
-              }}
-            />
+            <MouseoverTooltip
+              text={<Trans>The change in market price of the asset due to the impact of your trade.</Trans>}
+            >
+              <Info
+                style={{
+                  stroke: '1px',
+                  width: '18px',
+                  height: '18px',
+                }}
+              />
+            </MouseoverTooltip>
           </div>{' '}
           <div>
             {priceImpactTooHigh ? (
@@ -1141,7 +1141,7 @@ export default function Swap({ history }: RouteComponentProps) {
           style={{
             color: '#333333',
             fontWeight: 'normal',
-            fontSize: '12',
+            fontSize: '14px',
             justifyContent: 'space-between',
             display: 'flex',
             flexDirection: 'row',

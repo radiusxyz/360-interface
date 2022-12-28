@@ -22,7 +22,7 @@ export const BaseButton = styled(RebassButton)<
   text-align: center;
   border-radius: ${({ $borderRadius }) => $borderRadius ?? '20px'};
   outline: none;
-  border: 1px solid transparent;
+  border: 0px solid transparent;
   color: ${({ theme }) => theme.text1};
   text-decoration: none;
   display: flex;
@@ -72,7 +72,7 @@ export const ButtonPrimary = styled(BaseButton)`
       altDisabledStyle ? (disabled ? theme.white : theme.text2) : theme.text2};
     cursor: auto;
     box-shadow: none;
-    border: 1px solid transparent;
+    border: 0px solid transparent;
     outline: none;
   }
 `
@@ -99,7 +99,7 @@ export const ButtonLight = styled(BaseButton)`
       cursor: auto;
       background-color: ${({ theme }) => theme.primary5};
       box-shadow: none;
-      border: 1px solid transparent;
+      border: 0px solid transparent;
       outline: none;
     }
   }
