@@ -68,10 +68,6 @@ export const T2_OPTIMISTIC_KOVAN = new Token(
   'T2',
   'Test token-2'
 )
-export const GLD_POLYGON_MUMBAI = new Token(SupportedChainId.POLYGON_MUMBAI, contracts.gld, 18, 'GLD', 'Gold')
-export const SLVR_POLYGON_MUMBAI = new Token(SupportedChainId.POLYGON_MUMBAI, contracts.slvr, 18, 'SLVR', 'Silver')
-export const GLD_OPTIMISTIC_KOVAN = new Token(SupportedChainId.OPTIMISTIC_KOVAN, contracts.gld, 18, 'GLD', 'Gold')
-export const SLVR_OPTIMISTIC_KOVAN = new Token(SupportedChainId.OPTIMISTIC_KOVAN, contracts.slvr, 18, 'SLVR', 'Silver')
 export const USDC_ARBITRUM = new Token(
   SupportedChainId.ARBITRUM_ONE,
   '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8',

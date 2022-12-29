@@ -4,7 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import JSBI from 'jsbi'
 import { useCallback, useContext } from 'react'
-import { ExternalLink as LinkIcon } from 'react-feather'
+// import { ExternalLink as LinkIcon } from 'react-feather'
 import { useAppDispatch } from 'state/hooks'
 import { useShowHistoryManager } from 'state/modal/hooks'
 import styled, { ThemeContext } from 'styled-components/macro'
@@ -27,8 +27,8 @@ import Transaction from './Transaction'
 
 const HeaderRow = styled.div`
   ${({ theme }) => theme.flexRowNoWrap};
-  padding: 1rem 1rem;
-  font-weight: 500;
+  padding: 30px;
+  font-weight: 600;
   color: ${(props) => (props.color === 'blue' ? ({ theme }) => theme.primary1 : 'inherit')};
   ${({ theme }) => theme.mediaWidth.upToMedium`
     padding: 1rem;
@@ -57,11 +57,11 @@ const UpperSection = styled.div`
 `
 
 const InfoCard = styled.div`
-  padding: 16px;
+  padding: 22px 24px;
   border-radius: 2px;
   background: rgba(23, 26, 38, 0.5);
   position: relative;
-  margin: 16px;
+  margin: 0px 30px 0px 30px;
 `
 
 const AccountGroupingRow = styled.div`
@@ -95,10 +95,10 @@ const YourAccount = styled.div`
 
 const LowerSection = styled.div`
   ${({ theme }) => theme.flexColumnNoWrap}
-  padding: 16px;
+  padding: 24px;
   border-radius: 2px;
   background: rgba(23, 26, 38, 0.5);
-  margin: 16px;
+  margin: 14px 30px 30px 30px;
   overflow: auto;
 
   h5 {
@@ -133,7 +133,6 @@ const AccountControl = styled.div`
 const AddressLink = styled(ExternalLink)<{ hasENS: boolean; isENS: boolean }>`
   font-size: 0.825rem;
   color: ${({ theme }) => theme.text3};
-  margin-left: 1rem;
   font-size: 0.825rem;
   display: flex;
   :hover {
@@ -179,6 +178,22 @@ const IconWrapper = styled.div<{ size?: number }>`
   `};
 `
 
+function LinkIcon() {
+  return <img src="images/launch-link-open.png" width="16px" height="16px" alt="link" />
+}
+
+function LinkIconThin() {
+  return (
+    <img
+      src="images/launch-link-open-thin.png"
+      width="16px"
+      height="16px"
+      alt="link"
+      style={{ position: 'relative' }}
+    />
+  )
+}
+
 function WrappedStatusIcon({ connector }: { connector: AbstractConnector | Connector }) {
   return (
     <IconWrapper size={16}>
@@ -194,11 +209,10 @@ const TransactionListWrapper = styled.div`
 const WalletAction = styled(ButtonSecondary)`
   width: fit-content;
   font-weight: 400;
-  margin-left: 8px;
-  font-size: 0.825rem;
-  padding: 4px 6px;
+  font-size: 14px;
   color: #ffffff;
   border: 0px solid;
+  padding: 0px;
   :hover {
     border: 0px solid;
     text-decoration: underline;
@@ -234,28 +248,34 @@ function getStatus(status: Status) {
 
 function renderRecentTx(recentTx: any) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', marginTop: '12px', gap: '8px', height: '73px' }}>
       {recentTx.map((i: any) => {
         return (
           <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }} key={i.id}>
             <div style={{ display: 'flex', flexDirection: 'row' }}>
-              <div style={{ padding: '0px 5px', color: '#a8a8a8', fontSize: '14px' }}>
-                {JSBIDivide(JSBI.BigInt(i.from.amount), JSBI.BigInt(i.from.decimal), 6) +
+              <div style={{ color: '#a8a8a8', fontSize: '14px' }}>
+                {JSBIDivide(JSBI.BigInt(i.from.amount), JSBI.BigInt(i.from.decimal), 3) +
                   ' ' +
                   i.from.token +
                   ' to ' +
-                  JSBIDivide(JSBI.BigInt(i.to.amount), JSBI.BigInt(i.to.decimal), 6) +
+                  JSBIDivide(JSBI.BigInt(i.to.amount), JSBI.BigInt(i.to.decimal), 3) +
                   ' ' +
                   i.to.token}
               </div>
-              <div style={{ padding: '0px 5px' }}>
+              <div style={{ padding: '0px 0px 0px 16px', display: 'flex', verticalAlign: 'bottom' }}>
                 <AddressLink
                   hasENS={false}
                   isENS={false}
                   href={getExplorerLink(80001, i.txId, ExplorerDataType.TRANSACTION)}
-                  style={{ marginLeft: '0px' }}
+                  style={{
+                    marginLeft: '0px',
+                    position: 'relative',
+                    display: 'flex',
+                    verticalAlign: 'bottom',
+                    alignItems: 'end',
+                  }}
                 >
-                  <LinkIcon size={20} />
+                  <LinkIconThin />
                 </AddressLink>
               </div>
             </div>
@@ -263,6 +283,22 @@ function renderRecentTx(recentTx: any) {
           </div>
         )
       })}
+      {recentTx.length === 0 && (
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            textAlign: 'center',
+            justifyContent: 'center',
+            verticalAlign: 'middle',
+            color: '#a8a8a8',
+          }}
+        >
+          You have no recent transactions
+        </div>
+      )}
     </div>
   )
 }
@@ -304,7 +340,7 @@ export default function AccountDetails({
       .map((k) => SUPPORTED_WALLETS[k].iconURL)[0]
 
     return (
-      <div style={{ margin: '0px 16px' }}>
+      <div style={{ marginRight: '10px' }}>
         <img src={icon} width="28" height="28" alt="" />
       </div>
     )
@@ -351,7 +387,7 @@ export default function AccountDetails({
                       <div>
                         {/*connector && <WrappedStatusIcon connector={connector} />*/}
                         {formatConnectorIcon()}
-                        <p> {account && shortenAddress(account)}</p>
+                        <p style={{ marginRight: '12px' }}> {account && shortenAddress(account)}</p>
                       </div>
                     </>
                   )}
@@ -365,8 +401,9 @@ export default function AccountDetails({
                               hasENS={!!ENSName}
                               isENS={true}
                               href={getExplorerLink(chainId, ENSName, ExplorerDataType.ADDRESS)}
+                              style={{ marginLeft: '12px' }}
                             >
-                              <LinkIcon size={20} />
+                              <LinkIcon />
                             </AddressLink>
                           )}
                         </div>
@@ -382,8 +419,9 @@ export default function AccountDetails({
                               hasENS={!!ENSName}
                               isENS={false}
                               href={getExplorerLink(chainId, account, ExplorerDataType.ADDRESS)}
+                              style={{ marginLeft: '12px' }}
                             >
-                              <LinkIcon size={20} />
+                              <LinkIcon />
                             </AddressLink>
                           )}
                         </div>
@@ -395,13 +433,15 @@ export default function AccountDetails({
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'right',
+                    justifyContent: 'center',
                     alignItems: 'end',
                     width: '50%',
+                    height: '44px',
+                    verticalAlign: 'middle',
                   }}
                 >
                   <WalletAction
-                    style={{ fontSize: '.825rem', fontWeight: 400 }}
+                    style={{ fontSize: '14px', fontWeight: 600 }}
                     onClick={() => {
                       openOptions()
                     }}
@@ -410,7 +450,7 @@ export default function AccountDetails({
                   </WalletAction>
                   {connector !== injected && connector !== walletlink && (
                     <WalletAction
-                      style={{ fontSize: '.825rem', fontWeight: 400 }}
+                      style={{ fontSize: '14px', fontWeight: 600 }}
                       onClick={() => {
                         ;(connector as any).close()
                       }}
@@ -426,7 +466,7 @@ export default function AccountDetails({
       </UpperSection>
       {!!recentTx || !!pendingTransactions.length || !!confirmedTransactions.length ? (
         <LowerSection>
-          <AutoRow mb={'1rem'} style={{ justifyContent: 'space-between' }}>
+          <AutoRow mb={'10px'} style={{ justifyContent: 'space-between' }}>
             <ThemedText.Body>
               <Trans>Recent Transactions</Trans>
             </ThemedText.Body>
@@ -434,10 +474,31 @@ export default function AccountDetails({
               <Trans>(clear all)</Trans>
             </LinkStyledButton> */}
             {recentTx && recentTx.length !== 0 && (
-              <LinkStyledButton onClick={() => setShowHistory(true)}>View All</LinkStyledButton>
+              <LinkStyledButton
+                onClick={() => setShowHistory(true)}
+                style={{
+                  color: '#ffffff',
+                  padding: '0px',
+                  fontWeight: 'bold',
+                  fontSize: '14px',
+                }}
+              >
+                View All
+              </LinkStyledButton>
             )}
           </AutoRow>
-          {recentTx && renderRecentTx(recentTx)}
+          <hr
+            style={{
+              width: '100%',
+              height: '0px',
+              margin: '0px',
+              borderTop: '1px solid #272b3e',
+              borderBottom: '0px solid #000',
+              borderLeft: '0px solid #000',
+              borderRight: '0px solid #000',
+            }}
+          />
+          {recentTx ? renderRecentTx(recentTx) : <div style={{ height: 50 }}>No recent Transaction</div>}
           {/* renderTransactions(pendingTransactions) */}
           {/* renderTransactions(confirmedTransactions) */}
         </LowerSection>

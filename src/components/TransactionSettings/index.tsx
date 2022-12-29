@@ -56,7 +56,7 @@ const Option = styled(FancyButton)<{ active: boolean }>`
 
 const Input = styled.input`
   background: ${({ theme }) => theme.bg1};
-  font-size: 14px;
+  font-size: 16px;
   width: auto;
   outline: none;
   &::-webkit-outer-spin-button,
@@ -165,8 +165,8 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
   const showCustomDeadlineRow = Boolean(chainId && !L2_CHAIN_IDS.includes(chainId))
 
   return (
-    <AutoColumn gap="md">
-      <AutoColumn gap="md" style={{ marginBottom: '20px' }}>
+    <AutoColumn gap="40px">
+      <AutoColumn gap="14px">
         <RowFixed>
           <ThemedText.Black fontWeight={600} fontSize={16} color={'#DDDDDD'}>
             <Trans>Slippage tolerance</Trans>
@@ -178,7 +178,12 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
           />
         </RowFixed>
         <RowBetween>
-          <OptionCustom active={userSlippageTolerance !== 'auto'} warning={!!slippageError} tabIndex={-1}>
+          <OptionCustom
+            active={userSlippageTolerance !== 'auto'}
+            warning={!!slippageError}
+            tabIndex={-1}
+            style={{ padding: '0px 20px 0px 12px' }}
+          >
             <RowBetween style={{ padding: '5px 0px' }}>
               <Option
                 onClick={() => {
@@ -230,7 +235,7 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
                 }}
                 color={slippageError ? 'red' : ''}
               />
-              <span style={{ color: '#8bb3ff' }}>%</span>
+              <span style={{ color: '#8bb3ff', fontSize: '16px' }}>%</span>
             </RowBetween>
           </OptionCustom>
         </RowBetween>
@@ -254,7 +259,7 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
       </AutoColumn>
 
       {showCustomDeadlineRow && (
-        <AutoColumn gap="md">
+        <AutoColumn gap="12px">
           <RowFixed>
             <ThemedText.Black fontSize={16} fontWeight={600} color={'#DDDDDD'}>
               <Trans>Transaction deadline</Trans>
@@ -264,7 +269,7 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
             />
           </RowFixed>
           <RowBetween>
-            <OptionCustom style={{ width: '100%' }} warning={!!deadlineError} tabIndex={-1}>
+            <OptionCustom style={{ width: '100%', padding: '0px 20px' }} warning={!!deadlineError} tabIndex={-1}>
               <Input
                 placeholder={(DEFAULT_DEADLINE_FROM_NOW / 60).toString()}
                 value={
@@ -282,7 +287,7 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
                 color={deadlineError ? 'red' : ''}
               />
             </OptionCustom>
-            <ThemedText.Body style={{ paddingLeft: '8px' }} color={'#8BB3FF'} fontSize={16}>
+            <ThemedText.Body style={{ paddingLeft: '10px', paddingRight: '20px' }} color={'#8BB3FF'} fontSize={16}>
               <Trans>Minutes</Trans>
             </ThemedText.Body>
           </RowBetween>
