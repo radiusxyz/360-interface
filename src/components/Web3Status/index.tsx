@@ -4,7 +4,6 @@ import { Trans } from '@lingui/macro'
 import { Connector } from '@web3-react/types'
 import ERC20_ABI from 'abis/erc20.json'
 import { solidityKeccak256 } from 'ethers/lib/utils'
-import { formatBytes32String } from 'ethers/lib/utils'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import JSBI from 'jsbi'
 import { darken } from 'polished'
@@ -32,8 +31,7 @@ import { RowBetween } from '../Row'
 import WalletModal from '../WalletModal'
 
 const EventLogHashTransfer = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
-const EventLogHashSwap = '0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822'
-const EventLogHashRevert = ''
+const EventLogHashSwap = '0xcbdaf2fdec4361aa4e9cafe49671d841695df07b12b53d1ce10464489a98dd49'
 
 const IconWrapper = styled.div<{ size?: number }>`
   ${({ theme }) => theme.flexColumnNoWrap};
@@ -242,8 +240,7 @@ async function CheckPendingTx() {
       const currentRound = parseInt(await recorderContract?.currentRound())
       console.log('currentRound', currentRound)
       while (round <= currentRound) {
-        // const txHashes = await recorderContract?.roundTxHashList(round) // TODO: change to roundTxHash list
-        const txHashes = [formatBytes32String('0000000000000000'), formatBytes32String('0000000000000000')]
+        const txHashes = await recorderContract?.getRoundTxHashes(round)
 
         for (const order in txHashes) {
           const txHash = txHashes[order]
@@ -272,89 +269,79 @@ async function CheckPendingTx() {
         if (roundResponse.ok) {
           roundResponse.json().then(async (json) => {
             console.log('json', json)
-            // TODO: fixme
-            // if (false) {
             if (json?.txHash) {
               // 2. txId 실행되었는지 확인
-              // TODO: FIXME
-              // const txReceipt = await library?.getTransactionReceipt(json?.txHash)
-              const txReceipt = await library?.getTransactionReceipt(
-                '0xd138ba1a06353361145880d890175d3723bb8fb70f24f78bdb87eb5f180b802b'
-              )
+              const txReceipt = await library?.getTransactionReceipt(json?.txHash)
 
               // TODO: rejected Tx 구분하기
               if (txReceipt) {
-                console.log(txReceipt)
                 const block = await library?.getBlock(txReceipt.blockNumber)
                 const txTime = block?.timestamp as number
                 const Logs = txReceipt?.logs as Array<{ address: string; topics: Array<any>; data: string }>
 
-                let rightOrder = false
-                let count = 0
                 let from: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
-                let fee: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
                 let to: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
+                console.log('Logs', Logs)
                 for (const log of Logs) {
-                  // from, to, fee set real exchanged amount
                   if (log.topics[0] === EventLogHashTransfer) {
                     const token = new Contract(log.address, ERC20_ABI, library)
                     const decimal = await token.decimals()
-                    const tokenName = await token.name()
-                    if (log.topics[1] === account) {
+                    const tokenSymbol = await token.symbol()
+                    if (
+                      log.topics[1].substring(log.topics[1].length - 40).toLowerCase() ===
+                      account?.substring(2).toLowerCase()
+                    ) {
                       if (from.token === '')
                         from = {
-                          token: tokenName,
+                          token: tokenSymbol,
                           amount: hexToNumberString(log.data),
                           decimal: '1' + '0'.repeat(decimal),
                         }
                       else if (from.amount < hexToNumberString(log.data)) {
-                        fee = {
-                          token: tokenName,
-                          amount: from.amount,
-                          decimal: '1' + '0'.repeat(decimal),
-                        }
                         from = {
-                          token: tokenName,
-                          amount: hexToNumberString(log.data),
-                          decimal: '1' + '0'.repeat(decimal),
-                        }
-                      } else {
-                        fee = {
-                          token: tokenName,
+                          token: tokenSymbol,
                           amount: hexToNumberString(log.data),
                           decimal: '1' + '0'.repeat(decimal),
                         }
                       }
                     }
-                    if (log.topics[2] === account) {
-                      to = { token: tokenName, amount: hexToNumberString(log.data), decimal: '1' + '0'.repeat(decimal) }
+                    if (
+                      log.topics[2].substring(log.topics[2].length - 40).toLowerCase() ===
+                      account?.substring(2).toLowerCase()
+                    ) {
+                      to = {
+                        token: tokenSymbol,
+                        amount: hexToNumberString(log.data),
+                        decimal: '1' + '0'.repeat(decimal),
+                      }
                     }
-                  }
-                  // 2.1 Order 검증
-                  if (log.topics[0] === EventLogHashSwap || log.topics[0] === EventLogHashRevert) {
-                    count++
-                    if (count === pendingTx.order && log.topics[2] === readyTx?.tx.txOwner) {
-                      rightOrder = true
-                    }
+                  } else if (log.topics[0] === EventLogHashSwap) {
+                    // TODO: data에서 성공 실패 확인해서 rejected로 넣던가 해야됨.
+                    console.log(log.data)
                   }
                 }
 
-                // 2.2 HashChain 검증
-                // const txHashes = await recorderContract?.roundTxHashList(pendingTx.round) // TODO: change to roundTxHash list
-                const txHashes = [
-                  formatBytes32String('0000000000000000'),
-                  formatBytes32String('0000000000000000'),
-                  formatBytes32String('0000000000000000'),
-                  formatBytes32String('0000000000000000'),
-                  formatBytes32String('0000000000000000'),
-                ]
+                console.log('from', from)
+                console.log('to', to)
 
+                // 2.1 HashChain 검증
+                const txHashes = await recorderContract?.getRoundTxHashes(pendingTx.round)
+
+                console.log('txHashes', txHashes)
                 let hashChain = txHashes[0]
                 for (let i = 1; i < pendingTx.order; i++) {
                   hashChain = solidityKeccak256(['bytes32', 'bytes32'], [hashChain, txHashes[i]])
                 }
+                console.log('raynear', hashChain, pendingTx.proofHash)
 
-                if (rightOrder && hashChain === pendingTx.proofHash) {
+                // 2.2 Order 검증
+                // TODO: Round가 contract상에서 넘어갔는지 확인해야됨
+                if (
+                  txHashes[pendingTx.order] === readyTx?.txHash &&
+                  ((pendingTx.order === 0 &&
+                    pendingTx.proofHash === '0x0000000000000000000000000000000000000000000000000000000000000000') ||
+                    hashChain === pendingTx.proofHash)
+                ) {
                   // 2.1.1 제대로 수행 되었다면 history에 넣음
                   await db.txHistory
                     .add({
@@ -397,7 +384,7 @@ async function CheckPendingTx() {
                         addPopup({
                           content: {
                             title: 'Reimbursement available',
-                            status: 'success',
+                            status: 'success', // TODO: ?
                             data: { hash: json.txHash },
                           },
                           key: `reimbursement`,
@@ -408,6 +395,7 @@ async function CheckPendingTx() {
                 }
               } else {
                 // TODO: add pending tx to history
+                // TODO: pending, swap failed, cancel, claim reimbursement, reimbursed의 token amount 표시 여부 확인
                 // no receipt => pending
                 const from: TokenAmount = { token: '_', amount: '0', decimal: '1000000000000000000' }
                 const to: TokenAmount = { token: '_', amount: '0', decimal: '1000000000000000000' }
@@ -506,6 +494,6 @@ export default function Web3Status() {
 }
 
 function hexToNumberString(hex: string) {
-  if (hex.substring(0, 1) !== '0x') hex = '0x' + hex
+  if (hex.substring(0, 2) !== '0x') hex = '0x' + hex
   return JSBI.BigInt(hex).toString()
 }

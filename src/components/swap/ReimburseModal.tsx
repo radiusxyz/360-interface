@@ -53,6 +53,7 @@ function ClaimReimbursement({ onDismiss, historyId }: { onDismiss: any; historyI
   const claim = async () => {
     if (tx) {
       await routerContract.reimbursement(tx.round, tx.order, tx.tx, tx.proofHash, tx.operatorSignature)
+      // TODO: update status to reimbursed
     }
   }
 

@@ -14,9 +14,8 @@ const SwapButtonError = styled(ButtonError)`
   background: linear-gradient(97deg, #0057ff 10%, #00ff66 65%, #2cff9a 100%);
   border-radius: 4px;
   color: #000;
-  border: 0px solid #fff;
   &:hover {
-    border: 0px solid #fff;
+    background: #0057ff;
   }
 `
 
@@ -39,7 +38,7 @@ export default function SwapModalFooter({
           style={{ margin: '10px 0 0 0' }}
           id="confirm-swap-or-send"
         >
-          <Text fontSize={20} fontWeight={500}>
+          <Text fontSize={20} fontWeight={600}>
             <Trans>Confirm Swap</Trans>
           </Text>
         </SwapButtonError>

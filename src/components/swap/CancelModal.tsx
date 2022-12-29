@@ -71,7 +71,6 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
         readyTxId: readyTx.id as number,
         progressHere: 1,
       })
-      // TODO: check cancel fail. if cancel successed add history
     }
   }
 
@@ -116,6 +115,8 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
     }
     onDismiss()
   }
+
+  // TODO: cancel이 수행되었고 그 Round 이전에 내 tx_hash가 없으면 cancel 성공한것이므로 history에 넣어야 함.
 
   return (
     <Wrapper>
