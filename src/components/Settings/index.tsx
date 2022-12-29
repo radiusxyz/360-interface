@@ -221,7 +221,7 @@ export default function SettingsTab({ placeholderSlippage }: { placeholderSlippa
                   <Trans>Setting</Trans>
                 </Text>
               </RowCenter>
-              <div style={{ background: '#101010', borderRadius: '4px', padding: '29px' }}>
+              <div style={{ background: '#101010', borderRadius: '4px', padding: '40px 30px' }}>
                 <TransactionSettings placeholderSlippage={placeholderSlippage} />
                 {/* <Text fontWeight={600} fontSize={14}>
                 <Trans>Interface Settings</Trans>

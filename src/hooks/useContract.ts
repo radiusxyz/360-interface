@@ -1,6 +1,6 @@
 import { Contract } from '@ethersproject/contracts'
-import RECORDER_JSON from '@radiusxyz/threesixty-contracts/artifacts/contracts/Tex/Recorder.sol/Recorder.json'
-import ROUTER_JSON from '@radiusxyz/threesixty-contracts/artifacts/contracts/Tex/TexRouter02.sol/TexRouter02.json'
+import RECORDER_JSON from '@radiusxyz/threesixty-contracts/artifacts/contracts/Threesixty/Recorder.sol/Recorder.json'
+import ROUTER_JSON from '@radiusxyz/threesixty-contracts/artifacts/contracts/Threesixty/ThreesixtyRouter.sol/ThreesixtyRouter.json'
 // TODO: uncomment
 // import VAULT_JSON from '@radiusxyz/threesixty-contracts/artifacts/contracts/Tex/Vault.sol/Vault.json'
 import IUniswapV2PairJson from '@uniswap/v2-core/build/IUniswapV2Pair.json'

@@ -1,7 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import JSBI from 'jsbi'
 import { useState } from 'react'
-import { ExternalLink as LinkIcon, X } from 'react-feather'
+import { X } from 'react-feather'
 import { useCancelManager } from 'state/modal/hooks'
 import styled from 'styled-components/macro'
 
@@ -18,6 +18,18 @@ const Wrapper = styled.div`
   background: rgba(44, 47, 63);
 `
 
+function LinkIconThin() {
+  return (
+    <img
+      src="images/launch-link-open-thin.png"
+      width="16px"
+      height="16px"
+      alt="link"
+      style={{ position: 'relative' }}
+    />
+  )
+}
+
 export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss: () => void }) {
   // TODO: order === -1 이면 cancel 버튼 활성화
   const [cancel, setCancel] = useCancelManager()
@@ -26,10 +38,12 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
     {
       label: 'ID',
       accessor: 'id',
+      align: 'left',
     },
     {
       label: 'Date',
       accessor: 'txDate',
+      align: 'left',
       format: (i: number) => {
         const date = new Intl.DateTimeFormat('en', { dateStyle: 'short' }).format(new Date(i))
         const time = new Intl.DateTimeFormat('en', { timeStyle: 'short', hour12: false }).format(new Date(i))
@@ -39,28 +53,37 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
     {
       label: 'From',
       accessor: 'from',
+      align: 'left',
       format: (i: TokenAmount) => JSBIDivide(JSBI.BigInt(i.amount), JSBI.BigInt(i.decimal), 6) + ' ' + i.token,
     },
     {
       label: 'To',
       accessor: 'to',
+      align: 'left',
       format: (i: TokenAmount) => JSBIDivide(JSBI.BigInt(i.amount), JSBI.BigInt(i.decimal), 6) + ' ' + i.token,
     },
     {
       label: 'Status',
       accessor: 'status',
+      align: 'left',
       format: (i: number) => {
         switch (i) {
           case Status.CANCELED:
             return <span style={{ color: '#A8A8A8' }}>Void</span>
           case Status.COMPLETED:
-            return <span style={{ color: '#51FF6D' }}>Completed</span>
+            return (
+              <span style={{ color: '#51FF6D' }}>
+                <li>
+                  <span style={{ transform: 'translateX(-9px)' }}>Completed</span>
+                </li>
+              </span>
+            )
           case Status.PENDING:
             return <span style={{ color: '#FF4444' }}>Pending</span>
           case Status.REIMBURSED:
-            return <span style={{ color: '#FFBF44' }}>Reimbursed</span>
+            return <span style={{ color: '#FFBF44' }}>{'Reimbursed >'}</span>
           case Status.REIMBURSE_AVAILABLE:
-            return <span style={{ color: '#00A3FF' }}>Reimburse Available</span>
+            return <span style={{ color: '#00A3FF' }}>{'Request Reimburse >'}</span>
           case Status.REJECTED:
             return <span style={{ color: '#FFFFFF' }}>Rejected</span>
         }
@@ -70,23 +93,29 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
     {
       label: 'Transaction Hash',
       accessor: 'txId',
+      align: 'right',
       subAccessor: 'txHash',
       format: (i: string) => {
         if (i.length > 20)
           return (
             <>
-              <span style={{ color: '#cccccc' }}>{i.substring(0, 5) + '...' + i.substring(19)}</span>
+              <span style={{ color: '#cccccc', marginRight: '5px' }}>
+                {i.substring(0, 5) + '...' + i.substring(19)}
+              </span>
               <ExternalLink href={getExplorerLink(80001, i, ExplorerDataType.TRANSACTION)}>
-                <LinkIcon size={20} />
+                <LinkIconThin />
               </ExternalLink>
             </>
           )
         else if (i.length > 0) {
           return (
             <>
-              <span style={{ color: '#cccccc' }}>{i}</span>
-              <ExternalLink href={getExplorerLink(80001, i, ExplorerDataType.TRANSACTION)}>
-                <LinkIcon size={20} color={'#cccccc'} />
+              <span style={{ color: '#cccccc', marginRight: '5px' }}>{i}</span>
+              <ExternalLink
+                href={getExplorerLink(80001, i, ExplorerDataType.TRANSACTION)}
+                style={{ verticalAlign: 'middle' }}
+              >
+                <LinkIconThin />
               </ExternalLink>
             </>
           )
@@ -134,7 +163,7 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
             <tr>
               {columns.map((column: any) => {
                 return (
-                  <th key={column.accessor} style={{ fontSize: '12', fontWeight: 'bold' }}>
+                  <th key={column.accessor} style={{ fontSize: '14', fontWeight: 'bolder', textAlign: 'left' }}>
                     {column.label}
                   </th>
                 )
@@ -151,7 +180,12 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
                       return (
                         <td
                           key={column.accessor}
-                          style={{ textAlign: align, fontSize: '14px', fontWeight: 'normal', color: '#a8a8a8' }}
+                          style={{
+                            textAlign: align,
+                            fontSize: '14px',
+                            fontWeight: 'normal',
+                            color: '#a8a8a8',
+                          }}
                         >
                           {column.format(row[column.accessor])}
                         </td>
@@ -171,11 +205,13 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
             })}
           </tbody>
         </table>
-        <div style={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'center' }}>
+        <div
+          style={{ width: '100%', display: 'flex', flexDirection: 'row', justifyContent: 'center', marginTop: '29px' }}
+        >
           {[...Array(page).keys()].map((i) => (
             <div
               key={i}
-              style={{ padding: '5px' }}
+              style={{ padding: '0px 5px', fontSize: '14px' }}
               onClick={() => {
                 setActivePage(i)
               }}
@@ -190,12 +226,12 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
 
   function getModalContent() {
     return {
-      width: 730,
+      width: 840,
       content: (
         <div
           style={{
-            padding: '25px',
-            width: '730px',
+            padding: '30px',
+            width: '840px',
           }}
         >
           <div
@@ -203,17 +239,17 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
               justifyContent: 'space-between',
               display: 'flex',
               flexDirection: 'row',
-              paddingBottom: '18px',
+              paddingBottom: '30px',
             }}
           >
-            <div style={{ fontSize: '18', fontWeight: 'normal' }}>Recent Transactions</div>
+            <div style={{ fontSize: '18', fontWeight: 'bold' }}>Recent Transactions</div>
             <div>
               <div onClick={() => onDismiss()}>
                 <X />
               </div>
             </div>
           </div>
-          <div style={{ width: '100%', background: 'rgba(37, 39, 53)', padding: '32px' }}>
+          <div style={{ width: '100%', background: 'rgba(37, 39, 53)', padding: '30px' }}>
             <Table />
           </div>
         </div>
