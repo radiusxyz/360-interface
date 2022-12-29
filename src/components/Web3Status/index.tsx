@@ -298,7 +298,7 @@ async function CheckPendingTx() {
                   // from, to, fee set real exchanged amount
                   if (log.topics[0] === EventLogHashTransfer) {
                     const token = new Contract(log.address, ERC20_ABI, library)
-                    const decimal = await token.decimal()
+                    const decimal = await token.decimals()
                     const tokenName = await token.name()
                     if (log.topics[1] === account) {
                       if (from.token === '')
@@ -356,49 +356,55 @@ async function CheckPendingTx() {
 
                 if (rightOrder && hashChain === pendingTx.proofHash) {
                   // 2.1.1 제대로 수행 되었다면 history에 넣음
-                  await db.txHistory.add({
-                    pendingTxId: pendingTx.id as number,
-                    txId: json?.txHash,
-                    txDate: txTime,
-                    from,
-                    to,
-                    status: Status.COMPLETED,
-                  })
-                  await db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
-                  dispatch(
-                    addPopup({
-                      content: {
-                        title: 'Success',
-                        status: 'success',
-                        data: { hash: json.txHash },
-                      },
-                      key: `success`,
-                      removeAfterMs: 10000,
+                  await db.txHistory
+                    .add({
+                      pendingTxId: pendingTx.id as number,
+                      txId: json?.txHash,
+                      txDate: txTime,
+                      from,
+                      to,
+                      status: Status.COMPLETED,
                     })
-                  )
+                    .then(async () => {
+                      await db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
+                      dispatch(
+                        addPopup({
+                          content: {
+                            title: 'Success',
+                            status: 'success',
+                            data: { hash: json.txHash },
+                          },
+                          key: `success`,
+                          removeAfterMs: 10000,
+                        })
+                      )
+                    })
                 } else {
                   // 2.1.2 문제가 있다면 claim 할 수 있도록 진행
-                  await db.txHistory.add({
-                    pendingTxId: pendingTx.id as number,
-                    txId: json?.txHash,
-                    txDate: txTime,
-                    from,
-                    to,
-                    status: Status.REIMBURSE_AVAILABLE,
-                  })
-                  await db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
-                  // TODO: Fix me
-                  dispatch(
-                    addPopup({
-                      content: {
-                        title: 'Reimbursement available',
-                        status: 'success',
-                        data: { hash: json.txHash },
-                      },
-                      key: `reimbursement`,
-                      removeAfterMs: 10000,
+                  await db.txHistory
+                    .add({
+                      pendingTxId: pendingTx.id as number,
+                      txId: json?.txHash,
+                      txDate: txTime,
+                      from,
+                      to,
+                      status: Status.REIMBURSE_AVAILABLE,
                     })
-                  )
+                    .then(async () => {
+                      await db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
+                      // TODO: Fix me
+                      dispatch(
+                        addPopup({
+                          content: {
+                            title: 'Reimbursement available',
+                            status: 'success',
+                            data: { hash: json.txHash },
+                          },
+                          key: `reimbursement`,
+                          removeAfterMs: 10000,
+                        })
+                      )
+                    })
                 }
               } else {
                 // TODO: add pending tx to history
