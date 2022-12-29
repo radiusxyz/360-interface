@@ -532,28 +532,30 @@ export default function Swap({ history }: RouteComponentProps) {
       showTimeLockPuzzle: false,
     })
     swapCallback()
-      .then((res) => {
-        if (res.msg === 'timeOver') {
-          setSwapState({
-            attemptingTxn: false,
-            tradeToConfirm,
-            showConfirm,
-            swapErrorMessage: undefined,
-            txHash: 'test',
-            swapResponse: res,
-            showTimeLockPuzzle,
-          })
-        } else {
-          setSwapState({
-            attemptingTxn: false,
-            tradeToConfirm,
-            showConfirm: false,
-            swapErrorMessage: undefined,
-            txHash: 'test',
-            swapResponse: res,
-            showTimeLockPuzzle,
-          })
-        }
+      .then(async (res) => {
+        setTimeout(() => {
+          if (res.msg === 'timeOver') {
+            setSwapState({
+              attemptingTxn: false,
+              tradeToConfirm,
+              showConfirm,
+              swapErrorMessage: undefined,
+              txHash: 'test',
+              swapResponse: res,
+              showTimeLockPuzzle,
+            })
+          } else {
+            setSwapState({
+              attemptingTxn: false,
+              tradeToConfirm,
+              showConfirm: false,
+              swapErrorMessage: undefined,
+              txHash: 'test',
+              swapResponse: res,
+              showTimeLockPuzzle,
+            })
+          }
+        }, 3000)
         // ReactGA.event({
         //   category: 'Swap',
         //   action:
@@ -570,18 +572,20 @@ export default function Swap({ history }: RouteComponentProps) {
         //   ].join('/'),
         // })
       })
-      .catch((error) => {
-        dispatch(setProgress({ newParam: 0 }))
-        console.log(error.message)
-        setSwapState({
-          attemptingTxn: false,
-          tradeToConfirm,
-          showConfirm: false,
-          swapErrorMessage: error.message,
-          txHash: undefined,
-          swapResponse: undefined,
-          showTimeLockPuzzle,
-        })
+      .catch(async (error) => {
+        setTimeout(() => {
+          dispatch(setProgress({ newParam: 0 }))
+          console.log(error.message)
+          setSwapState({
+            attemptingTxn: false,
+            tradeToConfirm,
+            showConfirm: false,
+            swapErrorMessage: error.message,
+            txHash: undefined,
+            swapResponse: undefined,
+            showTimeLockPuzzle,
+          })
+        }, 3000)
       })
   }, [
     swapCallback,
@@ -883,7 +887,7 @@ export default function Swap({ history }: RouteComponentProps) {
               allowedSlippage={allowedSlippage}
             />
           ) : (
-            <div style={{ height: '32px' }}></div>
+            <div style={{ height: '34px' }}></div>
           )}
           <div style={{ border: 'none' }}>
             {swapIsUnsupported ? (

@@ -31,6 +31,8 @@ function LinkIconThin() {
   )
 }
 
+// TODO: 순서에 맞춰 정상 수행 되었지만 Swap에는 실패했을때의 Status가 필요함.
+
 export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss: () => void }) {
   // TODO: order === -1 이면 cancel 버튼 활성화
   const [cancel, setCancel] = useCancelManager()
@@ -42,7 +44,7 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
       align: 'left',
     },
     {
-      label: 'Date',
+      label: 'Date(UTC)',
       accessor: 'txDate',
       align: 'left',
       format: (i: number) => {
@@ -82,6 +84,7 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
               </span>
             )
           case Status.PENDING:
+            // TODO: make button to cancel
             return (
               <span style={{ color: '#FF4444' }}>
                 <li>Pending</li>
@@ -121,7 +124,7 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
           return (
             <>
               <span style={{ color: '#cccccc', marginRight: '5px' }}>
-                {i.substring(0, 6) + '...' + i.substring(62)}
+                {i.substring(0, 10) + '...' + i.substring(58)}
               </span>
               <ExternalLink href={getExplorerLink(80001, i, ExplorerDataType.TRANSACTION)}>
                 <LinkIconThin />
