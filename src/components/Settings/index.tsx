@@ -1,9 +1,11 @@
 // eslint-disable-next-line no-restricted-imports
 import { t, Trans } from '@lingui/macro'
+import { DialogOverlay } from '@reach/dialog'
 import { Percent } from '@uniswap/sdk-core'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useContext, useRef, useState } from 'react'
 import { Settings, X } from 'react-feather'
+import { animated } from 'react-spring'
 import { Text } from 'rebass'
 import styled, { ThemeContext } from 'styled-components/macro'
 
@@ -14,6 +16,24 @@ import { useClientSideRouter, useExpertModeManager } from '../../state/user/hook
 import { AutoColumn } from '../Column'
 import { RowCenter } from '../Row'
 import TransactionSettings from '../TransactionSettings'
+
+const AnimatedDialogOverlay = animated(DialogOverlay)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const StyledDialogOverlay = styled(AnimatedDialogOverlay)`
+  &[data-reach-dialog-overlay] {
+    z-index: 2;
+    background-color: transparent;
+    overflow: hidden;
+
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: ${({ theme }) => theme.modalBG};
+    backdrop-filter: blur(15px);
+  }
+`
 
 const StyledMenuIcon = styled(Settings)`
   height: 24px;
@@ -88,7 +108,7 @@ const MenuFlyout = styled.span`
   display: flex;
   flex-direction: column;
   font-size: 1rem;
-  position: absolute;
+  position: relative;
   top: 2rem;
   right: 0rem;
   z-index: 100;
@@ -193,16 +213,17 @@ export default function SettingsTab({ placeholderSlippage }: { placeholderSlippa
         ) : null}
       </StyledMenuButton>
       {open && (
-        <MenuFlyout>
-          <AutoColumn gap="md" style={{ padding: '10px' }}>
-            <RowCenter style={{ marginTop: '18px', marginBottom: '2px' }}>
-              <Text color={'#ffffff'} fontWeight={600} fontSize={20}>
-                <Trans>Setting</Trans>
-              </Text>
-            </RowCenter>
-            <div style={{ background: '#101010', borderRadius: '4px', padding: '29px' }}>
-              <TransactionSettings placeholderSlippage={placeholderSlippage} />
-              {/* <Text fontWeight={600} fontSize={14}>
+        <StyledDialogOverlay>
+          <MenuFlyout>
+            <AutoColumn gap="md" style={{ padding: '10px' }}>
+              <RowCenter style={{ marginTop: '18px', marginBottom: '2px' }}>
+                <Text color={'#ffffff'} fontWeight={600} fontSize={20}>
+                  <Trans>Setting</Trans>
+                </Text>
+              </RowCenter>
+              <div style={{ background: '#101010', borderRadius: '4px', padding: '29px' }}>
+                <TransactionSettings placeholderSlippage={placeholderSlippage} />
+                {/* <Text fontWeight={600} fontSize={14}>
                 <Trans>Interface Settings</Trans>
               </Text>
               {chainId && AUTO_ROUTER_SUPPORTED_CHAINS.includes(chainId) && (
@@ -253,9 +274,10 @@ export default function SettingsTab({ placeholderSlippage }: { placeholderSlippa
                   }
                 />
               </RowBetween> */}
-            </div>
-          </AutoColumn>
-        </MenuFlyout>
+              </div>
+            </AutoColumn>
+          </MenuFlyout>
+        </StyledDialogOverlay>
       )}
     </StyledMenu>
   )
