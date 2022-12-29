@@ -694,7 +694,7 @@ export default function Swap({ history }: RouteComponentProps) {
           case 'out':
             return { height: '24px', padding: '6px', transition: { duration: 0.3 } }
           case 'in':
-            return { height: '12px', transition: { duration: 0.4 } }
+            return { height: '12px', background: 'black', border: '1px solid #323860', transition: { duration: 0.4 } }
           case 'paper':
             return { height: '100%', opacity: 1, transition: { delay: 0.5, duration: 0.3 } }
           default:
@@ -708,7 +708,12 @@ export default function Swap({ history }: RouteComponentProps) {
           case 'out':
             return { height: '0px', padding: '0px', transition: { delay: 0.5, duration: 0.3 } }
           case 'in':
-            return { height: '0px', transition: { delay: 0.4, duration: 0.3 } }
+            return {
+              height: '0px',
+              background: 'transparent',
+              border: '1px solid transparent',
+              transition: { delay: 0.4, duration: 0.3 },
+            }
           case 'paper':
             return { height: '0px', opacity: 0, transition: { duration: 0.3 } }
           default:
@@ -1025,12 +1030,11 @@ export default function Swap({ history }: RouteComponentProps) {
             <motion.div
               custom={'in'}
               animate={controls}
-              initial={{ height: '0px', border: '0px solid #000' }}
-              style={{
-                background: 'black',
-                width: '99%',
-                height: '10px',
-                border: '1px solid #323860',
+              initial={{
+                background: 'transparent',
+                height: '0px',
+                width: '100%',
+                border: '1px solid transparent',
               }}
             ></motion.div>
           </motion.div>
@@ -1062,14 +1066,8 @@ export default function Swap({ history }: RouteComponentProps) {
             padding: '4px',
           }}
         >
-          <div
-            style={{
-              justifyContent: 'center',
-              alignItems: 'center',
-              verticalAlign: 'middle',
-            }}
-          >
-            You receive minimum{' '}
+          <div style={{ display: 'flex', verticalAlign: 'bottom' }}>
+            You receive minimum&nbsp;
             <MouseoverTooltip
               text={
                 <Trans>
@@ -1100,8 +1098,8 @@ export default function Swap({ history }: RouteComponentProps) {
             padding: '4px',
           }}
         >
-          <div>
-            Slippage Tolerance{' '}
+          <div style={{ display: 'flex', verticalAlign: 'bottom' }}>
+            Slippage Tolerance&nbsp;
             <MouseoverTooltip
               text={
                 <Trans>
@@ -1132,8 +1130,8 @@ export default function Swap({ history }: RouteComponentProps) {
             padding: '4px',
           }}
         >
-          <div>
-            Price Impact{' '}
+          <div style={{ display: 'flex', verticalAlign: 'bottom' }}>
+            Price Impact&nbsp;
             <MouseoverTooltip
               text={<Trans>The change in market price of the asset due to the impact of your trade.</Trans>}
             >
