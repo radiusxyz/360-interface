@@ -1,4 +1,5 @@
 import { Trans } from '@lingui/macro'
+import { Fraction } from '@uniswap/sdk-core'
 import { Connector } from '@web3-react/types'
 import { useLiveQuery } from 'dexie-react-hooks'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
@@ -514,13 +515,5 @@ export default function AccountDetails({
 }
 
 export function JSBIDivide(numerator: JSBI, denominator: JSBI, precision: number) {
-  // if (precision < 0) return Error('precision must bigger than 0')
-  // if (denominator === JSBI.BigInt(0)) return Error('divide by zero')
-
-  const division = JSBI.divide(numerator, denominator).toString()
-  let remain = JSBI.remainder(numerator, denominator).toString()
-
-  remain = remain.length > precision ? remain.substring(0, precision) : remain
-
-  return division + '.' + remain
+  return new Fraction(numerator, denominator).toSignificant(precision).toString()
 }

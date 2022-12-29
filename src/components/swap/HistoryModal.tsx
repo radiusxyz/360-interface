@@ -1,3 +1,4 @@
+import { Fraction } from '@uniswap/sdk-core'
 import { useLiveQuery } from 'dexie-react-hooks'
 import JSBI from 'jsbi'
 import { useState } from 'react'
@@ -45,8 +46,8 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
       accessor: 'txDate',
       align: 'left',
       format: (i: number) => {
-        const date = new Intl.DateTimeFormat('en', { dateStyle: 'short' }).format(new Date(i))
-        const time = new Intl.DateTimeFormat('en', { timeStyle: 'short', hour12: false }).format(new Date(i))
+        const date = new Intl.DateTimeFormat('en', { dateStyle: 'short' }).format(new Date(i * 1000))
+        const time = new Intl.DateTimeFormat('en', { timeStyle: 'short', hour12: false }).format(new Date(i * 1000))
         return date + ' ' + time
       },
     },
@@ -69,23 +70,43 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
       format: (i: number) => {
         switch (i) {
           case Status.CANCELED:
-            return <span style={{ color: '#A8A8A8' }}>Void</span>
+            return (
+              <span style={{ color: '#A8A8A8' }}>
+                <li>Void</li>
+              </span>
+            )
           case Status.COMPLETED:
             return (
               <span style={{ color: '#51FF6D' }}>
-                <li>
-                  <span style={{ transform: 'translateX(-9px)' }}>Completed</span>
-                </li>
+                <li>Completed</li>
               </span>
             )
           case Status.PENDING:
-            return <span style={{ color: '#FF4444' }}>Pending</span>
+            return (
+              <span style={{ color: '#FF4444' }}>
+                <li>Pending</li>
+              </span>
+            )
           case Status.REIMBURSED:
-            return <span style={{ color: '#FFBF44' }}>{'Reimbursed >'}</span>
+            // TODO: make button popup
+            return (
+              <span style={{ color: '#FFBF44' }}>
+                <li>{'Reimbursed >'}</li>
+              </span>
+            )
           case Status.REIMBURSE_AVAILABLE:
-            return <span style={{ color: '#00A3FF' }}>{'Request Reimburse >'}</span>
+            // TODO: make button popup
+            return (
+              <span style={{ color: '#00A3FF' }}>
+                <li>{'Request Reimburse >'}</li>
+              </span>
+            )
           case Status.REJECTED:
-            return <span style={{ color: '#FFFFFF' }}>Rejected</span>
+            return (
+              <span style={{ color: '#FFFFFF' }}>
+                <li>Rejected</li>
+              </span>
+            )
         }
         return ''
       },
@@ -96,11 +117,11 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
       align: 'right',
       subAccessor: 'txHash',
       format: (i: string) => {
-        if (i.length > 20)
+        if (i.length > 60)
           return (
             <>
               <span style={{ color: '#cccccc', marginRight: '5px' }}>
-                {i.substring(0, 5) + '...' + i.substring(19)}
+                {i.substring(0, 6) + '...' + i.substring(62)}
               </span>
               <ExternalLink href={getExplorerLink(80001, i, ExplorerDataType.TRANSACTION)}>
                 <LinkIconThin />
@@ -267,13 +288,5 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
 }
 
 export function JSBIDivide(numerator: JSBI, denominator: JSBI, precision: number) {
-  // if (precision < 0) return Error('precision must bigger than 0')
-  // if (denominator === JSBI.BigInt(0)) return Error('divide by zero')
-
-  const division = JSBI.divide(numerator, denominator).toString()
-  let remain = JSBI.remainder(numerator, denominator).toString()
-
-  remain = remain.length > precision ? remain.substring(0, precision) : remain
-
-  return division + '.' + remain
+  return new Fraction(numerator, denominator).toSignificant(precision).toString()
 }

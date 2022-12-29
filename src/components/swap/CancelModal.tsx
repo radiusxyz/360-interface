@@ -1,4 +1,5 @@
 import { Contract } from '@ethersproject/contracts'
+import { Fraction } from '@uniswap/sdk-core'
 import { RowBetween, RowCenter } from 'components/Row'
 import JSBI from 'jsbi'
 import { useEffect, useState } from 'react'
@@ -202,14 +203,6 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
   )
 }
 
-function JSBIDivide(numerator: JSBI, denominator: JSBI, precision: number) {
-  // if (precision < 0) return Error('precision must bigger than 0')
-  // if (denominator === JSBI.BigInt(0)) return Error('divide by zero')
-
-  const division = JSBI.divide(numerator, denominator).toString()
-  let remain = JSBI.remainder(numerator, denominator).toString()
-
-  remain = remain.length > precision ? remain.substring(0, precision) : remain
-
-  return division + '.' + remain
+export function JSBIDivide(numerator: JSBI, denominator: JSBI, precision: number) {
+  return new Fraction(numerator, denominator).toSignificant(precision).toString()
 }
