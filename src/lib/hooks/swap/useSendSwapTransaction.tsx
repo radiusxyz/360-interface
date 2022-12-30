@@ -134,7 +134,9 @@ export function useTimeLockPuzzleParam(parameters: ParameterState) {
 }
 
 export async function getEncryptProof(
+  routerContract: Contract | null,
   timeLockPuzzleData: TimeLockPuzzleResponse,
+  chainId: number | undefined,
   signAddress: string,
   swapCalls: Promise<SwapCall[]>,
   sigHandler: () => void
@@ -145,8 +147,14 @@ export async function getEncryptProof(
   // const signer = library.getSigner()
   // const signAddress = await signer.getAddress()
 
-  const _txNonce = window.localStorage.getItem(signAddress + ':nonce')
-  const txNonce = !_txNonce ? 0 : BigNumber.from(_txNonce).toNumber()
+  const contractNonce = await routerContract?.nonces(address)
+  const operatorPendingTxCnt = await fetch(
+    `${process.env.REACT_APP_360_OPERATOR}/tx/pendingTxCnt?chainId=${chainId}&walletAddress=${address}`
+  )
+  const txNonce = parseInt(contractNonce) + parseInt(await operatorPendingTxCnt.text())
+
+  // const _txNonce = window.localStorage.getItem(signAddress + ':nonce')
+  // const txNonce = _txNonce ? BigNumber.from(_txNonce).toNumber() : 0
 
   // console.log('nonce from contract', txNonce)
 
@@ -185,6 +193,7 @@ export async function getEncryptProof(
 }
 
 export async function getSignTransaction(
+  routerContract: Contract | null,
   timeLockPuzzleData: any,
   encryptData: any,
   chainId: number,
@@ -195,8 +204,14 @@ export async function getSignTransaction(
   const resolvedCalls = await swapCalls
   const { address, availableFrom, deadline, amountIn, amountOut, path, idPath } = resolvedCalls[0]
 
-  const _txNonce = window.localStorage.getItem(signAddress + ':nonce')
-  const txNonce = !_txNonce ? 0 : BigNumber.from(_txNonce).toNumber()
+  const contractNonce = await routerContract?.nonces(address)
+  const operatorPendingTxCnt = await fetch(
+    `${process.env.REACT_APP_360_OPERATOR}/tx/pendingTxCnt?chainId=${chainId}&walletAddress=${address}`
+  )
+  const txNonce = parseInt(contractNonce) + parseInt(await operatorPendingTxCnt.text())
+
+  // const _txNonce = window.localStorage.getItem(signAddress + ':nonce')
+  // const txNonce = !_txNonce ? 0 : BigNumber.from(_txNonce).toNumber()
 
   const encryptedPath = {
     message_length: encryptData.message_length,
@@ -261,8 +276,6 @@ export async function getSignTransaction(
     to: { token: 'toToken', amount: '321000000000000000000', decimal: '1000000000000000000' },
   })
 
-  window.localStorage.setItem(signAddress + ':nonce', (txNonce + 1).toString())
-
   return { encryptedSwapTx, sig }
 }
 
@@ -326,8 +339,13 @@ export default function useSendSwapTransaction(
         const signer = library.getSigner()
         const signAddress = await signer.getAddress()
 
-        const _txNonce = window.localStorage.getItem(account + ':nonce')
-        const txNonce = !_txNonce ? 0 : BigNumber.from(_txNonce).toNumber()
+        const contractNonce = await routerContract.nonces(account)
+        const operatorPendingTxCnt = await fetch(
+          `${process.env.REACT_APP_360_OPERATOR}/tx/pendingTxCnt?chainId=${chainId}&walletAddress=${account}`
+        )
+        const txNonce = parseInt(contractNonce) + parseInt(await operatorPendingTxCnt.text())
+        // const _txNonce = window.localStorage.getItem(account + ':nonce')
+        // const txNonce = !_txNonce ? 0 : BigNumber.from(_txNonce).toNumber()
 
         // console.log('nonce from contract', txNonce)
 
@@ -535,8 +553,6 @@ export default function useSendSwapTransaction(
           from: { token: inSymbol, amount: input.toString(), decimal: inDecimal.toString() },
           to: { token: outSymbol, amount: output.toString(), decimal: outDecimal.toString() },
         })
-
-        window.localStorage.setItem(account + ':nonce', (txNonce + 1).toString())
 
         const sendResponse = await sendEIP712Tx(
           chainId,

@@ -1,5 +1,6 @@
 import { Fraction } from '@uniswap/sdk-core'
 import { useLiveQuery } from 'dexie-react-hooks'
+import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import JSBI from 'jsbi'
 import { useState } from 'react'
 import { X } from 'react-feather'
@@ -34,6 +35,8 @@ function LinkIconThin() {
 export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss: () => void }) {
   // TODO: order === -1 이면 스캔하기
   const [cancel, setCancel] = useCancelManager()
+
+  const { chainId } = useActiveWeb3React()
 
   const openCancelModal = () => {
     console.log('cancel')
@@ -140,7 +143,7 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
               <span style={{ color: '#cccccc', marginRight: '5px' }}>
                 {i.substring(0, 10) + '...' + i.substring(58)}
               </span>
-              <ExternalLink href={getExplorerLink(80001, i, ExplorerDataType.TRANSACTION)}>
+              <ExternalLink href={getExplorerLink(chainId ?? 80001, i, ExplorerDataType.TRANSACTION)}>
                 <LinkIconThin />
               </ExternalLink>
             </>
@@ -150,7 +153,7 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
             <>
               <span style={{ color: '#cccccc', marginRight: '5px' }}>{i}</span>
               <ExternalLink
-                href={getExplorerLink(80001, i, ExplorerDataType.TRANSACTION)}
+                href={getExplorerLink(chainId ?? 80001, i, ExplorerDataType.TRANSACTION)}
                 style={{ verticalAlign: 'middle' }}
               >
                 <LinkIconThin />
