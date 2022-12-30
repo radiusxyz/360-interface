@@ -877,18 +877,18 @@ export default function Swap({ history }: RouteComponentProps) {
               <AddressInputPanel id="recipient" value={recipient} onChange={onChangeRecipient} />
             </>
           ) : null}
-          {!showWrap && userHasSpecifiedInputOutput && (trade || routeIsLoading || routeIsSyncing) ? (
-            <SwapDetailsDropdown
-              trade={trade}
-              syncing={routeIsSyncing}
-              loading={routeIsLoading}
-              showInverted={showInverted}
-              setShowInverted={setShowInverted}
-              allowedSlippage={allowedSlippage}
-            />
-          ) : (
-            <div style={{ height: '34px' }}></div>
-          )}
+          <div style={{ height: '34px' }}>
+            {!showWrap && userHasSpecifiedInputOutput && (trade || routeIsLoading || routeIsSyncing) ? (
+              <SwapDetailsDropdown
+                trade={trade}
+                syncing={routeIsSyncing}
+                loading={routeIsLoading}
+                showInverted={showInverted}
+                setShowInverted={setShowInverted}
+                allowedSlippage={allowedSlippage}
+              />
+            ) : null}
+          </div>
           <div style={{ border: 'none' }}>
             {swapIsUnsupported ? (
               <SwapButtonPrimary disabled={true}>

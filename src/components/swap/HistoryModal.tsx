@@ -31,11 +31,19 @@ function LinkIconThin() {
   )
 }
 
-// TODO: 순서에 맞춰 정상 수행 되었지만 Swap에는 실패했을때의 Status가 필요함.
-
 export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss: () => void }) {
-  // TODO: order === -1 이면 cancel 버튼 활성화
+  // TODO: order === -1 이면 스캔하기
   const [cancel, setCancel] = useCancelManager()
+
+  const openCancelModal = () => {
+    console.log('cancel')
+  }
+  const openReimbursementDetailModal = () => {
+    console.log('reimbursement detail')
+  }
+  const openReimbursementModal = () => {
+    console.log('try reimbursement')
+  }
 
   const Columns = [
     {
@@ -87,26 +95,32 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
             // TODO: make button to cancel
             return (
               <span style={{ color: '#FF4444' }}>
-                <li>Pending</li>
+                <li>
+                  <button onClick={() => openCancelModal()}>{'Pending >'}</button>
+                </li>
               </span>
             )
           case Status.REIMBURSED:
             // TODO: make button popup
             return (
               <span style={{ color: '#FFBF44' }}>
-                <li>{'Reimbursed >'}</li>
+                <li>
+                  <button onClick={() => openReimbursementDetailModal()}>{'Reimbursed >'}</button>
+                </li>
               </span>
             )
           case Status.REIMBURSE_AVAILABLE:
             // TODO: make button popup
             return (
               <span style={{ color: '#00A3FF' }}>
-                <li>{'Request Reimburse >'}</li>
+                <li>
+                  <button onClick={() => openReimbursementModal()}>{'Request Reimburse >'}</button>
+                </li>
               </span>
             )
           case Status.REJECTED:
             return (
-              <span style={{ color: '#FFFFFF' }}>
+              <span style={{ color: '#aaaaaa' }}>
                 <li>Rejected</li>
               </span>
             )
@@ -131,7 +145,7 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
               </ExternalLink>
             </>
           )
-        else if (i.length > 0) {
+        else {
           return (
             <>
               <span style={{ color: '#cccccc', marginRight: '5px' }}>{i}</span>
@@ -142,12 +156,6 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
                 <LinkIconThin />
               </ExternalLink>
             </>
-          )
-        } else {
-          return (
-            <button onClick={() => setCancel(0)}>
-              <span style={{ color: '#ff8888' }}>cancel</span>
-            </button>
           )
         }
       },
