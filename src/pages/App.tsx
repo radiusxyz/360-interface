@@ -1,8 +1,10 @@
 import Loader from 'components/Loader'
 import TopLevelModals from 'components/TopLevelModals'
+import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import ApeModeQueryParamReader from 'hooks/useApeModeQueryParamReader'
-import { Suspense } from 'react'
+import { Suspense, useEffect } from 'react'
 import { Route, Switch } from 'react-router-dom'
+import { useAppDispatch } from 'state/hooks'
 import styled from 'styled-components/macro'
 
 import GoogleAnalyticsReporter from '../components/analytics/GoogleAnalyticsReporter'
@@ -11,6 +13,8 @@ import Header from '../components/Header'
 import Polling from '../components/Header/Polling'
 import Popups from '../components/Popups'
 import Web3ReactManager from '../components/Web3ReactManager'
+import { useRecorderContract, useV2RouterContract } from '../hooks/useContract'
+import { CheckPendingTx, GetNonce } from '../lib/utils/watcher'
 import DarkModeQueryParamReader from '../theme/DarkModeQueryParamReader'
 import Footer from './Footer'
 import Swap from './Swap'
@@ -50,6 +54,21 @@ const Marginer = styled.div`
 `
 
 export default function App() {
+  const { chainId, account, library } = useActiveWeb3React()
+  const dispatch = useAppDispatch()
+
+  const router = useV2RouterContract()
+  const recorder = useRecorderContract()
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      await GetNonce({ account, router })
+      await CheckPendingTx({ chainId, account, library, dispatch, router, recorder })
+    }, 5000)
+
+    return () => clearInterval(interval)
+  }, [chainId, account, library, dispatch, router, recorder])
+
   return (
     <ErrorBoundary>
       <Route component={GoogleAnalyticsReporter} />

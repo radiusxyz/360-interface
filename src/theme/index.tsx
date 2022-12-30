@@ -52,6 +52,8 @@ const white = '#FFFFFF'
 const black = '#000000'
 
 function colors(darkMode: boolean): Colors {
+  // force darkMode
+  darkMode = true
   return {
     darkMode,
     // base
