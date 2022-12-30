@@ -247,7 +247,10 @@ function getStatus(status: Status) {
   }
 }
 
-function renderRecentTx(recentTx: any) {
+function renderRecentTx(chainId: number | undefined, recentTx: any) {
+  if (chainId === undefined) {
+    return <></>
+  }
   return (
     <div style={{ display: 'flex', flexDirection: 'column', marginTop: '12px', gap: '8px', height: '73px' }}>
       {recentTx.map((i: any) => {
@@ -267,7 +270,7 @@ function renderRecentTx(recentTx: any) {
                 <AddressLink
                   hasENS={false}
                   isENS={false}
-                  href={getExplorerLink(80001, i.txId, ExplorerDataType.TRANSACTION)}
+                  href={getExplorerLink(chainId, i.txId, ExplorerDataType.TRANSACTION)}
                   style={{
                     marginLeft: '0px',
                     position: 'relative',
@@ -499,7 +502,7 @@ export default function AccountDetails({
               borderRight: '0px solid #000',
             }}
           />
-          {recentTx ? renderRecentTx(recentTx) : <div style={{ height: 50 }}>No recent Transaction</div>}
+          {recentTx ? renderRecentTx(chainId, recentTx) : <div style={{ height: 50 }}>No recent Transaction</div>}
           {/* renderTransactions(pendingTransactions) */}
           {/* renderTransactions(confirmedTransactions) */}
         </LowerSection>

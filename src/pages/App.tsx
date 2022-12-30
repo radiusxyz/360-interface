@@ -14,7 +14,7 @@ import Polling from '../components/Header/Polling'
 import Popups from '../components/Popups'
 import Web3ReactManager from '../components/Web3ReactManager'
 import { useRecorderContract, useV2RouterContract } from '../hooks/useContract'
-import { CheckPendingTx, GetNonce } from '../lib/utils/watcher'
+import { CheckPendingTx } from '../lib/utils/watcher'
 import DarkModeQueryParamReader from '../theme/DarkModeQueryParamReader'
 import Footer from './Footer'
 import Swap from './Swap'
@@ -62,9 +62,8 @@ export default function App() {
 
   useEffect(() => {
     const interval = setInterval(async () => {
-      await GetNonce({ account, router })
       await CheckPendingTx({ chainId, account, library, dispatch, router, recorder })
-    }, 5000)
+    }, 10000)
 
     return () => clearInterval(interval)
   }, [chainId, account, library, dispatch, router, recorder])

@@ -80,8 +80,12 @@ export async function CheckPendingTx({
                 let from: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
                 let to: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
                 console.log('Logs', Logs)
+                let cnt = 0
                 for (const log of Logs) {
-                  if (log.topics[0] === EventLogHashTransfer) {
+                  if (log.topics[0] === EventLogHashSwap) {
+                    cnt++
+                  }
+                  if (cnt === pendingTx.order && log.topics[0] === EventLogHashTransfer) {
                     const token = new Contract(log.address, ERC20_ABI, library)
                     const decimal = await token.decimals()
                     const tokenSymbol = await token.symbol()
@@ -261,18 +265,6 @@ export async function CheckPendingTx({
         }
       })
       .catch((e) => console.error(e))
-  }
-}
-
-export async function GetNonce({ account, router }: { account: string | null | undefined; router: Contract | null }) {
-  if (account) {
-    const nonce = await router?.nonces(account)
-
-    const localNonce = window.localStorage.getItem(account + ':nonce')
-
-    if (!localNonce || nonce > localNonce) {
-      window.localStorage.setItem(account + ':nonce', nonce)
-    }
   }
 }
 

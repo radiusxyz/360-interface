@@ -309,9 +309,17 @@ export function AAA({
       setProgress(1)
       const timeLockPuzzleData = await getTimeLockPuzzleProof(timeLockPuzzleParam, timeLockPuzzleSnarkParam)
       setProgress(2)
-      const encryptData = await getEncryptProof(timeLockPuzzleData, account as string, swapCalls, sigHandler)
+      const encryptData = await getEncryptProof(
+        routerContract,
+        timeLockPuzzleData,
+        chainId,
+        account as string,
+        swapCalls,
+        sigHandler
+      )
       setProgress(3)
       const { encryptedSwapTx, sig } = await getSignTransaction(
+        routerContract,
         timeLockPuzzleData,
         encryptData,
         chainId as number,
