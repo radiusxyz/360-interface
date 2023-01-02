@@ -24,10 +24,9 @@ export const RECORDER_ADDRESS = {
   [SupportedChainId.POLYGON_MUMBAI]: contracts.recorder,
 }
 
-// TODO: recorder => vault
 export const VAULT_ADDRESS = {
-  ...constructSameAddressMap(contracts.recorder),
-  [SupportedChainId.POLYGON_MUMBAI]: contracts.recorder,
+  ...constructSameAddressMap(contracts.vault),
+  [SupportedChainId.POLYGON_MUMBAI]: contracts.vault,
 }
 
 export const V2_ROUTER_ADDRESS: AddressMap = {

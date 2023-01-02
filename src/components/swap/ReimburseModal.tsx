@@ -7,7 +7,7 @@ import { ExternalLink as LinkIcon } from 'react-feather'
 import styled from 'styled-components/macro'
 import { ThemedText } from 'theme'
 
-import { useV2RouterContract, useVaultContract } from '../../hooks/useContract'
+import { useV2RouterContract } from '../../hooks/useContract'
 import { db, Status, TxHistoryWithPendingTx } from '../../utils/db'
 import { ButtonPrimary } from '../Button'
 import { AutoColumn } from '../Column'
@@ -182,19 +182,19 @@ export function ClaimReimbursement({ isOpen, onDismiss, tx }: { isOpen: boolean;
 }
 
 export function ReimbursementDetails({ isOpen, onDismiss, tx }: { isOpen: boolean; onDismiss: () => void; tx: any }) {
-  // const routerContract = useV2RouterContract() as Contract
-  const vaultContract = useVaultContract() as Contract
+  const routerContract = useV2RouterContract() as Contract
   const [reimburseAmount, setReimburseAmount] = useState('0')
 
   useEffect(() => {
     const getAmount = async () => {
-      // const amount = await vaultContract.getReImbursementAmount()
+      // TODO: fixme
+      // const amount = await routerContract.reimbursementAmount()
       const amount = '100'
       const decimal = 18
       setReimburseAmount(JSBIDivide(JSBI.BigInt(amount), JSBI.BigInt(decimal), 6))
     }
     getAmount()
-  }, [vaultContract])
+  }, [routerContract])
 
   return (
     <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={500}>
