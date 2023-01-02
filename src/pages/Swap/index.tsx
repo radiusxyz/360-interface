@@ -912,6 +912,7 @@ export default function Swap({ history }: RouteComponentProps) {
               </SwapButtonPrimary>
             ) : routeNotFound && userHasSpecifiedInputOutput && !routeIsLoading && !routeIsSyncing ? (
               <SwapButtonPrimary disabled={true} onClick={onWrap}>
+                {/** TODO: Not exist path 반영 */}
                 <Trans>Insufficient liquidity for this trade.</Trans>
               </SwapButtonPrimary>
             ) : showApproveFlow ? (

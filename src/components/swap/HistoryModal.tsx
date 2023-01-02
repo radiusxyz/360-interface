@@ -108,7 +108,20 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
             return (
               <span style={{ color: '#FFBF44' }}>
                 <li>
-                  <button onClick={() => openReimbursementDetailModal()}>{'Reimbursed >'}</button>
+                  <button
+                    style={{
+                      appearance: 'none',
+                      background: 'transparent',
+                      color: '#FFBF44',
+                      padding: '0px',
+                      margin: '0px',
+                      border: 'none',
+                      fontSize: '14px',
+                    }}
+                    onClick={() => openReimbursementModal()}
+                  >
+                    {'Reimbursed >'}
+                  </button>
                 </li>
               </span>
             )
@@ -117,7 +130,20 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
             return (
               <span style={{ color: '#00A3FF' }}>
                 <li>
-                  <button onClick={() => openReimbursementModal()}>{'Request Reimburse >'}</button>
+                  <button
+                    style={{
+                      appearance: 'none',
+                      background: 'transparent',
+                      color: '#00A3FF',
+                      padding: '0px',
+                      margin: '0px',
+                      border: 'none',
+                      fontSize: '14px',
+                    }}
+                    onClick={() => openReimbursementModal()}
+                  >
+                    {'Claim Reimbursement >'}
+                  </button>
                 </li>
               </span>
             )
@@ -165,10 +191,10 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
     },
   ]
 
-  const Table = () => {
+  const Table = ({ activePage, setActivePage }: { activePage: number; setActivePage: (_page: number) => void }) => {
     const columns = Columns
     const rowsPerPage = 10
-    const [activePage, setActivePage] = useState(0)
+
     const rows = useLiveQuery(async () => {
       const history = await db.txHistory
         .orderBy('txDate')
@@ -259,10 +285,11 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
     )
   }
 
-  function getModalContent() {
-    return {
-      width: 840,
-      content: (
+  const [activePage, setActivePage] = useState(0)
+
+  return (
+    <Modal isOpen={isOpen} onDismiss={() => onDismiss} minHeight={false} maxHeight={90} width={840}>
+      <Wrapper>
         <div
           style={{
             padding: '30px',
@@ -285,18 +312,10 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
             </div>
           </div>
           <div style={{ width: '100%', background: 'rgba(37, 39, 53)', padding: '30px' }}>
-            <Table />
+            <Table activePage={activePage} setActivePage={setActivePage} />
           </div>
         </div>
-      ),
-    }
-  }
-
-  const contentsInfo = getModalContent()
-
-  return (
-    <Modal isOpen={isOpen} onDismiss={() => onDismiss} minHeight={false} maxHeight={90} width={contentsInfo.width}>
-      <Wrapper>{contentsInfo.content}</Wrapper>
+      </Wrapper>
     </Modal>
   )
 }
