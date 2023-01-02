@@ -50,13 +50,22 @@ export function ReimbursementModal({
   }
 }
 
-export function ClaimReimbursement({ isOpen, onDismiss, tx }: { isOpen: boolean; onDismiss: any; tx: any }) {
+export function ClaimReimbursement({
+  isOpen,
+  onDismiss,
+  tx,
+}: {
+  isOpen: boolean
+  onDismiss: any
+  tx: TxHistoryWithPendingTx
+}) {
   const routerContract = useV2RouterContract() as Contract
 
   const claim = async () => {
     if (tx) {
       await routerContract.reimbursement(tx.round, tx.order, tx.tx, tx.proofHash, tx.operatorSignature)
       // TODO: update status to reimbursed
+      // await db.txHistory.get(tx.id).update()
     }
   }
 
@@ -187,9 +196,7 @@ export function ReimbursementDetails({ isOpen, onDismiss, tx }: { isOpen: boolea
 
   useEffect(() => {
     const getAmount = async () => {
-      // TODO: fixme
-      // const amount = await routerContract.reimbursementAmount()
-      const amount = '100'
+      const amount = (await routerContract?.reimbursementAmount()) ?? '0'
       const decimal = 18
       setReimburseAmount(JSBIDivide(JSBI.BigInt(amount), JSBI.BigInt(decimal), 6))
     }
