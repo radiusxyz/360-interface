@@ -652,6 +652,7 @@ export async function sendEIP712Tx(
       // console.log('verifySigner', verifySigner)
       // console.log('operatorAddress from router', operatorAddress)
 
+      // TODO: else로 떨어질때 메세지는 success가 보임. 수정 필요
       if (
         verifySigner === operatorAddress &&
         encryptedSwapTx.txHash === res.txOrderMsg.txHash &&
