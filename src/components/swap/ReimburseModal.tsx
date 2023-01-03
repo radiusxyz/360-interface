@@ -45,8 +45,10 @@ export function ReimbursementModal({
 
   if (tx?.status === Status.REIMBURSE_AVAILABLE) {
     return ClaimReimbursement({ isOpen, onDismiss, tx })
-  } else {
+  } else if (tx?.status === Status.REIMBURSED) {
     return ReimbursementDetails({ isOpen, onDismiss, tx })
+  } else {
+    return <></>
   }
 }
 
