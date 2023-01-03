@@ -1,39 +1,20 @@
 // eslint-disable-next-line no-restricted-imports
 import { t, Trans } from '@lingui/macro'
-import { DialogOverlay } from '@reach/dialog'
+// import { Dialog } from '@reach/dialog'
 import { Percent } from '@uniswap/sdk-core'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useContext, useRef, useState } from 'react'
 import { Settings, X } from 'react-feather'
-import { animated } from 'react-spring'
 import { Text } from 'rebass'
 import styled, { ThemeContext } from 'styled-components/macro'
 
-import { useOnClickOutside } from '../../hooks/useOnClickOutside'
 import { useModalOpen, useToggleSettingsMenu } from '../../state/application/hooks'
 import { ApplicationModal } from '../../state/application/reducer'
 import { useClientSideRouter, useExpertModeManager } from '../../state/user/hooks'
 import { AutoColumn } from '../Column'
+import Modal from '../Modal'
 import { RowCenter } from '../Row'
 import TransactionSettings from '../TransactionSettings'
-
-const AnimatedDialogOverlay = animated(DialogOverlay)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const StyledDialogOverlay = styled(AnimatedDialogOverlay)`
-  &[data-reach-dialog-overlay] {
-    z-index: 2;
-    background-color: transparent;
-    overflow: hidden;
-
-    position: absolute;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    background-color: ${({ theme }) => theme.modalBG};
-    backdrop-filter: blur(15px);
-  }
-`
 
 const StyledMenuIcon = styled(Settings)`
   height: 24px;
@@ -151,7 +132,7 @@ export default function SettingsTab({ placeholderSlippage }: { placeholderSlippa
   // show confirmation view before turning on
   const [showConfirmation, setShowConfirmation] = useState(false)
 
-  useOnClickOutside(node, open ? toggle : undefined)
+  // useOnClickOutside(node, open ? toggle : undefined)
 
   return (
     // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/30451
@@ -212,18 +193,16 @@ export default function SettingsTab({ placeholderSlippage }: { placeholderSlippa
           </EmojiWrapper>
         ) : null}
       </StyledMenuButton>
-      {open && (
-        <StyledDialogOverlay>
-          <MenuFlyout>
-            <AutoColumn gap="md" style={{ padding: '10px' }}>
-              <RowCenter style={{ marginTop: '18px', marginBottom: '2px' }}>
-                <Text color={'#ffffff'} fontWeight={600} fontSize={20}>
-                  <Trans>Setting</Trans>
-                </Text>
-              </RowCenter>
-              <div style={{ background: '#101010', borderRadius: '4px', padding: '40px 30px' }}>
-                <TransactionSettings placeholderSlippage={placeholderSlippage} />
-                {/* <Text fontWeight={600} fontSize={14}>
+      <Modal isOpen={open} onDismiss={toggle}>
+        <AutoColumn gap="md" style={{ padding: '10px' }}>
+          <RowCenter style={{ marginTop: '18px', marginBottom: '2px' }}>
+            <Text color={'#ffffff'} fontWeight={600} fontSize={20}>
+              <Trans>Setting</Trans>
+            </Text>
+          </RowCenter>
+          <div style={{ background: '#101010', borderRadius: '4px', padding: '40px 30px' }}>
+            <TransactionSettings placeholderSlippage={placeholderSlippage} />
+            {/* <Text fontWeight={600} fontSize={14}>
                 <Trans>Interface Settings</Trans>
               </Text>
               {chainId && AUTO_ROUTER_SUPPORTED_CHAINS.includes(chainId) && (
@@ -274,11 +253,9 @@ export default function SettingsTab({ placeholderSlippage }: { placeholderSlippa
                   }
                 />
               </RowBetween> */}
-              </div>
-            </AutoColumn>
-          </MenuFlyout>
-        </StyledDialogOverlay>
-      )}
+          </div>
+        </AutoColumn>
+      </Modal>
     </StyledMenu>
   )
 }

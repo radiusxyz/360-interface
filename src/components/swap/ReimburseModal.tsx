@@ -64,8 +64,8 @@ export function ClaimReimbursement({
   const claim = async () => {
     if (tx) {
       await routerContract.reimbursement(tx.round, tx.order, tx.tx, tx.proofHash, tx.operatorSignature)
-      // TODO: update status to reimbursed
-      // await db.txHistory.get(tx.id).update()
+      // TODO: reimbursement 성공, 실패 확인해야 하는지 고민해봐야 함
+      await db.txHistory?.update(tx?.id as number, { status: Status.REIMBURSED })
     }
   }
 

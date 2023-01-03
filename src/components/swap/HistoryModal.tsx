@@ -4,7 +4,7 @@ import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import JSBI from 'jsbi'
 import { useState } from 'react'
 import { X } from 'react-feather'
-import { useCancelManager } from 'state/modal/hooks'
+import { useCancelManager, useReimbursementManager } from 'state/modal/hooks'
 import styled from 'styled-components/macro'
 
 import { ExternalLink } from '../../theme'
@@ -33,32 +33,31 @@ function LinkIconThin() {
 }
 
 export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss: () => void }) {
-  // TODO: order === -1 이면 스캔하기
   const [cancel, setCancel] = useCancelManager()
+  const [reimbursement, setReimbursement] = useReimbursementManager()
 
   const { chainId } = useActiveWeb3React()
 
-  const openCancelModal = () => {
-    console.log('cancel')
+  const openCancelModal = (id: number) => {
+    setCancel(id)
   }
-  const openReimbursementDetailModal = () => {
-    console.log('reimbursement detail')
-  }
-  const openReimbursementModal = () => {
-    console.log('try reimbursement')
+  const openReimbursementModal = (id: number) => {
+    setReimbursement(id)
   }
 
   const Columns = [
     {
       label: 'ID',
       accessor: 'id',
+      subAccessor: 'id',
       align: 'left',
     },
     {
       label: 'Date(UTC)',
       accessor: 'txDate',
+      subAccessor: 'id',
       align: 'left',
-      format: (i: number) => {
+      format: (i: number, subAccessor: any) => {
         const date = new Intl.DateTimeFormat('en', { dateStyle: 'short' }).format(new Date(i * 1000))
         const time = new Intl.DateTimeFormat('en', { timeStyle: 'short', hour12: false }).format(new Date(i * 1000))
         return date + ' ' + time
@@ -67,20 +66,25 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
     {
       label: 'From',
       accessor: 'from',
+      subAccessor: 'id',
       align: 'left',
-      format: (i: TokenAmount) => JSBIDivide(JSBI.BigInt(i.amount), JSBI.BigInt(i.decimal), 6) + ' ' + i.token,
+      format: (i: TokenAmount, subAccessor: any) =>
+        JSBIDivide(JSBI.BigInt(i.amount), JSBI.BigInt(i.decimal), 6) + ' ' + i.token,
     },
     {
       label: 'To',
       accessor: 'to',
+      subAccessor: 'id',
       align: 'left',
-      format: (i: TokenAmount) => JSBIDivide(JSBI.BigInt(i.amount), JSBI.BigInt(i.decimal), 6) + ' ' + i.token,
+      format: (i: TokenAmount, subAccessor: any) =>
+        JSBIDivide(JSBI.BigInt(i.amount), JSBI.BigInt(i.decimal), 6) + ' ' + i.token,
     },
     {
       label: 'Status',
       accessor: 'status',
+      subAccessor: 'id',
       align: 'left',
-      format: (i: number) => {
+      format: (i: number, subAccessor: any) => {
         switch (i) {
           case Status.CANCELED:
             return (
@@ -95,16 +99,14 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
               </span>
             )
           case Status.PENDING:
-            // TODO: make button to cancel
             return (
               <span style={{ color: '#FF4444' }}>
                 <li>
-                  <button onClick={() => openCancelModal()}>{'Pending >'}</button>
+                  <button onClick={() => openCancelModal(subAccessor)}>{'Pending >'}</button>
                 </li>
               </span>
             )
           case Status.REIMBURSED:
-            // TODO: make button popup
             return (
               <span style={{ color: '#FFBF44' }}>
                 <li>
@@ -118,7 +120,7 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
                       border: 'none',
                       fontSize: '14px',
                     }}
-                    onClick={() => openReimbursementModal()}
+                    onClick={() => openReimbursementModal(subAccessor)}
                   >
                     {'Reimbursed >'}
                   </button>
@@ -126,7 +128,6 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
               </span>
             )
           case Status.REIMBURSE_AVAILABLE:
-            // TODO: make button popup
             return (
               <span style={{ color: '#00A3FF' }}>
                 <li>
@@ -140,7 +141,7 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
                       border: 'none',
                       fontSize: '14px',
                     }}
-                    onClick={() => openReimbursementModal()}
+                    onClick={() => openReimbursementModal(subAccessor)}
                   >
                     {'Claim Reimbursement >'}
                   </button>
@@ -163,30 +164,17 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
       align: 'right',
       subAccessor: 'txHash',
       format: (i: string) => {
-        if (i.length > 60)
+        if (true)
           return (
             <>
               <span style={{ color: '#cccccc', marginRight: '5px' }}>
-                {i.substring(0, 10) + '...' + i.substring(58)}
+                {i.length > 60 ? i.substring(0, 10) + '...' + i.substring(58) : i}
               </span>
               <ExternalLink href={getExplorerLink(chainId ?? 80001, i, ExplorerDataType.TRANSACTION)}>
                 <LinkIconThin />
               </ExternalLink>
             </>
           )
-        else {
-          return (
-            <>
-              <span style={{ color: '#cccccc', marginRight: '5px' }}>{i}</span>
-              <ExternalLink
-                href={getExplorerLink(chainId ?? 80001, i, ExplorerDataType.TRANSACTION)}
-                style={{ verticalAlign: 'middle' }}
-              >
-                <LinkIconThin />
-              </ExternalLink>
-            </>
-          )
-        }
       },
     },
   ]
@@ -248,7 +236,7 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
                             color: '#a8a8a8',
                           }}
                         >
-                          {column.format(row[column.accessor])}
+                          {column.format(row[column.accessor], row[column.subAccessor])}
                         </td>
                       )
                     }

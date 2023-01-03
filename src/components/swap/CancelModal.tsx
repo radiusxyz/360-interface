@@ -57,7 +57,7 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
 
   const sendCancelTx = async () => {
     if (readyTx !== undefined) {
-      recorderContract.disableTxHash(readyTx.txHash)
+      await recorderContract.disableTxHash(readyTx.txHash)
 
       const currentRound = parseInt(await recorderContract.currentRound()) - 1
       await db.readyTxs.where({ id: readyTx.id }).modify({ progressHere: 0 })
@@ -115,8 +115,6 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
     }
     onDismiss()
   }
-
-  // TODO: cancel이 수행되었고 그 Round 이전에 내 tx_hash가 없으면 cancel 성공한것이므로 history에 넣어야 함.
 
   return (
     <Wrapper>
