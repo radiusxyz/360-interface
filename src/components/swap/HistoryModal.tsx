@@ -276,7 +276,7 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
   const [activePage, setActivePage] = useState(0)
 
   return (
-    <Modal isOpen={isOpen} onDismiss={() => onDismiss} minHeight={false} maxHeight={90} width={840}>
+    <Modal isOpen={isOpen} onDismiss={onDismiss} minHeight={false} maxHeight={90} width={840}>
       <Wrapper>
         <div
           style={{
@@ -294,7 +294,7 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
           >
             <div style={{ fontSize: '18', fontWeight: 'bold' }}>Recent Transactions</div>
             <div>
-              <div onClick={() => onDismiss()}>
+              <div onClick={onDismiss}>
                 <X />
               </div>
             </div>

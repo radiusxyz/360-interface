@@ -638,15 +638,9 @@ export async function sendEIP712Tx(
     .then(async (res) => {
       // console.log('json response', res)
 
-      const signature = {
-        r: res.signature.r,
-        s: res.signature.s,
-        v: res.signature.v,
-      }
-
       const msgHash = typedDataEncoder.hash(domain(chainId), { Claim: CLAIM_TYPE }, res.txOrderMsg)
 
-      const verifySigner = recoverAddress(msgHash, signature)
+      const verifySigner = recoverAddress(msgHash, res.signature)
       const operatorAddress = await routerContract.operator()
 
       // console.log('verifySigner', verifySigner)
@@ -666,7 +660,7 @@ export async function sendEIP712Tx(
           order: parseInt(res.txOrderMsg.order),
           proofHash: res.txOrderMsg.proofHash,
           sendDate: Date.now(),
-          operatorSignature: signature,
+          operatorSignature: res.signature,
           readyTxId: readyTx?.id as number,
           progressHere: 1,
         })

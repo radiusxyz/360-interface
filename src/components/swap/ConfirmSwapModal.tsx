@@ -676,7 +676,7 @@ function TransactionSubmitted({ onDismiss, progress }: { onDismiss: any; progres
         </RowCenter>
         <ButtonPrimary
           style={{ background: '#1B1E2D', height: '46px', borderRadius: '23px', marginTop: '86px' }}
-          onClick={() => onDismiss()}
+          onClick={onDismiss}
         >
           Close
         </ButtonPrimary>
