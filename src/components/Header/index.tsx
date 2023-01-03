@@ -117,10 +117,6 @@ const AccountElement = styled.div<{ active: boolean }>`
   white-space: nowrap;
   width: 100%;
   height: 40px;
-
-  :focus {
-    border: 1px solid blue;
-  }
 `
 
 // const UNIAmount = styled(AccountElement)`
