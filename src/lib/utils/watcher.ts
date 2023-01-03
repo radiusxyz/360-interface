@@ -27,19 +27,14 @@ export async function CheckPendingTx({
   recorder: Contract | null
 }) {
   const pendingTx = await db.pendingTxs.get({ progressHere: 1 }).catch((e) => console.log(e))
-  console.log('pendingTx', pendingTx)
 
   const noOrdered = await db.pendingTxs.get({ order: -1 }).catch((e) => console.log(e))
   if (noOrdered && noOrdered.id) {
-    console.log('noOrdered', noOrdered)
     const noOrderedTx = await db.getPendingTxWithReadyTxById(noOrdered?.id)
-    console.log('noOrderedTx', noOrderedTx)
     let round = noOrderedTx.round
-    console.log('round', round)
 
     if (noOrderedTx && noOrderedTx.txHash) {
-      const currentRound = parseInt(await recorder?.currentRound())
-      console.log('currentRound', currentRound)
+      const currentRound = parseInt((await recorder?.currentRound()).toString())
       while (round <= currentRound) {
         const txHashes = await recorder?.getRoundTxHashes(round)
 
@@ -56,6 +51,8 @@ export async function CheckPendingTx({
       }
     }
   }
+  // TODO: cancel이 수행되었고 그 Round 이전에 내 tx_hash가 없으면 cancel 성공한것이므로 history에 넣어야 함.
+  // TODO: canceled transaction이 reimbursement로 나옴
 
   // 1. round에 해당하는 txId 받아오기
   if (pendingTx && pendingTx.progressHere === 1) {
@@ -67,7 +64,6 @@ export async function CheckPendingTx({
       .then((roundResponse) => {
         if (roundResponse.ok) {
           roundResponse.json().then(async (json) => {
-            console.log('json', json)
             if (json?.txHash) {
               // 2. txId 실행되었는지 확인
               const txReceipt = await library?.getTransactionReceipt(json?.txHash)
@@ -79,7 +75,6 @@ export async function CheckPendingTx({
 
                 let from: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
                 let to: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
-                console.log('Logs', Logs)
                 let cnt = 0
                 for (const log of Logs) {
                   if (log.topics[0] === EventLogHashSwap) {
@@ -120,18 +115,13 @@ export async function CheckPendingTx({
                   }
                 }
 
-                console.log('from', from)
-                console.log('to', to)
-
                 // 2.1 HashChain 검증
                 const txHashes = await recorder?.getRoundTxHashes(pendingTx.round)
 
-                console.log('txHashes', txHashes)
                 let hashChain = txHashes[0]
                 for (let i = 1; i < pendingTx.order; i++) {
                   hashChain = solidityKeccak256(['bytes32', 'bytes32'], [hashChain, txHashes[i]])
                 }
-                console.log('raynear', hashChain, pendingTx.proofHash)
 
                 // 2.2 Order 검증
                 const currentRound = await recorder?.currentRound()

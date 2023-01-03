@@ -174,7 +174,7 @@
     "@fontsource/ibm-plex-mono": "^4.5.1",
     "@fontsource/inter": "^4.5.1",
     "@popperjs/core": "^2.4.4",
-    "@radiusxyz/threesixty-contracts": "0.1.6",
+    "@radiusxyz/threesixty-contracts": "0.1.7",
     "@ramonak/react-progress-bar": "^4.4.0",
     "@reduxjs/toolkit": "^1.6.1",
     "@uniswap/redux-multicall": "^1.1.1",

@@ -149,7 +149,7 @@ export const CHAIN_INFO: ChainInfoMap = {
   [SupportedChainId.POLYGON]: {
     networkType: NetworkType.L1,
     blockWaitMsBeforeWarning: ms`10m`,
-    bridge: 'https://wallet.polygon.technology/bridge',
+    bridge: 'https://wallet.polygon.technology/polygon/bridge',
     docs: 'https://polygon.io/',
     explorer: 'https://polygonscan.com/',
     infoLink: 'https://info.uniswap.org/#/polygon/',
@@ -160,7 +160,7 @@ export const CHAIN_INFO: ChainInfoMap = {
   [SupportedChainId.POLYGON_MUMBAI]: {
     networkType: NetworkType.L1,
     blockWaitMsBeforeWarning: ms`10m`,
-    bridge: 'https://wallet.polygon.technology/bridge',
+    bridge: 'https://wallet.polygon.technology/polygon/bridge',
     docs: 'https://polygon.io/',
     explorer: 'https://mumbai.polygonscan.com/',
     infoLink: 'https://info.uniswap.org/#/polygon/',

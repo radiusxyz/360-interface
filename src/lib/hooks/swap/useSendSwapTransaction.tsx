@@ -652,7 +652,6 @@ export async function sendEIP712Tx(
       // console.log('verifySigner', verifySigner)
       // console.log('operatorAddress from router', operatorAddress)
 
-      // TODO: else로 떨어질때 메세지는 success가 보임. 수정 필요
       if (
         verifySigner === operatorAddress &&
         encryptedSwapTx.txHash === res.txOrderMsg.txHash &&
@@ -677,10 +676,24 @@ export async function sendEIP712Tx(
           msg: "Successfully received tx's order and round",
         }
       } else {
-        return {
-          data: res,
-          msg: "Error: tx's order and round is invalid. let's cancel tx",
-        }
+        const currentRound = await recorderContract.currentRound()
+        await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
+        await db.pendingTxs.add({
+          round: parseInt(currentRound),
+          order: -1,
+          proofHash: '',
+          sendDate: Date.now(),
+          operatorSignature: { r: '', s: '', v: 27 },
+          readyTxId: readyTx?.id as number,
+          progressHere: 1,
+        })
+        setCancel(readyTx?.id as number)
+
+        throw new Error(`Operator answered wrong response.`)
+        // return {
+        //   data: res,
+        //   msg: "Error: tx's order and round is invalid. let's cancel tx",
+        // }
       }
     })
     .catch(async (error) => {

@@ -1,17 +1,18 @@
 import { Trans } from '@lingui/macro'
 import { Percent } from '@uniswap/sdk-core'
+import { MouseoverTooltip } from 'components/Tooltip'
 import { L2_CHAIN_IDS } from 'constants/chains'
 import { DEFAULT_DEADLINE_FROM_NOW } from 'constants/misc'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import ms from 'ms.macro'
 import { darken } from 'polished'
 import { useContext, useState } from 'react'
+import { Info } from 'react-feather'
 import { useSetUserSlippageTolerance, useUserSlippageTolerance, useUserTransactionTTL } from 'state/user/hooks'
 import styled, { ThemeContext } from 'styled-components/macro'
 
 import { ThemedText } from '../../theme'
 import { AutoColumn } from '../Column'
-import QuestionHelper from '../QuestionHelper'
 import { RowBetween, RowFixed } from '../Row'
 
 enum SlippageError {
@@ -29,7 +30,7 @@ const FancyButton = styled.button`
   border-radius: 36px;
   font-size: 14px;
   width: auto;
-  min-width: 3.5rem;
+  min-width: 3.6rem;
   border: 0px solid ${({ theme }) => theme.bg3};
   outline: none;
   background: ${({ theme }) => theme.bg1};
@@ -43,6 +44,7 @@ const FancyButton = styled.button`
 
 const Option = styled(FancyButton)<{ active: boolean }>`
   height: 24px;
+  width: 57px;
   margin-right: 8px;
   padding: 0px 10px;
   :hover {
@@ -51,7 +53,6 @@ const Option = styled(FancyButton)<{ active: boolean }>`
   background-color: ${({ active, theme }) => active && theme.primary1};
   color: #485c83;
   border: 1px solid #485c83;
-  width: 59px;
 `
 
 const Input = styled.input`
@@ -171,11 +172,23 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
           <ThemedText.Black fontWeight={600} fontSize={16} color={'#DDDDDD'}>
             <Trans>Slippage tolerance</Trans>
           </ThemedText.Black>
-          <QuestionHelper
+          &nbsp;
+          <MouseoverTooltip
             text={
-              <Trans>Your transaction will revert if the price changes unfavorably by more than this percentage.</Trans>
+              <Trans>
+                The maximum price slippage you are willing to accept. If the price slips further, your transaction will
+                revert.
+              </Trans>
             }
-          />
+          >
+            <Info
+              style={{
+                stroke: '1px',
+                width: '18px',
+                height: '18px',
+              }}
+            />
+          </MouseoverTooltip>
         </RowFixed>
         <RowBetween>
           <OptionCustom
@@ -244,15 +257,15 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
             style={{
               fontSize: '14px',
               paddingTop: '7px',
-              color: slippageError ? 'red' : '#F3841E',
+              color: slippageError ? '#ff4747' : '#ff4747',
             }}
           >
             {slippageError ? (
               <Trans>Enter a valid slippage percentage</Trans>
             ) : tooLow ? (
-              <Trans>Your transaction may fail</Trans>
+              <Trans>Too Low</Trans>
             ) : (
-              <Trans>Your transaction may be frontrun</Trans>
+              <Trans>Too High</Trans>
             )}
           </RowBetween>
         ) : null}
@@ -264,9 +277,23 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
             <ThemedText.Black fontSize={16} fontWeight={600} color={'#DDDDDD'}>
               <Trans>Transaction deadline</Trans>
             </ThemedText.Black>
-            <QuestionHelper
-              text={<Trans>Your transaction will revert if it is pending for more than this period of time.</Trans>}
-            />
+            &nbsp;
+            <MouseoverTooltip
+              text={
+                <Trans>
+                  Set the maximum length of time that a transaction spends to be processed. Your transaction will revert
+                  if it passes more than this period.
+                </Trans>
+              }
+            >
+              <Info
+                style={{
+                  stroke: '1px',
+                  width: '18px',
+                  height: '18px',
+                }}
+              />
+            </MouseoverTooltip>
           </RowFixed>
           <RowBetween>
             <OptionCustom style={{ width: '100%', padding: '0px 20px' }} warning={!!deadlineError} tabIndex={-1}>
@@ -284,13 +311,24 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
                   setDeadlineInput('')
                   setDeadlineError(false)
                 }}
-                color={deadlineError ? 'red' : ''}
+                color={deadlineError ? '#ff4747' : ''}
               />
             </OptionCustom>
             <ThemedText.Body style={{ paddingLeft: '10px', paddingRight: '20px' }} color={'#8BB3FF'} fontSize={16}>
               <Trans>Minutes</Trans>
             </ThemedText.Body>
           </RowBetween>
+          {deadlineError ? (
+            <RowBetween
+              style={{
+                fontSize: '14px',
+                paddingTop: '7px',
+                color: slippageError ? '#ff4747' : '#ff4747',
+              }}
+            >
+              <Trans>Your transaction will be pending for a long time. Use at your own risk</Trans>
+            </RowBetween>
+          ) : null}
         </AutoColumn>
       )}
     </AutoColumn>
