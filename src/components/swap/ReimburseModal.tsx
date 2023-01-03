@@ -33,20 +33,20 @@ export function ReimbursementModal({
 }) {
   const [tx, setTx] = useState<TxHistoryWithPendingTx | null>(null)
 
-  useEffect(() => {
-    const getTx = async () => {
-      if (historyId > 0) {
-        setTx(await db.getTxHistoryWithPendingTxById(historyId))
-      }
+  const getTx = async () => {
+    if (historyId > 0) {
+      setTx(await db.getTxHistoryWithPendingTxById(historyId))
     }
+  }
 
+  useEffect(() => {
     getTx()
   }, [historyId])
 
   if (tx?.status === Status.REIMBURSE_AVAILABLE) {
-    return ClaimReimbursement({ isOpen, onDismiss, tx })
+    return <ClaimReimbursement isOpen={isOpen} onDismiss={onDismiss} tx={tx} />
   } else if (tx?.status === Status.REIMBURSED) {
-    return ReimbursementDetails({ isOpen, onDismiss, tx })
+    return <ReimbursementDetails isOpen={isOpen} onDismiss={onDismiss} tx={tx} />
   } else {
     return <></>
   }
@@ -61,11 +61,32 @@ export function ClaimReimbursement({
   onDismiss: any
   tx: TxHistoryWithPendingTx
 }) {
-  const routerContract = useV2RouterContract() as Contract
+  const routerContract = useV2RouterContract()
+
+  const [reimbursementAmount, setReimbursementAmount] = useState('0')
+
+  const loadAmount = async () => {
+    // TODO: decimal 찾아다가 적용해줘야 함
+    setReimbursementAmount(await routerContract?.reimbursementAmount())
+  }
+
+  useEffect(() => {
+    if (routerContract) {
+      loadAmount()
+    }
+  }, [])
 
   const claim = async () => {
     if (tx) {
-      await routerContract.reimbursement(tx.round, tx.order, tx.tx, tx.proofHash, tx.operatorSignature)
+      await routerContract?.claim(
+        tx.round,
+        tx.order,
+        tx.proofHash,
+        tx.tx,
+        tx.operatorSignature?.v,
+        tx.operatorSignature?.r,
+        tx.operatorSignature?.s
+      )
       // TODO: reimbursement 성공, 실패 확인해야 하는지 고민해봐야 함
       await db.txHistory?.update(tx?.id as number, { status: Status.REIMBURSED })
     }
@@ -108,24 +129,24 @@ export function ClaimReimbursement({
                   <ThemedText.Black fontSize={12} fontWeight={500} color={'#ffffFF'} style={{ paddingBottom: '8px' }}>
                     {'From'}
                   </ThemedText.Black>
-                  <ThemedText.Black fontSize={18} fontWeight={600} color={'#ffffFF'}>
-                    {tx.from.amount + tx.from.token}
+                  <ThemedText.Black fontSize={14} fontWeight={600} color={'#ffffFF'}>
+                    {JSBIDivide(JSBI.BigInt(tx.from.amount), JSBI.BigInt(tx.from.decimal), 6) + ' ' + tx.from.token}
                   </ThemedText.Black>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'start', textAlign: 'start' }}>
                   <ThemedText.Black fontSize={12} fontWeight={500} color={'#ffffFF'} style={{ paddingBottom: '8px' }}>
                     {'To'}
                   </ThemedText.Black>
-                  <ThemedText.Black fontSize={18} fontWeight={600} color={'#ffffFF'}>
-                    {tx.to.amount + tx.to.token}
+                  <ThemedText.Black fontSize={14} fontWeight={600} color={'#ffffFF'}>
+                    {JSBIDivide(JSBI.BigInt(tx.to.amount), JSBI.BigInt(tx.to.decimal), 6) + ' ' + tx.to.token}
                   </ThemedText.Black>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'start', textAlign: 'start' }}>
                   <ThemedText.Black fontSize={12} fontWeight={500} color={'#ffffFF'} style={{ paddingBottom: '8px' }}>
                     {'Total Reimbursement'}
                   </ThemedText.Black>
-                  <ThemedText.Black fontSize={18} fontWeight={600} color={'#ffffFF'}>
-                    {'0.12303 USDC'}
+                  <ThemedText.Black fontSize={14} fontWeight={600} color={'#ffffFF'}>
+                    {reimbursementAmount + ' USDC'}
                   </ThemedText.Black>
                 </div>
               </div>
@@ -143,7 +164,7 @@ export function ClaimReimbursement({
                 Transaction Hash
               </ThemedText.Black>
               <ThemedText.Black fontSize={14} fontWeight={400} color={'#ffffFF'}>
-                {tx.txId}
+                {tx.txId.length > 60 ? tx.txId.substring(0, 10) + '...' + tx.txId.substring(59) : tx.txId}
                 <a href={''}>
                   <LinkIcon size="12px" />
                 </a>
@@ -154,7 +175,7 @@ export function ClaimReimbursement({
                 Reimburse To
               </ThemedText.Black>
               <ThemedText.Black fontSize={14} fontWeight={400} color={'#ffffFF'}>
-                {tx.tx.txOwner}
+                {tx.txId.length > 40 ? tx.txId.substring(0, 10) + '...' + tx.txId.substring(59) : tx.txId}
               </ThemedText.Black>
             </RowBetween>
             <RowBetween style={{ marginTop: '40px' }}>
@@ -167,7 +188,7 @@ export function ClaimReimbursement({
                   border: '1px solid',
                   borderColor: 'white',
                 }}
-                onClick={() => onDismiss}
+                onClick={onDismiss}
               >
                 Go back
               </ButtonPrimary>
@@ -180,7 +201,7 @@ export function ClaimReimbursement({
                   border: '1px solid',
                   borderColor: 'white',
                 }}
-                onClick={() => claim}
+                onClick={() => claim()}
               >
                 Confirm
               </ButtonPrimary>
@@ -265,7 +286,7 @@ export function ReimbursementDetails({ isOpen, onDismiss, tx }: { isOpen: boolea
                   borderRadius: '23px',
                   width: '90%',
                 }}
-                onClick={() => onDismiss()}
+                onClick={onDismiss}
               >
                 Close
               </ButtonPrimary>
