@@ -27,32 +27,7 @@ export async function CheckPendingTx({
   recorder: Contract | null
 }) {
   const pendingTx = await db.pendingTxs.get({ progressHere: 1 }).catch((e) => console.log(e))
-
-  const noOrdered = await db.pendingTxs.get({ order: -1 }).catch((e) => console.log(e))
-  if (noOrdered && noOrdered.id) {
-    const noOrderedTx = await db.getPendingTxWithReadyTxById(noOrdered?.id)
-    let round = noOrderedTx.round
-
-    if (noOrderedTx && noOrderedTx.txHash) {
-      const currentRound = parseInt((await recorder?.currentRound()).toString())
-      while (round <= currentRound) {
-        const txHashes = await recorder?.getRoundTxHashes(round)
-
-        for (const order in txHashes) {
-          const txHash = txHashes[order]
-          if (noOrderedTx.txHash === txHash) {
-            await db.pendingTxs.update(noOrderedTx.id as number, {
-              round,
-              order: order + 1,
-            })
-          }
-        }
-        round++
-      }
-    }
-  }
-  // TODO: cancel이 수행되었고 그 Round 이전에 내 tx_hash가 없으면 cancel 성공한것이므로 history에 넣어야 함.
-  // TODO: canceled transaction이 reimbursement로 나옴
+  const currentRound = parseInt((await recorder?.currentRound()).toString())
 
   // 1. round에 해당하는 txId 받아오기
   if (pendingTx && pendingTx.progressHere === 1) {
@@ -115,53 +90,142 @@ export async function CheckPendingTx({
                   }
                 }
 
-                // 2.1 HashChain 검증
-                const txHashes = await recorder?.getRoundTxHashes(pendingTx.round)
-
-                let hashChain = txHashes[0]
-                for (let i = 1; i < pendingTx.order; i++) {
-                  hashChain = solidityKeccak256(['bytes32', 'bytes32'], [hashChain, txHashes[i]])
-                }
-
-                // 2.2 Order 검증
-                const currentRound = await recorder?.currentRound()
-                if (
-                  currentRound > pendingTx.round &&
-                  txHashes[pendingTx.order] === readyTx?.txHash &&
-                  ((pendingTx.order === 0 &&
-                    pendingTx.proofHash === '0x0000000000000000000000000000000000000000000000000000000000000000') ||
-                    hashChain === pendingTx.proofHash)
-                ) {
-                  // 2.1.1 제대로 수행 되었다면 history에 넣음
+                if (pendingTx.order === -1) {
                   if (from.token !== '' && to.token !== '') {
-                    db.pendingTxs.get(pendingTx.id as number).then((pending) => {
-                      if (pending?.progressHere === 1) {
+                    db.txHistory
+                      .add({
+                        pendingTxId: pendingTx.id as number,
+                        txId: json?.txHash,
+                        txDate: txTime,
+                        from,
+                        to,
+                        status: Status.COMPLETED,
+                      })
+                      .then(() => {
+                        db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
+                        dispatch(
+                          addPopup({
+                            content: {
+                              title: 'Success',
+                              status: 'success',
+                              data: { hash: json.txHash },
+                            },
+                            key: `success`,
+                            removeAfterMs: 10000,
+                          })
+                        )
+                      })
+                  } else {
+                    const isCanceled = await recorder?.useOfVeto(readyTx?.txHash, account)
+                    if (isCanceled) {
+                      if (currentRound === pendingTx.round) {
                         db.txHistory
                           .add({
                             pendingTxId: pendingTx.id as number,
-                            txId: json?.txHash,
-                            txDate: txTime,
-                            from,
-                            to,
-                            status: Status.COMPLETED,
+                            txId: '',
+                            txDate: 0,
+                            from: readyTx?.from as TokenAmount,
+                            to: readyTx?.to as TokenAmount,
+                            status: Status.CANCELED,
                           })
                           .then(() => {
                             db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
                             dispatch(
                               addPopup({
                                 content: {
-                                  title: 'Success',
-                                  status: 'success',
-                                  data: { hash: json.txHash },
+                                  title: 'Canceled',
+                                  status: 'canceled',
+                                  data: { hash: '' },
                                 },
-                                key: `success`,
+                                key: `canceled`,
                                 removeAfterMs: 10000,
                               })
                             )
                           })
+                      } else {
+                        db.pendingTxs.update(pendingTx.id as number, { round: pendingTx.round++ })
                       }
-                    })
+                    } else {
+                    }
+                  }
+                } else {
+                  // 2.1 HashChain 검증
+                  const txHashes = await recorder?.getRoundTxHashes(pendingTx.round)
+
+                  let hashChain = txHashes[0]
+                  for (let i = 1; i < pendingTx.order; i++) {
+                    hashChain = solidityKeccak256(['bytes32', 'bytes32'], [hashChain, txHashes[i]])
+                  }
+
+                  // 2.2 Order 검증
+                  const currentRound = await recorder?.currentRound()
+                  if (
+                    currentRound > pendingTx.round &&
+                    txHashes[pendingTx.order] === readyTx?.txHash &&
+                    ((pendingTx.order === 0 &&
+                      pendingTx.proofHash === '0x0000000000000000000000000000000000000000000000000000000000000000') ||
+                      hashChain === pendingTx.proofHash)
+                  ) {
+                    // 2.1.1 제대로 수행 되었다면 history에 넣음
+                    if (from.token !== '' && to.token !== '') {
+                      db.pendingTxs.get(pendingTx.id as number).then((pending) => {
+                        if (pending?.progressHere === 1) {
+                          db.txHistory
+                            .add({
+                              pendingTxId: pendingTx.id as number,
+                              txId: json?.txHash,
+                              txDate: txTime,
+                              from,
+                              to,
+                              status: Status.COMPLETED,
+                            })
+                            .then(() => {
+                              db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
+                              dispatch(
+                                addPopup({
+                                  content: {
+                                    title: 'Success',
+                                    status: 'success',
+                                    data: { hash: json.txHash },
+                                  },
+                                  key: `success`,
+                                  removeAfterMs: 10000,
+                                })
+                              )
+                            })
+                        }
+                      })
+                    } else {
+                      db.pendingTxs.get(pendingTx.id as number).then((pending) => {
+                        if (pending?.progressHere === 1) {
+                          db.txHistory
+                            .add({
+                              pendingTxId: pendingTx.id as number,
+                              txId: json?.txHash,
+                              txDate: txTime,
+                              from: readyTx?.from as TokenAmount,
+                              to: readyTx?.to as TokenAmount,
+                              status: Status.REJECTED,
+                            })
+                            .then(() => {
+                              db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
+                              dispatch(
+                                addPopup({
+                                  content: {
+                                    title: 'Rejected',
+                                    status: 'rejected',
+                                    data: { hash: json.txHash },
+                                  },
+                                  key: `rejected`,
+                                  removeAfterMs: 10000,
+                                })
+                              )
+                            })
+                        }
+                      })
+                    }
                   } else {
+                    // 2.1.2 문제가 있다면 claim 할 수 있도록 진행
                     db.pendingTxs.get(pendingTx.id as number).then((pending) => {
                       if (pending?.progressHere === 1) {
                         db.txHistory
@@ -171,18 +235,18 @@ export async function CheckPendingTx({
                             txDate: txTime,
                             from: readyTx?.from as TokenAmount,
                             to: readyTx?.to as TokenAmount,
-                            status: Status.REJECTED,
+                            status: Status.REIMBURSE_AVAILABLE,
                           })
                           .then(() => {
                             db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
                             dispatch(
                               addPopup({
                                 content: {
-                                  title: 'Rejected',
-                                  status: 'rejected',
+                                  title: 'Reimbursement available',
+                                  status: 'reimbursement',
                                   data: { hash: json.txHash },
                                 },
-                                key: `rejected`,
+                                key: `reimbursement`,
                                 removeAfterMs: 10000,
                               })
                             )
@@ -190,65 +254,31 @@ export async function CheckPendingTx({
                       }
                     })
                   }
-                } else {
-                  // 2.1.2 문제가 있다면 claim 할 수 있도록 진행
-                  db.pendingTxs.get(pendingTx.id as number).then((pending) => {
-                    if (pending?.progressHere === 1) {
-                      db.txHistory
-                        .add({
-                          pendingTxId: pendingTx.id as number,
-                          txId: json?.txHash,
-                          txDate: txTime,
-                          from: readyTx?.from as TokenAmount,
-                          to: readyTx?.to as TokenAmount,
-                          status: Status.REIMBURSE_AVAILABLE,
-                        })
-                        .then(() => {
-                          db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
-                          dispatch(
-                            addPopup({
-                              content: {
-                                title: 'Reimbursement available',
-                                status: 'reimbursement',
-                                data: { hash: json.txHash },
-                              },
-                              key: `reimbursement`,
-                              removeAfterMs: 10000,
-                            })
-                          )
-                        })
-                    }
-                  })
                 }
               } else {
                 // no receipt => pending
-                db.pendingTxs.get(pendingTx.id as number).then((pending) => {
-                  if (pending?.progressHere === 1) {
-                    db.txHistory
-                      .add({
-                        pendingTxId: pendingTx.id as number,
-                        txId: json?.txHash,
-                        txDate: 0,
-                        from: readyTx?.from as TokenAmount,
-                        to: readyTx?.to as TokenAmount,
-                        status: Status.PENDING,
+                db.txHistory
+                  .add({
+                    pendingTxId: pendingTx.id as number,
+                    txId: json?.txHash,
+                    txDate: 0,
+                    from: readyTx?.from as TokenAmount,
+                    to: readyTx?.to as TokenAmount,
+                    status: Status.PENDING,
+                  })
+                  .then(() => {
+                    dispatch(
+                      addPopup({
+                        content: {
+                          title: 'Pending',
+                          status: 'pending',
+                          data: { hash: json.txHash },
+                        },
+                        key: `pending`,
+                        removeAfterMs: 10000,
                       })
-                      .then(() => {
-                        db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
-                        dispatch(
-                          addPopup({
-                            content: {
-                              title: 'Pending',
-                              status: 'pending',
-                              data: { hash: json.txHash },
-                            },
-                            key: `pending`,
-                            removeAfterMs: 10000,
-                          })
-                        )
-                      })
-                  }
-                })
+                    )
+                  })
               }
             }
           })

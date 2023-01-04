@@ -55,7 +55,7 @@ export default function SwapModalHeader({
 }) {
   const theme = useContext(ThemeContext)
 
-  const [showInverted, setShowInverted] = useState<boolean>(false)
+  const [buttonEnable, setButtonEnable] = useState<boolean>(true)
 
   const fiatValueInput = useUSDCValue(trade.inputAmount)
   const fiatValueOutput = useUSDCValue(trade.outputAmount)
@@ -194,7 +194,9 @@ export default function SwapModalHeader({
             </RowFixed>
             <ButtonPrimary
               style={{ padding: '.5rem', width: 'fit-content', fontSize: '0.825rem', borderRadius: '12px' }}
-              onClick={onAcceptChanges}
+              onClick={() => {
+                onAcceptChanges()
+              }}
             >
               <Trans>Accept</Trans>
             </ButtonPrimary>
