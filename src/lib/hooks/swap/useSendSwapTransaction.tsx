@@ -28,7 +28,7 @@ import { poseidonEncryptWithTxHash } from 'wasm/encrypt'
 import { getTimeLockPuzzleProof, TimeLockPuzzleResponse } from 'wasm/timeLockPuzzle'
 
 import { useRecorderContract, useV2RouterContract } from '../../../hooks/useContract'
-import { db } from '../../../utils/db'
+import { db, Status, TokenAmount } from '../../../utils/db'
 
 type AnyTrade =
   | V2Trade<Currency, Currency, TradeType>
@@ -619,7 +619,15 @@ export async function sendEIP712Tx(
   signature: Signature,
   setCancel: (cancel: number) => void
 ): Promise<RadiusSwapResponse> {
+  console.log('raynear')
+  const _currentRound = await recorderContract.currentRound()
+  console.log('raynear', _currentRound)
+  console.log('raynear', _currentRound.toString())
+  console.log('raynear', parseInt(_currentRound.toString()))
+  console.log('raynear', parseInt(_currentRound))
+  const currentRound = parseInt(_currentRound.toString())
   const readyTx = await db.readyTxs.where({ txHash: encryptedSwapTx.txHash }).first()
+  console.log('1')
   const sendResponse = await fetchWithTimeout(
     `${process.env.REACT_APP_360_OPERATOR}/tx`,
     {
@@ -636,6 +644,7 @@ export async function sendEIP712Tx(
   )
     .then(async (res) => res.json())
     .then(async (res) => {
+      console.log('1.1', res)
       // console.log('json response', res)
 
       const msgHash = typedDataEncoder.hash(domain(chainId), { Claim: CLAIM_TYPE }, res.txOrderMsg)
@@ -655,7 +664,7 @@ export async function sendEIP712Tx(
         console.log('txOrderMsg', res.txOrderMsg)
 
         await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
-        await db.pendingTxs.add({
+        const pendingTxId = await db.pendingTxs.add({
           round: parseInt(res.txOrderMsg.round),
           order: parseInt(res.txOrderMsg.order),
           proofHash: res.txOrderMsg.proofHash,
@@ -664,22 +673,37 @@ export async function sendEIP712Tx(
           readyTxId: readyTx?.id as number,
           progressHere: 1,
         })
+        await db.txHistory.add({
+          pendingTxId: parseInt(pendingTxId.toString()),
+          txId: '',
+          txDate: 0,
+          from: readyTx?.from as TokenAmount,
+          to: readyTx?.to as TokenAmount,
+          status: Status.PENDING,
+        })
 
         return {
           data: res,
           msg: "Successfully received tx's order and round",
         }
       } else {
-        const currentRound = await recorderContract.currentRound()
         await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
-        await db.pendingTxs.add({
-          round: parseInt(currentRound),
+        const pendingTxId = await db.pendingTxs.add({
+          round: currentRound,
           order: -1,
           proofHash: '',
           sendDate: Date.now(),
           operatorSignature: { r: '', s: '', v: 27 },
           readyTxId: readyTx?.id as number,
           progressHere: 1,
+        })
+        await db.txHistory.add({
+          pendingTxId: parseInt(pendingTxId.toString()),
+          txId: '',
+          txDate: 0,
+          from: readyTx?.from as TokenAmount,
+          to: readyTx?.to as TokenAmount,
+          status: Status.PENDING,
         })
         setCancel(readyTx?.id as number)
 
@@ -691,12 +715,12 @@ export async function sendEIP712Tx(
       }
     })
     .catch(async (error) => {
+      console.log('1.2')
       console.log(error)
 
-      const currentRound = await recorderContract.currentRound()
       await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
-      await db.pendingTxs.add({
-        round: parseInt(currentRound),
+      const pendingTxId = await db.pendingTxs.add({
+        round: currentRound,
         order: -1,
         proofHash: '',
         sendDate: Date.now(),
@@ -704,6 +728,15 @@ export async function sendEIP712Tx(
         readyTxId: readyTx?.id as number,
         progressHere: 1,
       })
+      await db.txHistory.add({
+        pendingTxId: parseInt(pendingTxId.toString()),
+        txId: '',
+        txDate: 0,
+        from: readyTx?.from as TokenAmount,
+        to: readyTx?.to as TokenAmount,
+        status: Status.PENDING,
+      })
+
       setCancel(readyTx?.id as number)
 
       if (error.name === 'AbortError') {

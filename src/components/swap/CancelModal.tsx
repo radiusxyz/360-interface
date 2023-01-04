@@ -8,7 +8,7 @@ import styled from 'styled-components/macro'
 import { ThemedText } from 'theme'
 
 import { useRecorderContract } from '../../hooks/useContract'
-import { db, ReadyTx } from '../../utils/db'
+import { db, ReadyTx, Status, TokenAmount } from '../../utils/db'
 import { ButtonError, ButtonPrimary } from '../Button'
 import { AutoColumn } from '../Column'
 import Modal from '../Modal'
@@ -61,7 +61,7 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
 
       const currentRound = parseInt(await recorderContract.currentRound()) - 1
       await db.readyTxs.where({ id: readyTx.id }).modify({ progressHere: 0 })
-      await db.pendingTxs.add({
+      const pendingTxId = await db.pendingTxs.add({
         round: currentRound,
         order: -1,
         proofHash: '',
@@ -70,6 +70,14 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
         sendDate: Date.now(),
         readyTxId: readyTx.id as number,
         progressHere: 1,
+      })
+      await db.txHistory.add({
+        pendingTxId: parseInt(pendingTxId.toString()),
+        txId: '',
+        txDate: 0,
+        from: readyTx?.from as TokenAmount,
+        to: readyTx?.to as TokenAmount,
+        status: Status.PENDING,
       })
     }
   }
@@ -102,7 +110,7 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
     if (readyTx !== undefined) {
       const currentRound = parseInt(await recorderContract.currentRound()) - 1
       await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
-      await db.pendingTxs.add({
+      const pendingTxId = await db.pendingTxs.add({
         round: currentRound,
         order: -1,
         proofHash: '',
@@ -111,6 +119,14 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
         sendDate: Date.now(),
         readyTxId: readyTx?.id as number,
         progressHere: 1,
+      })
+      await db.txHistory.add({
+        pendingTxId: parseInt(pendingTxId.toString()),
+        txId: '',
+        txDate: 0,
+        from: readyTx?.from as TokenAmount,
+        to: readyTx?.to as TokenAmount,
+        status: Status.PENDING,
       })
     }
     onDismiss()

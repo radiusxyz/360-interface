@@ -159,6 +159,19 @@ export const FadeWrapper = styled.div`
 `
 
 export default function Swap({ history }: RouteComponentProps) {
+  function emptyCache() {
+    if ('caches' in window) {
+      caches.keys().then((names) => {
+        // Delete all the cache files
+        names.forEach((name) => {
+          caches.delete(name)
+        })
+      })
+
+      // Makes sure the page reloads. Changes are only visible after you refresh.
+      window.location.reload()
+    }
+  }
   const addReady = async () => {
     await db.readyTxs.add({
       tx: {
@@ -757,6 +770,7 @@ export default function Swap({ history }: RouteComponentProps) {
       />
       <HistoryModal isOpen={showHistory} onDismiss={() => setShowHistory(false)} />
       <AppBody>
+        <button onClick={() => emptyCache()}>clear Cache</button>
         {/* <button onClick={() => addPending()}>inputPending</button>
         <button onClick={() => addTxHistory()}>inputTx</button>
         <button onClick={() => showDB()}>log</button>
@@ -843,7 +857,9 @@ export default function Swap({ history }: RouteComponentProps) {
                 </ArrowWrapper>
                 <CurrencyInputPanel
                   value={formattedAmounts[Field.OUTPUT]}
-                  onUserInput={handleTypeOutput}
+                  onUserInput={() => {
+                    return
+                  }}
                   label={
                     independentField === Field.INPUT && !showWrap ? <Trans>To (at least)</Trans> : <Trans>To</Trans>
                   }
