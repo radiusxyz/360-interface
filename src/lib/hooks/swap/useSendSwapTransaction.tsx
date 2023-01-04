@@ -362,6 +362,8 @@ export default function useSendSwapTransaction(
           deadline,
         }
 
+        console.log('raynear message', message)
+
         if (path.length > 3) {
           console.error('Cannot encrypt path which length is over 3')
         }
@@ -673,14 +675,15 @@ export async function sendEIP712Tx(
           readyTxId: readyTx?.id as number,
           progressHere: 1,
         })
-        await db.txHistory.add({
-          pendingTxId: parseInt(pendingTxId.toString()),
-          txId: '',
-          txDate: 0,
-          from: readyTx?.from as TokenAmount,
-          to: readyTx?.to as TokenAmount,
-          status: Status.PENDING,
-        })
+        await db.pushTxHistory(
+          { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
+          {
+            pendingTxId: parseInt(pendingTxId.toString()),
+            from: readyTx?.from as TokenAmount,
+            to: readyTx?.to as TokenAmount,
+            status: Status.PENDING,
+          }
+        )
 
         return {
           data: res,
@@ -697,14 +700,15 @@ export async function sendEIP712Tx(
           readyTxId: readyTx?.id as number,
           progressHere: 1,
         })
-        await db.txHistory.add({
-          pendingTxId: parseInt(pendingTxId.toString()),
-          txId: '',
-          txDate: 0,
-          from: readyTx?.from as TokenAmount,
-          to: readyTx?.to as TokenAmount,
-          status: Status.PENDING,
-        })
+        await db.pushTxHistory(
+          { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
+          {
+            pendingTxId: parseInt(pendingTxId.toString()),
+            from: readyTx?.from as TokenAmount,
+            to: readyTx?.to as TokenAmount,
+            status: Status.PENDING,
+          }
+        )
         setCancel(readyTx?.id as number)
 
         throw new Error(`Operator answered wrong response.`)
@@ -728,14 +732,15 @@ export async function sendEIP712Tx(
         readyTxId: readyTx?.id as number,
         progressHere: 1,
       })
-      await db.txHistory.add({
-        pendingTxId: parseInt(pendingTxId.toString()),
-        txId: '',
-        txDate: 0,
-        from: readyTx?.from as TokenAmount,
-        to: readyTx?.to as TokenAmount,
-        status: Status.PENDING,
-      })
+      await db.pushTxHistory(
+        { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
+        {
+          pendingTxId: parseInt(pendingTxId.toString()),
+          from: readyTx?.from as TokenAmount,
+          to: readyTx?.to as TokenAmount,
+          status: Status.PENDING,
+        }
+      )
 
       setCancel(readyTx?.id as number)
 

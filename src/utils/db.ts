@@ -60,6 +60,15 @@ export interface TxHistory {
   status: Status
 }
 
+export interface TxHistoryParam {
+  pendingTxId?: number
+  txId?: string
+  txDate?: number
+  from?: TokenAmount
+  to?: TokenAmount
+  status?: Status
+}
+
 export interface PendingTxWithReadyTx extends PendingTx, ReadyTx {}
 export interface TxHistoryWithPendingTx extends TxHistory, PendingTx, ReadyTx {}
 
@@ -73,7 +82,7 @@ export class MySubClassedDexie extends Dexie {
     this.version(1).stores({
       readyTxs: '++id, txHash, progressHere',
       pendingTxs: '++id, sendDate, txOwner, nonce, round, order, txHash, progressHere',
-      txHistory: '++id, txDate, txId, fromToken, toToken',
+      txHistory: '++id, pendingTxId, txDate, txId, fromToken, toToken',
     })
   }
 
@@ -112,6 +121,35 @@ export class MySubClassedDexie extends Dexie {
 
     return { ...readyTx, ...pendingTx } as PendingTxWithReadyTx
   }
+
+  async pushTxHistory(_where: { field: string; value: any }, _history: TxHistoryParam) {
+    if ((await db.txHistory.where(_where.field).equals(_where.value).toArray()).length === 0) {
+      console.log('1')
+      await db.txHistory.add({
+        pendingTxId: _history.pendingTxId ?? 0,
+        txId: _history.txId ?? '',
+        txDate: _history.txDate ?? Date.now(),
+        from: _history.from ?? { token: '', amount: '', decimal: '1' },
+        to: _history.to ?? { token: '', amount: '', decimal: '1' },
+        status: _history.status ?? Status.PENDING,
+      })
+    } else {
+      console.log('2')
+      const history: TxHistoryParam = {}
+      await db.txHistory.where(_where.field).equals(_where.value).modify({ pendingTxId: _history.pendingTxId })
+      await db.txHistory.where(_where.field).equals(_where.value).modify({ txId: _history.txId })
+      await db.txHistory.where(_where.field).equals(_where.value).modify({ txDate: _history.txDate })
+      await db.txHistory.where(_where.field).equals(_where.value).modify({ from: _history.from })
+      await db.txHistory.where(_where.field).equals(_where.value).modify({ to: _history.to })
+      await db.txHistory.where(_where.field).equals(_where.value).modify({ status: _history.status })
+    }
+  }
 }
 
+/**  txId: string
+  txDate: number
+  from: TokenAmount
+  to: TokenAmount
+  status: Status
+ */
 export const db = new MySubClassedDexie()

@@ -71,14 +71,15 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
         readyTxId: readyTx.id as number,
         progressHere: 1,
       })
-      await db.txHistory.add({
-        pendingTxId: parseInt(pendingTxId.toString()),
-        txId: '',
-        txDate: 0,
-        from: readyTx?.from as TokenAmount,
-        to: readyTx?.to as TokenAmount,
-        status: Status.PENDING,
-      })
+      await db.pushTxHistory(
+        { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
+        {
+          pendingTxId: parseInt(pendingTxId.toString()),
+          from: readyTx?.from as TokenAmount,
+          to: readyTx?.to as TokenAmount,
+          status: Status.PENDING,
+        }
+      )
     }
   }
 
@@ -120,14 +121,15 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
         readyTxId: readyTx?.id as number,
         progressHere: 1,
       })
-      await db.txHistory.add({
-        pendingTxId: parseInt(pendingTxId.toString()),
-        txId: '',
-        txDate: 0,
-        from: readyTx?.from as TokenAmount,
-        to: readyTx?.to as TokenAmount,
-        status: Status.PENDING,
-      })
+      await db.pushTxHistory(
+        { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
+        {
+          pendingTxId: parseInt(pendingTxId.toString()),
+          from: readyTx?.from as TokenAmount,
+          to: readyTx?.to as TokenAmount,
+          status: Status.PENDING,
+        }
+      )
     }
     onDismiss()
   }

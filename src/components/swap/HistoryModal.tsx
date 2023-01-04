@@ -102,7 +102,20 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
             return (
               <span style={{ color: '#FF4444' }}>
                 <li>
-                  <button onClick={() => openCancelModal(subAccessor)}>{'Pending >'}</button>
+                  <button
+                    style={{
+                      appearance: 'none',
+                      background: 'transparent',
+                      color: '#FF4444',
+                      padding: '0px',
+                      margin: '0px',
+                      border: 'none',
+                      fontSize: '14px',
+                    }}
+                    onClick={() => openCancelModal(subAccessor)}
+                  >
+                    {'Pending >'}
+                  </button>
                 </li>
               </span>
             )
