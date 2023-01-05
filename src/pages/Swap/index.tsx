@@ -66,7 +66,6 @@ import {
 } from '../../state/swap/hooks'
 import { useExpertModeManager } from '../../state/user/hooks'
 import { LinkStyledButton, ThemedText } from '../../theme'
-import { computeFiatValuePriceImpact } from '../../utils/computeFiatValuePriceImpact'
 import { db, Status } from '../../utils/db'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { warningSeverity } from '../../utils/prices'
@@ -385,10 +384,11 @@ export default function Swap({ history }: RouteComponentProps) {
 
   const fiatValueInput = useUSDCValue(trade?.inputAmount)
   const fiatValueOutput = useUSDCValue(trade?.outputAmount)
-  const priceImpact = useMemo(
-    () => (routeIsSyncing ? undefined : computeFiatValuePriceImpact(fiatValueInput, fiatValueOutput)),
-    [fiatValueInput, fiatValueOutput, routeIsSyncing]
-  )
+  // const priceImpact = useMemo(
+  //   () => (routeIsSyncing ? undefined : computeFiatValuePriceImpact(fiatValueInput, fiatValueOutput)),
+  //   [fiatValueInput, fiatValueOutput, routeIsSyncing]
+  // )
+  const priceImpact = trade?.priceImpact
   // console.log(trade?.inputAmount, trade?.outputAmount, fiatValueInput, fiatValueOutput, priceImpact)
 
   const { onSwitchTokens, onCurrencySelection, onUserInput, onChangeRecipient } = useSwapActionHandlers()
@@ -765,6 +765,7 @@ export default function Swap({ history }: RouteComponentProps) {
     })
   }
 
+  // TODO: CLEAR CACHE 자동로딩
   return (
     <>
       <TokenWarningModal
@@ -775,9 +776,9 @@ export default function Swap({ history }: RouteComponentProps) {
       />
       <HistoryModal isOpen={showHistory} onDismiss={() => setShowHistory(false)} />
       <AppBody>
+        {/* <button onClick={() => addPending()}>inputPending</button>
         <button onClick={() => emptyCache()}>clear Cache</button>
         <button onClick={() => resetPendingTx()}>resetPendingTx</button>
-        {/* <button onClick={() => addPending()}>inputPending</button>
         <button onClick={() => addTxHistory()}>inputTx</button>
         <button onClick={() => showDB()}>log</button>
         <button onClick={() => showModal()}>modal</button>
@@ -872,7 +873,6 @@ export default function Swap({ history }: RouteComponentProps) {
                   showMaxButton={false}
                   hideBalance={false}
                   fiatValue={fiatValueOutput ?? undefined}
-                  priceImpact={priceImpact}
                   currency={currencies[Field.OUTPUT]}
                   onCurrencySelect={handleOutputSelect}
                   otherCurrency={currencies[Field.INPUT]}
@@ -1175,10 +1175,12 @@ export default function Swap({ history }: RouteComponentProps) {
             {priceImpactTooHigh ? (
               <div style={{ color: 'red', fontSize: '10', fontWeight: 'normal' }}>
                 {'Warning: Price Impact High '}
-                <span style={{ fontSize: '12', fontWeight: 'bold' }}>{priceImpact + ' %'}</span>
+                <span style={{ fontSize: '12', fontWeight: 'bold' }}>{priceImpact?.toSignificant(3) + ' %'}</span>
               </div>
             ) : (
-              <div style={{ color: '#008c27', fontSize: '12', fontWeight: 'bold' }}>{priceImpact + ' %'}</div>
+              <div style={{ color: '#008c27', fontSize: '12', fontWeight: 'bold' }}>
+                {priceImpact?.toSignificant(3) + ' %'}
+              </div>
             )}
           </div>
         </div>

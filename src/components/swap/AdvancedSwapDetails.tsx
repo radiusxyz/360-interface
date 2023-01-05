@@ -59,7 +59,7 @@ export function AdvancedSwapDetails({
     const expectedOutputAmount = trade.outputAmount
     const realizedLpFeePercent = computeRealizedLPFeePercent(trade)
     // const priceImpact = trade.priceImpact.subtract(realizedLpFeePercent)
-    const priceImpact = trade?.priceImpact.multiply('100').toSignificant(3)
+    const priceImpact = trade?.priceImpact.toSignificant(3)
     return { expectedOutputAmount, priceImpact }
   }, [trade])
 
