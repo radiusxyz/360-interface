@@ -362,6 +362,8 @@ export default function useSendSwapTransaction(
           deadline,
         }
 
+        console.log('raynear message', message)
+
         if (path.length > 3) {
           console.error('Cannot encrypt path which length is over 3')
         }
@@ -619,13 +621,8 @@ export async function sendEIP712Tx(
   signature: Signature,
   setCancel: (cancel: number) => void
 ): Promise<RadiusSwapResponse> {
-  console.log('raynear')
   const _currentRound = await recorderContract.currentRound()
-  console.log('raynear', _currentRound)
-  console.log('raynear', _currentRound.toString())
-  console.log('raynear', parseInt(_currentRound.toString()))
-  console.log('raynear', parseInt(_currentRound))
-  const currentRound = parseInt(_currentRound.toString())
+  const doneRound = parseInt(_currentRound.toString()) - 1
   const readyTx = await db.readyTxs.where({ txHash: encryptedSwapTx.txHash }).first()
   console.log('1')
   const sendResponse = await fetchWithTimeout(
@@ -673,14 +670,15 @@ export async function sendEIP712Tx(
           readyTxId: readyTx?.id as number,
           progressHere: 1,
         })
-        await db.txHistory.add({
-          pendingTxId: parseInt(pendingTxId.toString()),
-          txId: '',
-          txDate: 0,
-          from: readyTx?.from as TokenAmount,
-          to: readyTx?.to as TokenAmount,
-          status: Status.PENDING,
-        })
+        await db.pushTxHistory(
+          { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
+          {
+            pendingTxId: parseInt(pendingTxId.toString()),
+            from: readyTx?.from as TokenAmount,
+            to: readyTx?.to as TokenAmount,
+            status: Status.PENDING,
+          }
+        )
 
         return {
           data: res,
@@ -689,7 +687,7 @@ export async function sendEIP712Tx(
       } else {
         await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
         const pendingTxId = await db.pendingTxs.add({
-          round: currentRound,
+          round: doneRound,
           order: -1,
           proofHash: '',
           sendDate: Date.now(),
@@ -697,14 +695,15 @@ export async function sendEIP712Tx(
           readyTxId: readyTx?.id as number,
           progressHere: 1,
         })
-        await db.txHistory.add({
-          pendingTxId: parseInt(pendingTxId.toString()),
-          txId: '',
-          txDate: 0,
-          from: readyTx?.from as TokenAmount,
-          to: readyTx?.to as TokenAmount,
-          status: Status.PENDING,
-        })
+        await db.pushTxHistory(
+          { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
+          {
+            pendingTxId: parseInt(pendingTxId.toString()),
+            from: readyTx?.from as TokenAmount,
+            to: readyTx?.to as TokenAmount,
+            status: Status.PENDING,
+          }
+        )
         setCancel(readyTx?.id as number)
 
         throw new Error(`Operator answered wrong response.`)
@@ -720,7 +719,7 @@ export async function sendEIP712Tx(
 
       await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
       const pendingTxId = await db.pendingTxs.add({
-        round: currentRound,
+        round: doneRound,
         order: -1,
         proofHash: '',
         sendDate: Date.now(),
@@ -728,14 +727,15 @@ export async function sendEIP712Tx(
         readyTxId: readyTx?.id as number,
         progressHere: 1,
       })
-      await db.txHistory.add({
-        pendingTxId: parseInt(pendingTxId.toString()),
-        txId: '',
-        txDate: 0,
-        from: readyTx?.from as TokenAmount,
-        to: readyTx?.to as TokenAmount,
-        status: Status.PENDING,
-      })
+      await db.pushTxHistory(
+        { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
+        {
+          pendingTxId: parseInt(pendingTxId.toString()),
+          from: readyTx?.from as TokenAmount,
+          to: readyTx?.to as TokenAmount,
+          status: Status.PENDING,
+        }
+      )
 
       setCancel(readyTx?.id as number)
 

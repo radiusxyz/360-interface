@@ -172,6 +172,11 @@ export default function Swap({ history }: RouteComponentProps) {
       window.location.reload()
     }
   }
+
+  const resetPendingTx = async () => {
+    await db.pendingTxs.update(10, { round: 16 })
+  }
+
   const addReady = async () => {
     await db.readyTxs.add({
       tx: {
@@ -771,6 +776,7 @@ export default function Swap({ history }: RouteComponentProps) {
       <HistoryModal isOpen={showHistory} onDismiss={() => setShowHistory(false)} />
       <AppBody>
         <button onClick={() => emptyCache()}>clear Cache</button>
+        <button onClick={() => resetPendingTx()}>resetPendingTx</button>
         {/* <button onClick={() => addPending()}>inputPending</button>
         <button onClick={() => addTxHistory()}>inputTx</button>
         <button onClick={() => showDB()}>log</button>
