@@ -27,7 +27,7 @@ export async function CheckPendingTx({
   recorder: Contract | null
 }) {
   const pendingTx = await db.pendingTxs.get({ progressHere: 1 }).catch((e) => console.log(e))
-  const currentRound = parseInt((await recorder?.currentRound()).toString())
+  const doneRound = parseInt((await recorder?.currentRound()).toString()) - 1
 
   // 1. round에 해당하는 txId 받아오기
   if (pendingTx && pendingTx.progressHere === 1) {
@@ -62,7 +62,8 @@ export async function CheckPendingTx({
                   if (log.topics[0] === EventLogHashSwap) {
                     cnt++
                   }
-                  if (cnt === pendingTx.order && log.topics[0] === EventLogHashTransfer) {
+                  if ((cnt === pendingTx.order || pendingTx.order === -1) && log.topics[0] === EventLogHashTransfer) {
+                    console.log(pendingTx.order)
                     const token = new Contract(log.address, ERC20_ABI, library)
                     const decimal = await token.decimals()
                     const tokenSymbol = await token.symbol()
@@ -98,7 +99,7 @@ export async function CheckPendingTx({
                 }
 
                 if (pendingTx.order === -1) {
-                  console.log('pendingtx order === -1', pendingTx)
+                  console.log('pendingtx order === -1', pendingTx, from, to)
                   if (from.token !== '' && to.token !== '') {
                     console.log('tx on log', from, to)
                     db.pushTxHistory(
@@ -126,40 +127,44 @@ export async function CheckPendingTx({
                       )
                     })
                   } else {
-                    console.log('tx on log')
+                    console.log('no tx on log')
                     const isCanceled = await recorder?.useOfVeto(readyTx?.txHash, account)
                     if (isCanceled) {
                       console.log('canceled')
-                      if (currentRound === pendingTx.round) {
-                        console.log('currentRound is round')
-                        db.pushTxHistory(
-                          { field: 'pendingTxId', value: pendingTx.id as number },
-                          {
-                            pendingTxId: pendingTx.id as number,
-                            txId: '',
-                            txDate: txTime,
-                            from: readyTx?.from as TokenAmount,
-                            to: readyTx?.to as TokenAmount,
-                            status: Status.CANCELED,
-                          }
-                        ).then(() => {
-                          db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
-                          dispatch(
-                            addPopup({
-                              content: {
-                                title: 'Canceled',
-                                status: 'canceled',
-                                data: { hash: '' },
-                              },
-                              key: `canceled`,
-                              removeAfterMs: 10000,
-                            })
+                      if (doneRound === pendingTx.round) {
+                        console.log('doneRound is round')
+                        await db
+                          .pushTxHistory(
+                            { field: 'pendingTxId', value: pendingTx.id as number },
+                            {
+                              pendingTxId: pendingTx.id as number,
+                              txId: '',
+                              txDate: txTime,
+                              from: readyTx?.from as TokenAmount,
+                              to: readyTx?.to as TokenAmount,
+                              status: Status.CANCELED,
+                            }
                           )
-                        })
+                          .then(async () => {
+                            await db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
+                            dispatch(
+                              addPopup({
+                                content: {
+                                  title: 'Canceled',
+                                  status: 'canceled',
+                                  data: { hash: '' },
+                                },
+                                key: `canceled`,
+                                removeAfterMs: 10000,
+                              })
+                            )
+                          })
                       } else {
-                        db.pendingTxs.update(pendingTx.id as number, { round: pendingTx.round++ })
+                        await db.pendingTxs.update(pendingTx.id as number, { round: pendingTx.round + 1 })
                       }
                     } else {
+                      console.log('proceed')
+                      await db.pendingTxs.update(pendingTx.id as number, { round: pendingTx.round + 1 })
                     }
                   }
                 } else {
@@ -173,9 +178,8 @@ export async function CheckPendingTx({
                   }
 
                   // 2.2 Order 검증
-                  const currentRound = await recorder?.currentRound()
                   if (
-                    currentRound > pendingTx.round &&
+                    doneRound >= pendingTx.round &&
                     txHashes[pendingTx.order] === readyTx?.txHash &&
                     ((pendingTx.order === 0 &&
                       pendingTx.proofHash === '0x0000000000000000000000000000000000000000000000000000000000000000') ||

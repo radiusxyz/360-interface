@@ -621,13 +621,8 @@ export async function sendEIP712Tx(
   signature: Signature,
   setCancel: (cancel: number) => void
 ): Promise<RadiusSwapResponse> {
-  console.log('raynear')
   const _currentRound = await recorderContract.currentRound()
-  console.log('raynear', _currentRound)
-  console.log('raynear', _currentRound.toString())
-  console.log('raynear', parseInt(_currentRound.toString()))
-  console.log('raynear', parseInt(_currentRound))
-  const currentRound = parseInt(_currentRound.toString())
+  const doneRound = parseInt(_currentRound.toString()) - 1
   const readyTx = await db.readyTxs.where({ txHash: encryptedSwapTx.txHash }).first()
   console.log('1')
   const sendResponse = await fetchWithTimeout(
@@ -692,7 +687,7 @@ export async function sendEIP712Tx(
       } else {
         await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
         const pendingTxId = await db.pendingTxs.add({
-          round: currentRound,
+          round: doneRound,
           order: -1,
           proofHash: '',
           sendDate: Date.now(),
@@ -724,7 +719,7 @@ export async function sendEIP712Tx(
 
       await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
       const pendingTxId = await db.pendingTxs.add({
-        round: currentRound,
+        round: doneRound,
         order: -1,
         proofHash: '',
         sendDate: Date.now(),

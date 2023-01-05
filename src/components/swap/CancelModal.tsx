@@ -61,16 +61,14 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
 
       const currentRound = parseInt(await recorderContract.currentRound()) - 1
       await db.readyTxs.where({ id: readyTx.id }).modify({ progressHere: 0 })
-      const pendingTxId = await db.pendingTxs.add({
-        round: currentRound,
-        order: -1,
-        proofHash: '',
-        operatorSignature: { r: '', s: '', v: 27 },
-
-        sendDate: Date.now(),
-        readyTxId: readyTx.id as number,
-        progressHere: 1,
-      })
+      const pendingTxId = await db.pushPendingTx(
+        { field: 'readyTxId', value: readyTx.id },
+        {
+          round: currentRound,
+          readyTxId: readyTx.id as number,
+          progressHere: 1,
+        }
+      )
       await db.pushTxHistory(
         { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
         {
@@ -111,16 +109,14 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
     if (readyTx !== undefined) {
       const currentRound = parseInt(await recorderContract.currentRound()) - 1
       await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
-      const pendingTxId = await db.pendingTxs.add({
-        round: currentRound,
-        order: -1,
-        proofHash: '',
-        operatorSignature: { r: '', s: '', v: 27 },
-
-        sendDate: Date.now(),
-        readyTxId: readyTx?.id as number,
-        progressHere: 1,
-      })
+      const pendingTxId = await db.pushPendingTx(
+        { field: 'readyTxId', value: readyTx.id },
+        {
+          round: currentRound,
+          readyTxId: readyTx.id as number,
+          progressHere: 1,
+        }
+      )
       await db.pushTxHistory(
         { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
         {
