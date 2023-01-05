@@ -63,7 +63,6 @@ export async function CheckPendingTx({
                     cnt++
                   }
                   if ((cnt === pendingTx.order || pendingTx.order === -1) && log.topics[0] === EventLogHashTransfer) {
-                    console.log(pendingTx.order)
                     const token = new Contract(log.address, ERC20_ABI, library)
                     const decimal = await token.decimals()
                     const tokenSymbol = await token.symbol()

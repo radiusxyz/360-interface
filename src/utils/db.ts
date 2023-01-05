@@ -93,7 +93,7 @@ export class MySubClassedDexie extends Dexie {
     super('ThreeSixty')
     this.version(1).stores({
       readyTxs: '++id, txHash, progressHere',
-      pendingTxs: '++id, sendDate, txOwner, nonce, round, order, txHash, progressHere',
+      pendingTxs: '++id, readyTxId, sendDate, txOwner, nonce, round, order, txHash, progressHere',
       txHistory: '++id, pendingTxId, txDate, txId, fromToken, toToken',
     })
   }
@@ -134,20 +134,6 @@ export class MySubClassedDexie extends Dexie {
     return { ...readyTx, ...pendingTx } as PendingTxWithReadyTx
   }
 
-  /*
-export interface PendingTxParam {
-  readyTxId?: number
-
-  sendDate?: number
-
-  round?: number
-  order?: number
-  proofHash?: string
-  operatorSignature?: { r: string; s: string; v: number }
-  progressHere?: number
-}
-*/
-
   async pushPendingTx(_where: { field: string; value: any }, _pendingTx: PendingTxParam) {
     if ((await db.pendingTxs.where(_where.field).equals(_where.value).toArray()).length === 0) {
       const id = await db.pendingTxs.add({
@@ -161,16 +147,16 @@ export interface PendingTxParam {
       })
       return id
     } else {
-      await db.txHistory.where(_where.field).equals(_where.value).modify({ readyTxId: _pendingTx.readyTxId })
-      await db.txHistory.where(_where.field).equals(_where.value).modify({ sendDate: _pendingTx.sendDate })
-      await db.txHistory.where(_where.field).equals(_where.value).modify({ round: _pendingTx.round })
-      await db.txHistory.where(_where.field).equals(_where.value).modify({ order: _pendingTx.order })
-      await db.txHistory.where(_where.field).equals(_where.value).modify({ proofHash: _pendingTx.proofHash })
-      await db.txHistory
+      await db.pendingTxs.where(_where.field).equals(_where.value).modify({ readyTxId: _pendingTx.readyTxId })
+      await db.pendingTxs.where(_where.field).equals(_where.value).modify({ sendDate: _pendingTx.sendDate })
+      await db.pendingTxs.where(_where.field).equals(_where.value).modify({ round: _pendingTx.round })
+      await db.pendingTxs.where(_where.field).equals(_where.value).modify({ order: _pendingTx.order })
+      await db.pendingTxs.where(_where.field).equals(_where.value).modify({ proofHash: _pendingTx.proofHash })
+      await db.pendingTxs
         .where(_where.field)
         .equals(_where.value)
         .modify({ operatorSignature: _pendingTx.operatorSignature })
-      await db.txHistory.where(_where.field).equals(_where.value).modify({ progressHere: _pendingTx.progressHere })
+      await db.pendingTxs.where(_where.field).equals(_where.value).modify({ progressHere: _pendingTx.progressHere })
 
       const pendingTx = await db.pendingTxs.where(_where.field).equals(_where.value).first()
 
