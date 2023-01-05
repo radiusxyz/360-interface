@@ -58,6 +58,7 @@ export async function CheckPendingTx({
                 let from: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
                 let to: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
                 let cnt = 0
+                // FIXME: 해당 log가 만들어서 보낸 것인지 확인이 안됨. 같은 account이면 그냥 적용됨.
                 for (const log of Logs) {
                   if (log.topics[0] === EventLogHashSwap) {
                     cnt++
