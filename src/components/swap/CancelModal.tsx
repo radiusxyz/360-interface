@@ -83,7 +83,7 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setTime(Date.now() / 1000)
+      setTime(Math.floor(Date.now() / 1000))
     }, 1000)
 
     const updateReadyTx = async () => {
@@ -197,10 +197,10 @@ function TransactionCancelSuggest({ onDismiss, readyTxId }: { onDismiss: any; re
               }}
               onClick={() => sendCancelTx()}
             >
-              <span>Cancel transaction in </span>
+              <span>{'Cancel transaction' + (readyTx.tx.availableFrom - Math.floor(time) < 0 ? '' : ' in ')}</span>
               <span style={{ color: 'red', fontWeight: 'bold' }}>
                 &nbsp;
-                {readyTx.tx.availableFrom - Math.floor(time)}
+                {readyTx.tx.availableFrom - Math.floor(time) < 0 ? '' : readyTx.tx.availableFrom - Math.floor(time)}
               </span>
             </ButtonPrimary>
             <ProceedButton

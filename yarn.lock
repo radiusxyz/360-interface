@@ -4118,10 +4118,10 @@
   resolved "https://registry.npmjs.org/@protobufjs/utf8/-/utf8-1.1.0.tgz"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@radiusxyz/threesixty-contracts@0.1.12":
-  version "0.1.12"
-  resolved "https://npm.pkg.github.com/download/@radiusxyz/threesixty-contracts/0.1.12/39088a0ff659f69657ed7d4a285d75e47b75f19c#39088a0ff659f69657ed7d4a285d75e47b75f19c"
-  integrity sha512-4P9rndniW3yixC+kBh4jXnJLPSW6gwY/2AFEHtzj7V0AFNNmCQaNALZUapSmahLBgHDg/p7nM924Lv5+4VL6RQ==
+"@radiusxyz/threesixty-contracts@0.1.14":
+  version "0.1.14"
+  resolved "https://npm.pkg.github.com/download/@radiusxyz/threesixty-contracts/0.1.14/bc6bd63f54eb48abe767d3ddea61b4e90602ed1a#bc6bd63f54eb48abe767d3ddea61b4e90602ed1a"
+  integrity sha512-tcxdcKeAVbWC8yVj1YIuY0cYM98EKj6yNcPK3rsTiAl3Si7ksuy//njJh/1CmFPMkyxLTg6F8bt4A1YCAqiqIw==
 
 "@ramonak/react-progress-bar@^4.4.0":
   version "4.4.0"

@@ -9,7 +9,7 @@ import { addPopup } from 'state/application/reducer'
 import { db, Status, TokenAmount } from '../../utils/db'
 
 const EventLogHashTransfer = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
-const EventLogHashSwap = '0xcbdaf2fdec4361aa4e9cafe49671d841695df07b12b53d1ce10464489a98dd49'
+const EventLogHashSwap = '0xe920386ef80d415da4cce821f917787bc6593975dfb1e8a002d9cb619f9f608b'
 
 export async function CheckPendingTx({
   chainId,
@@ -26,15 +26,19 @@ export async function CheckPendingTx({
   router: Contract | null
   recorder: Contract | null
 }) {
-  const pendingTx = await db.pendingTxs.get({ progressHere: 1 }).catch((e) => console.log(e))
+  console.log('Check PendingTx')
   const doneRound = parseInt((await recorder?.currentRound()).toString()) - 1
+  // const pendingTx = await db.pendingTxs.get({ progressHere: 1 }).catch((e) => console.log(e))
 
-  // 1. round에 해당하는 txId 받아오기
-  if (pendingTx && pendingTx.progressHere === 1) {
+  const pendingTxs = await db.pendingTxs.where('progressHere').equals(1).toArray()
+
+  // .then(async (pendingTxs) => {
+  for (const pendingTx of pendingTxs) {
+    // 1. round에 해당하는 txId 받아오기
+    console.log(pendingTx)
     const readyTx = await db.readyTxs.get(pendingTx.readyTxId)
 
     console.log(
-      pendingTx,
       `${process.env.REACT_APP_360_OPERATOR}/tx?chainId=${chainId}&routerAddress=${router?.address}&round=${pendingTx.round}`
     )
     await fetch(
@@ -51,18 +55,19 @@ export async function CheckPendingTx({
 
               if (txReceipt) {
                 console.log('has receipt', txReceipt)
+                console.log('readyTx', readyTx)
+                console.log('pendingTx', pendingTx)
                 const block = await library?.getBlock(txReceipt.blockNumber)
                 const txTime = block?.timestamp as number
                 const Logs = txReceipt?.logs as Array<{ address: string; topics: Array<any>; data: string }>
 
                 let from: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
                 let to: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
+                let fromTmp: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
+                let toTmp: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
                 let cnt = 0
-                // FIXME: 해당 log가 만들어서 보낸 것인지 확인이 안됨. 같은 account이면 그냥 적용됨.
+
                 for (const log of Logs) {
-                  if (log.topics[0] === EventLogHashSwap) {
-                    cnt++
-                  }
                   if ((cnt === pendingTx.order || pendingTx.order === -1) && log.topics[0] === EventLogHashTransfer) {
                     const token = new Contract(log.address, ERC20_ABI, library)
                     const decimal = await token.decimals()
@@ -71,35 +76,41 @@ export async function CheckPendingTx({
                       log.topics[1].substring(log.topics[1].length - 40).toLowerCase() ===
                       account?.substring(2).toLowerCase()
                     ) {
-                      if (from.token === '')
-                        from = {
-                          token: tokenSymbol,
-                          amount: hexToNumberString(log.data),
-                          decimal: '1' + '0'.repeat(decimal),
-                        }
-                      else if (from.amount < hexToNumberString(log.data)) {
-                        from = {
-                          token: tokenSymbol,
-                          amount: hexToNumberString(log.data),
-                          decimal: '1' + '0'.repeat(decimal),
-                        }
+                      fromTmp = {
+                        token: tokenSymbol,
+                        amount: hexToNumberString(log.data),
+                        decimal: '1' + '0'.repeat(decimal),
                       }
                     }
                     if (
                       log.topics[2].substring(log.topics[2].length - 40).toLowerCase() ===
                       account?.substring(2).toLowerCase()
                     ) {
-                      to = {
+                      toTmp = {
                         token: tokenSymbol,
                         amount: hexToNumberString(log.data),
                         decimal: '1' + '0'.repeat(decimal),
                       }
                     }
                   }
+
+                  if (log.topics[0] === EventLogHashSwap) {
+                    const dataList = splitBy64(log.data)
+
+                    if (
+                      dataList?.length === 5 &&
+                      dataList[2].substring(24) === account?.substring(2).toLowerCase() &&
+                      parseInt(dataList[3]) === readyTx?.tx.nonce
+                    ) {
+                      from = fromTmp
+                      to = toTmp
+                    }
+                    cnt++
+                  }
                 }
 
                 if (pendingTx.order === -1) {
-                  console.log('pendingtx order === -1', pendingTx, from, to)
+                  console.log('pending tx order === -1', pendingTx, from, to)
                   if (from.token !== '' && to.token !== '') {
                     console.log('tx on log', from, to)
                     db.pushTxHistory(
@@ -168,7 +179,7 @@ export async function CheckPendingTx({
                     }
                   }
                 } else {
-                  console.log('pending tx exist')
+                  console.log('pending tx exist', pendingTx)
                   // 2.1 HashChain 검증
                   const txHashes = await recorder?.getRoundTxHashes(pendingTx.round)
 
@@ -178,8 +189,19 @@ export async function CheckPendingTx({
                   }
 
                   // 2.2 Order 검증
+                  console.log(
+                    '2.2 Order 검증',
+                    doneRound,
+                    pendingTx.round,
+                    txHashes,
+                    readyTx?.txHash,
+                    pendingTx.order,
+                    pendingTx.proofHash,
+                    hashChain,
+                    pendingTx.proofHash
+                  )
                   if (
-                    doneRound >= pendingTx.round &&
+                    // doneRound >= pendingTx.round &&
                     txHashes[pendingTx.order] === readyTx?.txHash &&
                     ((pendingTx.order === 0 &&
                       pendingTx.proofHash === '0x0000000000000000000000000000000000000000000000000000000000000000') ||
@@ -187,6 +209,7 @@ export async function CheckPendingTx({
                   ) {
                     console.log('everything is alright')
                     // 2.1.1 제대로 수행 되었다면 history에 넣음
+                    console.log('from, to', from, to)
                     if (from.token !== '' && to.token !== '') {
                       db.pendingTxs.get(pendingTx.id as number).then((pending) => {
                         if (pending?.progressHere === 1) {
@@ -318,4 +341,9 @@ export async function CheckPendingTx({
 function hexToNumberString(hex: string) {
   if (hex.substring(0, 2) !== '0x') hex = '0x' + hex
   return JSBI.BigInt(hex).toString()
+}
+
+function splitBy64(hex: string) {
+  if (hex.substring(0, 2) === '0x') hex = hex.substring(2)
+  return hex.match(new RegExp('.{1,64}', 'g'))
 }

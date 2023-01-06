@@ -208,7 +208,7 @@ export default function Swap({ history }: RouteComponentProps) {
   const addPending = async () => {
     await db.pendingTxs.add({
       readyTxId: 1,
-      sendDate: Date.now(),
+      sendDate: Math.floor(Date.now() / 1000),
       round: 3,
       order: 4,
       proofHash: 'proofHash',
@@ -221,7 +221,7 @@ export default function Swap({ history }: RouteComponentProps) {
     await db.txHistory.add({
       pendingTxId: 1,
       txId: 'txId',
-      txDate: Date.now(),
+      txDate: Math.floor(Date.now() / 1000),
       status: Status.COMPLETED,
       from: { token: 'fromToken', amount: '123345222222000000000', decimal: '1000000000000000000' },
       to: { token: 'toToken', amount: '321333388888000000000', decimal: '1000000000000000000' },
