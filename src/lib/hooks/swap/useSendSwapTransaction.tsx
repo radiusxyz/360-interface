@@ -642,7 +642,7 @@ export async function sendEIP712Tx(
     .then(async (res) => res.json())
     .then(async (res) => {
       console.log('1.1', res)
-      // console.log('json response', res)
+      console.log('json response', res, res.txOrderMsg)
 
       const msgHash = typedDataEncoder.hash(domain(chainId), { Claim: CLAIM_TYPE }, res.txOrderMsg)
 
@@ -661,15 +661,21 @@ export async function sendEIP712Tx(
         console.log('txOrderMsg', res.txOrderMsg)
 
         await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
-        const pendingTxId = await db.pendingTxs.add({
-          round: parseInt(res.txOrderMsg.round),
-          order: parseInt(res.txOrderMsg.order),
-          proofHash: res.txOrderMsg.proofHash,
-          sendDate: Date.now(),
-          operatorSignature: res.signature,
-          readyTxId: readyTx?.id as number,
-          progressHere: 1,
-        })
+        const pendingTxId = await db.pushPendingTx(
+          {
+            field: 'readyTxId',
+            value: readyTx?.id as number,
+          },
+          {
+            round: parseInt(res.txOrderMsg.round),
+            order: parseInt(res.txOrderMsg.order),
+            proofHash: res.txOrderMsg.proofHash,
+            sendDate: Math.floor(Date.now() / 1000),
+            operatorSignature: res.signature,
+            readyTxId: readyTx?.id as number,
+            progressHere: 1,
+          }
+        )
         await db.pushTxHistory(
           { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
           {
@@ -686,15 +692,21 @@ export async function sendEIP712Tx(
         }
       } else {
         await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
-        const pendingTxId = await db.pendingTxs.add({
-          round: doneRound,
-          order: -1,
-          proofHash: '',
-          sendDate: Date.now(),
-          operatorSignature: { r: '', s: '', v: 27 },
-          readyTxId: readyTx?.id as number,
-          progressHere: 1,
-        })
+        const pendingTxId = await db.pushPendingTx(
+          {
+            field: 'readyTxId',
+            value: readyTx?.id as number,
+          },
+          {
+            round: doneRound,
+            order: -1,
+            proofHash: '',
+            sendDate: Math.floor(Date.now() / 1000),
+            operatorSignature: { r: '', s: '', v: 27 },
+            readyTxId: readyTx?.id as number,
+            progressHere: 1,
+          }
+        )
         await db.pushTxHistory(
           { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
           {
@@ -718,15 +730,18 @@ export async function sendEIP712Tx(
       console.log(error)
 
       await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
-      const pendingTxId = await db.pendingTxs.add({
-        round: doneRound,
-        order: -1,
-        proofHash: '',
-        sendDate: Date.now(),
-        operatorSignature: { r: '', s: '', v: 27 },
-        readyTxId: readyTx?.id as number,
-        progressHere: 1,
-      })
+      const pendingTxId = await db.pushPendingTx(
+        { field: 'readyTxId', value: readyTx?.id as number },
+        {
+          round: doneRound,
+          order: -1,
+          proofHash: '',
+          sendDate: Math.floor(Date.now() / 1000),
+          operatorSignature: { r: '', s: '', v: 27 },
+          readyTxId: readyTx?.id as number,
+          progressHere: 1,
+        }
+      )
       await db.pushTxHistory(
         { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
         {

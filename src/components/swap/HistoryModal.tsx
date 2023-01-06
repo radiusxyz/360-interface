@@ -176,18 +176,19 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
       accessor: 'txId',
       align: 'right',
       subAccessor: 'txHash',
-      format: (i: string) => {
-        if (true)
-          return (
-            <>
-              <span style={{ color: '#cccccc', marginRight: '5px' }}>
-                {i.length > 60 ? i.substring(0, 10) + '...' + i.substring(58) : i}
-              </span>
-              <ExternalLink href={getExplorerLink(chainId ?? 80001, i, ExplorerDataType.TRANSACTION)}>
-                <LinkIconThin />
-              </ExternalLink>
-            </>
-          )
+      // eslint-disable-next-line react/display-name
+      format: (i: string, subAccessor: string) => {
+        console.log('txHash-', i)
+        const shortenTxId = i.length > 60 ? i.substring(0, 10) + '...' + i.substring(58) : i
+        console.log(shortenTxId)
+        return (
+          <>
+            <span style={{ color: '#cccccc', marginRight: '5px' }}>{shortenTxId}</span>
+            <ExternalLink href={getExplorerLink(chainId ?? 80001, i, ExplorerDataType.TRANSACTION)}>
+              <LinkIconThin />
+            </ExternalLink>
+          </>
+        )
       },
     },
   ]

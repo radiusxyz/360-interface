@@ -135,28 +135,54 @@ export class MySubClassedDexie extends Dexie {
   }
 
   async pushPendingTx(_where: { field: string; value: any }, _pendingTx: PendingTxParam) {
-    if ((await db.pendingTxs.where(_where.field).equals(_where.value).toArray()).length === 0) {
-      const id = await db.pendingTxs.add({
+    console.log('_pendingTx', _where, _pendingTx, {
+      readyTxId: _pendingTx.readyTxId ?? 0,
+      sendDate: _pendingTx.sendDate ?? Math.floor(Date.now() / 1000),
+      round: _pendingTx.round ?? 0,
+      order: _pendingTx.order ?? -1,
+      proofHash: _pendingTx.proofHash ?? '',
+      operatorSignature: _pendingTx.operatorSignature ?? { r: '', s: '', v: 27 },
+      progressHere: _pendingTx.progressHere ?? 0,
+    })
+    if ((await db.pendingTxs.where(_where.field).equals(_where.value).count()) === 0) {
+      const pendingTx = {
         readyTxId: _pendingTx.readyTxId ?? 0,
-        sendDate: _pendingTx.sendDate ?? Date.now(),
+        sendDate: _pendingTx.sendDate ?? Math.floor(Date.now() / 1000),
         round: _pendingTx.round ?? 0,
         order: _pendingTx.order ?? -1,
         proofHash: _pendingTx.proofHash ?? '',
         operatorSignature: _pendingTx.operatorSignature ?? { r: '', s: '', v: 27 },
         progressHere: _pendingTx.progressHere ?? 0,
-      })
+      }
+      const id = await db.pendingTxs.add(pendingTx)
+
+      const after = await db.pendingTxs.get(id)
+      console.log('wrote?', after)
       return id
     } else {
-      await db.pendingTxs.where(_where.field).equals(_where.value).modify({ readyTxId: _pendingTx.readyTxId })
-      await db.pendingTxs.where(_where.field).equals(_where.value).modify({ sendDate: _pendingTx.sendDate })
-      await db.pendingTxs.where(_where.field).equals(_where.value).modify({ round: _pendingTx.round })
-      await db.pendingTxs.where(_where.field).equals(_where.value).modify({ order: _pendingTx.order })
-      await db.pendingTxs.where(_where.field).equals(_where.value).modify({ proofHash: _pendingTx.proofHash })
-      await db.pendingTxs
-        .where(_where.field)
-        .equals(_where.value)
-        .modify({ operatorSignature: _pendingTx.operatorSignature })
-      await db.pendingTxs.where(_where.field).equals(_where.value).modify({ progressHere: _pendingTx.progressHere })
+      const before = await db.pendingTxs.where(_where.field).equals(_where.value).first()
+      console.log('before?', before)
+
+      _pendingTx.readyTxId &&
+        (await db.pendingTxs.where(_where.field).equals(_where.value).modify({ readyTxId: _pendingTx.readyTxId }))
+      _pendingTx.sendDate &&
+        (await db.pendingTxs.where(_where.field).equals(_where.value).modify({ sendDate: _pendingTx.sendDate }))
+      _pendingTx.round &&
+        (await db.pendingTxs.where(_where.field).equals(_where.value).modify({ round: _pendingTx.round }))
+      _pendingTx.order &&
+        (await db.pendingTxs.where(_where.field).equals(_where.value).modify({ order: _pendingTx.order }))
+      _pendingTx.proofHash &&
+        (await db.pendingTxs.where(_where.field).equals(_where.value).modify({ proofHash: _pendingTx.proofHash }))
+      _pendingTx.operatorSignature &&
+        (await db.pendingTxs
+          .where(_where.field)
+          .equals(_where.value)
+          .modify({ operatorSignature: _pendingTx.operatorSignature }))
+      _pendingTx.progressHere &&
+        (await db.pendingTxs.where(_where.field).equals(_where.value).modify({ progressHere: _pendingTx.progressHere }))
+
+      const after = await db.pendingTxs.get(before?.id as number)
+      console.log('wrote?', after)
 
       const pendingTx = await db.pendingTxs.where(_where.field).equals(_where.value).first()
 
@@ -164,23 +190,43 @@ export class MySubClassedDexie extends Dexie {
     }
   }
   async pushTxHistory(_where: { field: string; value: any }, _history: TxHistoryParam) {
-    if ((await db.txHistory.where(_where.field).equals(_where.value).toArray()).length === 0) {
-      const id = await db.txHistory.add({
+    console.log('_history', _where, _history, {
+      pendingTxId: _history.pendingTxId ?? 0,
+      txId: _history.txId ?? '',
+      txDate: _history.txDate ?? Math.floor(Date.now() / 1000),
+      from: _history.from ?? { token: '', amount: '', decimal: '1' },
+      to: _history.to ?? { token: '', amount: '', decimal: '1' },
+      status: _history.status ?? Status.PENDING,
+    })
+    if ((await db.txHistory.where(_where.field).equals(_where.value).count()) === 0) {
+      const history = {
         pendingTxId: _history.pendingTxId ?? 0,
         txId: _history.txId ?? '',
-        txDate: _history.txDate ?? Date.now(),
+        txDate: _history.txDate ?? Math.floor(Date.now() / 1000),
         from: _history.from ?? { token: '', amount: '', decimal: '1' },
         to: _history.to ?? { token: '', amount: '', decimal: '1' },
         status: _history.status ?? Status.PENDING,
-      })
+      }
+      const id = await db.txHistory.add(history)
+      const after = await db.txHistory.get(id)
+      console.log('wrote?', after)
       return id
     } else {
-      await db.txHistory.where(_where.field).equals(_where.value).modify({ pendingTxId: _history.pendingTxId })
-      await db.txHistory.where(_where.field).equals(_where.value).modify({ txId: _history.txId })
-      await db.txHistory.where(_where.field).equals(_where.value).modify({ txDate: _history.txDate })
-      await db.txHistory.where(_where.field).equals(_where.value).modify({ from: _history.from })
-      await db.txHistory.where(_where.field).equals(_where.value).modify({ to: _history.to })
-      await db.txHistory.where(_where.field).equals(_where.value).modify({ status: _history.status })
+      const before = await db.txHistory.where(_where.field).equals(_where.value).first()
+      console.log('before?', before)
+
+      _history.pendingTxId &&
+        (await db.txHistory.where(_where.field).equals(_where.value).modify({ pendingTxId: _history.pendingTxId }))
+      _history.txId && (await db.txHistory.where(_where.field).equals(_where.value).modify({ txId: _history.txId }))
+      _history.txDate &&
+        (await db.txHistory.where(_where.field).equals(_where.value).modify({ txDate: _history.txDate }))
+      _history.from && (await db.txHistory.where(_where.field).equals(_where.value).modify({ from: _history.from }))
+      _history.to && (await db.txHistory.where(_where.field).equals(_where.value).modify({ to: _history.to }))
+      _history.status &&
+        (await db.txHistory.where(_where.field).equals(_where.value).modify({ status: _history.status }))
+
+      const after = await db.txHistory.get(before?.id as number)
+      console.log('wrote?', after)
 
       const txHistory = await db.txHistory.where(_where.field).equals(_where.value).first()
 
@@ -189,10 +235,4 @@ export class MySubClassedDexie extends Dexie {
   }
 }
 
-/**  txId: string
-  txDate: number
-  from: TokenAmount
-  to: TokenAmount
-  status: Status
- */
 export const db = new MySubClassedDexie()
