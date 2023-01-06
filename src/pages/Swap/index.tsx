@@ -961,11 +961,9 @@ export default function Swap({ history }: RouteComponentProps) {
                           style={{ marginRight: '8px', flexShrink: 0 }}
                         />
                         {/* we need to shorten this string on mobile */}
-                        {approvalState === ApprovalState.APPROVED || signatureState === UseERC20PermitState.SIGNED ? (
-                          <Trans>You can now trade {currencies[Field.INPUT]?.symbol}</Trans>
-                        ) : (
-                          <Trans>Allow the 360° to use your {currencies[Field.INPUT]?.symbol}</Trans>
-                        )}
+                        {approvalState === ApprovalState.APPROVED || signatureState === UseERC20PermitState.SIGNED
+                          ? `You can now trade ${currencies[Field.INPUT]?.symbol}`
+                          : `Allow the 360° to use your ${currencies[Field.INPUT]?.symbol}`}
                       </span>
                       {approvalState === ApprovalState.PENDING ? (
                         <Loader stroke="white" />
