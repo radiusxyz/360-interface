@@ -16,7 +16,7 @@ import { RadiusSwapResponse } from 'lib/hooks/swap/useSendSwapTransaction'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { ArrowDown, CheckCircle, HelpCircle, Info } from 'react-feather'
 import ReactGA from 'react-ga4'
-import { BsArrowDown, BsArrowDownUp } from 'react-icons/bs'
+import { BsArrowDown } from 'react-icons/bs'
 import { RouteComponentProps } from 'react-router-dom'
 import { Text } from 'rebass'
 import { addPopup } from 'state/application/reducer'
@@ -173,7 +173,7 @@ export default function Swap({ history }: RouteComponentProps) {
   }
 
   const resetPendingTx = async () => {
-    await db.pendingTxs.update(10, { round: 16 })
+    await db.pendingTxs.update(11, { round: 0 })
   }
 
   const addReady = async () => {
@@ -753,13 +753,13 @@ export default function Swap({ history }: RouteComponentProps) {
     .toString()
 
   function openProgress() {
-    dispatch(setProgress({ newParam: 2 }))
+    dispatch(setProgress({ newParam: 4 }))
     setSwapState({
       tradeToConfirm: trade,
       swapErrorMessage,
       txHash,
       attemptingTxn,
-      showConfirm,
+      showConfirm: true,
       swapResponse,
       showTimeLockPuzzle,
     })
@@ -777,8 +777,6 @@ export default function Swap({ history }: RouteComponentProps) {
       <HistoryModal isOpen={showHistory} onDismiss={() => setShowHistory(false)} />
       <AppBody>
         {/* <button onClick={() => addPending()}>inputPending</button>
-        <button onClick={() => emptyCache()}>clear Cache</button>
-        <button onClick={() => resetPendingTx()}>resetPendingTx</button>
         <button onClick={() => addTxHistory()}>inputTx</button>
         <button onClick={() => showDB()}>log</button>
         <button onClick={() => showModal()}>modal</button>
@@ -838,29 +836,22 @@ export default function Swap({ history }: RouteComponentProps) {
                   id="swap-currency-input"
                   loading={independentField === Field.OUTPUT && routeIsSyncing}
                 />
-                <ArrowWrapper clickable>
+                <ArrowWrapper clickable={false}>
                   <div style={{ position: 'absolute', margin: '8px' }}>
-                    <BsArrowDownUp
-                      size="16"
-                      color={
-                        '#ffffff' /*currencies[Field.INPUT] && currencies[Field.OUTPUT] ? theme.text1 : theme.text3*/
-                      }
-                    />
+                    <BsArrowDown size="16" color={'#ffffff'} />
                   </div>
-                  <FadeWrapper>
+                  {/* <FadeWrapper>
                     <RotateWrapper>
                       <BsArrowDown
                         size="16"
                         onClick={() => {
-                          setApprovalSubmitted(false) // reset 2 step UI for approvals
-                          onSwitchTokens()
+                          // setApprovalSubmitted(false) // reset 2 step UI for approvals
+                          // onSwitchTokens()
                         }}
-                        color={
-                          '#ffffff' /*currencies[Field.INPUT] && currencies[Field.OUTPUT] ? theme.text1 : theme.text3*/
-                        }
+                        color={'#ffffff'}
                       />
                     </RotateWrapper>
-                  </FadeWrapper>
+                  </FadeWrapper> */}
                 </ArrowWrapper>
                 <CurrencyInputPanel
                   value={formattedAmounts[Field.OUTPUT]}

@@ -343,7 +343,10 @@ export default function useSendSwapTransaction(
         const operatorPendingTxCnt = await fetch(
           `${process.env.REACT_APP_360_OPERATOR}/tx/pendingTxCnt?chainId=${chainId}&walletAddress=${account}`
         )
+        console.log('test', contractNonce, operatorPendingTxCnt)
+
         const txNonce = parseInt(contractNonce) + parseInt(await operatorPendingTxCnt.text())
+        console.log('test2', txNonce)
         // const _txNonce = window.localStorage.getItem(account + ':nonce')
         // const txNonce = !_txNonce ? 0 : BigNumber.from(_txNonce).toNumber()
 
@@ -621,8 +624,8 @@ export async function sendEIP712Tx(
   signature: Signature,
   setCancel: (cancel: number) => void
 ): Promise<RadiusSwapResponse> {
-  const _currentRound = await recorderContract.currentRound()
-  const doneRound = parseInt(_currentRound.toString()) - 1
+  const _currentRound = parseInt((await recorderContract.currentRound()).toString())
+  const doneRound = _currentRound === 0 ? 0 : _currentRound - 1
   const readyTx = await db.readyTxs.where({ txHash: encryptedSwapTx.txHash }).first()
   console.log('1')
   const sendResponse = await fetchWithTimeout(

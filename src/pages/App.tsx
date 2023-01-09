@@ -35,9 +35,9 @@ const BodyWrapper = styled.div`
   flex: 1;
   z-index: 1;
 
-  ${({ theme }) => theme.mediaWidth.upToSmall`
+  /* ${({ theme }) => theme.mediaWidth.upToSmall`
     padding: 4rem 8px 16px 8px;
-  `};
+  `}; */
 `
 
 const HeaderWrapper = styled.div`

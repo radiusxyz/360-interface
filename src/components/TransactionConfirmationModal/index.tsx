@@ -399,7 +399,7 @@ export default function TransactionConfirmationModal({
 
   // confirmation screen
   return (
-    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={500}>
+    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={700}>
       {isL2 && swapResponse && (hash || attemptingTxn) ? (
         <L2Content
           swapResponse={swapResponse}

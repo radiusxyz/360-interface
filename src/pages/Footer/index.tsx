@@ -5,6 +5,20 @@ const AlertWrapper = styled.div`
 `
 
 export default function Footer() {
+  function emptyCache() {
+    if ('caches' in window) {
+      caches.keys().then((names) => {
+        // Delete all the cache files
+        names.forEach((name) => {
+          caches.delete(name)
+        })
+      })
+
+      // Makes sure the page reloads. Changes are only visible after you refresh.
+      window.location.reload()
+    }
+  }
+
   return (
     <div
       style={{
@@ -30,10 +44,26 @@ export default function Footer() {
         <div style={{ padding: '10px' }}>
           <h5 style={{ fontWeight: 'normal' }}>&copy;2022 RadiusXYZ</h5>
         </div>
-        <div style={{ padding: '10px' }}>
+        <div
+          style={{
+            padding: '10px',
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <button
+            onClick={emptyCache}
+            style={{ height: '30px', border: 'none', background: '#cc8888', color: '#ffffff', marginRight: '10px' }}
+          >
+            Clear Cache
+          </button>
+          <h5>Version: 0.0.1</h5>
+          {/* TODO: 
           <a href="/#" style={{ textDecoration: 'none', color: '#ffffff' }}>
             <h5 style={{ fontWeight: 'normal' }}>Privacy Policy</h5>
-          </a>
+          </a> */}
         </div>
       </div>
     </div>

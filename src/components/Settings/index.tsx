@@ -94,9 +94,9 @@ const MenuFlyout = styled.span`
   right: 0rem;
   z-index: 100;
 
-  ${({ theme }) => theme.mediaWidth.upToMedium`
+  /* ${({ theme }) => theme.mediaWidth.upToMedium`
     min-width: 18.125rem;
-  `};
+  `}; */
 
   user-select: none;
 `
@@ -193,7 +193,7 @@ export default function SettingsTab({ placeholderSlippage }: { placeholderSlippa
           </EmojiWrapper>
         ) : null}
       </StyledMenuButton>
-      <Modal isOpen={open} onDismiss={toggle}>
+      <Modal isOpen={open} onDismiss={toggle} width={450}>
         <AutoColumn gap="md" style={{ padding: '10px' }}>
           <RowCenter style={{ marginTop: '18px', marginBottom: '2px' }}>
             <Text color={'#ffffff'} fontWeight={600} fontSize={20}>

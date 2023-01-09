@@ -31,9 +31,6 @@ const HeaderRow = styled.div`
   padding: 30px;
   font-weight: 600;
   color: ${(props) => (props.color === 'blue' ? ({ theme }) => theme.primary1 : 'inherit')};
-  ${({ theme }) => theme.mediaWidth.upToMedium`
-    padding: 1rem;
-  `};
 `
 
 const UpperSection = styled.div`
@@ -78,9 +75,7 @@ const AccountGroupingRow = styled.div`
   }
 `
 
-const AccountSection = styled.div`
-  ${({ theme }) => theme.mediaWidth.upToMedium`padding: 0rem 1rem 1.5rem 1rem;`};
-`
+const AccountSection = styled.div``
 
 const YourAccount = styled.div`
   h5 {
@@ -143,8 +138,8 @@ const AddressLink = styled(ExternalLink)<{ hasENS: boolean; isENS: boolean }>`
 
 const CloseIcon = styled.div`
   position: absolute;
-  right: 1rem;
-  top: 14px;
+  right: 30px;
+  top: 31px;
   &:hover {
     cursor: pointer;
     opacity: 0.6;
@@ -174,9 +169,6 @@ const IconWrapper = styled.div<{ size?: number }>`
     height: ${({ size }) => (size ? size + 'px' : '32px')};
     width: ${({ size }) => (size ? size + 'px' : '32px')};
   }
-  ${({ theme }) => theme.mediaWidth.upToMedium`
-    align-items: flex-end;
-  `};
 `
 
 function LinkIcon() {
@@ -267,20 +259,24 @@ function renderRecentTx(chainId: number | undefined, recentTx: any) {
                   i.to.token}
               </div>
               <div style={{ padding: '0px 0px 0px 16px', display: 'flex', verticalAlign: 'bottom' }}>
-                <AddressLink
-                  hasENS={false}
-                  isENS={false}
-                  href={getExplorerLink(chainId, i.txId, ExplorerDataType.TRANSACTION)}
-                  style={{
-                    marginLeft: '0px',
-                    position: 'relative',
-                    display: 'flex',
-                    verticalAlign: 'bottom',
-                    alignItems: 'end',
-                  }}
-                >
-                  <LinkIconThin />
-                </AddressLink>
+                {i.txId !== '' ? (
+                  <AddressLink
+                    hasENS={false}
+                    isENS={false}
+                    href={getExplorerLink(chainId, i.txId, ExplorerDataType.TRANSACTION)}
+                    style={{
+                      marginLeft: '0px',
+                      position: 'relative',
+                      display: 'flex',
+                      verticalAlign: 'bottom',
+                      alignItems: 'end',
+                    }}
+                  >
+                    <LinkIconThin />
+                  </AddressLink>
+                ) : (
+                  <></>
+                )}
               </div>
             </div>
             <div style={{ fontSize: '14px' }}>{getStatus(i.status)}</div>
@@ -361,7 +357,7 @@ export default function AccountDetails({
   }, [dispatch, chainId])
 
   const recentTx = useLiveQuery(async () => {
-    return await db.txHistory.orderBy('txDate').reverse().limit(3).toArray()
+    return await db.txHistory.orderBy('id').reverse().limit(3).toArray()
   })
 
   return (

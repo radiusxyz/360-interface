@@ -11,7 +11,6 @@ import { useSwapCallArguments } from 'hooks/useSwapCallArguments'
 import JSBI from 'jsbi'
 import { RadiusSwapResponse } from 'lib/hooks/swap/useSendSwapTransaction'
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
-import { ArrowRight } from 'react-feather'
 import { Text } from 'rebass'
 import { useProgress } from 'state/modal/hooks'
 import { useParametersManager } from 'state/parameters/hooks'
@@ -35,14 +34,14 @@ import { ButtonError, ButtonPrimary } from '../Button'
 import { AutoColumn, ColumnCenter } from '../Column'
 import Modal from '../Modal'
 import TradePrice from '../swap/TradePrice'
-import TransactionConfirmationModal, { ConfirmationModalContent } from '../TransactionConfirmationModal'
+import { ConfirmationModalContent } from '../TransactionConfirmationModal'
 import SwapModalFooter from './SwapModalFooter'
 import SwapModalHeader from './SwapModalHeader'
 
 const Wrapper = styled.div`
   width: 100%;
   background: rgba(44, 47, 63);
-  padding: 35px;
+  padding: 0px;
 `
 const Section = styled(AutoColumn)<{ inline?: boolean }>`
   padding: ${({ inline }) => (inline ? '0' : '0')};
@@ -233,19 +232,44 @@ export default function ConfirmSwapModal({
     [progress, onDismiss, modalBottom, modalHeader, swapErrorMessage]
   )
 
-  return (
-    <TransactionConfirmationModal
-      isOpen={isOpen}
-      onDismiss={onDismiss}
-      attemptingTxn={attemptingTxn}
-      hash={txHash}
-      trade={trade}
-      content={confirmationContent}
-      pendingText={pendingText}
-      swapResponse={swapResponse}
-      showTimeLockPuzzle={showTimeLockPuzzle}
-    />
+  return progress === 1 ? (
+    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={700}>
+      <WaitingForSwapConfirmation onDismiss={onDismiss} progress={progress} trade={trade} />
+    </Modal>
+  ) : progress === 2 || progress === 3 ? (
+    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={700}>
+      <PreparingForSwap onDismiss={onDismiss} progress={progress} />
+    </Modal>
+  ) : progress === 4 ? (
+    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={700}>
+      <TransactionSubmitted onDismiss={onDismiss} progress={progress} />
+    </Modal>
+  ) : progress === 8 ? (
+    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={700}>
+      <WaitingForSwapConfirmation onDismiss={onDismiss} progress={progress} trade={trade} />
+    </Modal>
+  ) : (
+    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={450}>
+      <ConfirmationModalContent
+        title={<Trans>You are swapping</Trans>}
+        onDismiss={onDismiss}
+        topContent={modalHeader}
+        bottomContent={modalBottom}
+      />
+    </Modal>
   )
+
+  // <TransactionConfirmationModal
+  //   isOpen={isOpen}
+  //   onDismiss={onDismiss}
+  //   attemptingTxn={attemptingTxn}
+  //   hash={txHash}
+  //   trade={trade}
+  //   content={confirmationContent}
+  //   pendingText={pendingText}
+  //   swapResponse={swapResponse}
+  //   showTimeLockPuzzle={showTimeLockPuzzle}
+  // />
 }
 
 export function AAA({
@@ -486,24 +510,34 @@ function PreparingForSwap({ onDismiss, progress }: { onDismiss: any; progress: n
       <Section
         style={{
           position: 'relative',
+          background: '#1F2232',
+          padding: '30px',
         }}
       >
-        <RowCenter style={{ position: 'absolute', width: '100%' }}>
+        <RowCenter>
           <ThemedText.Black fontSize={20} fontWeight={600} color={'#ffffff'}>
             Preparing for swap
           </ThemedText.Black>
         </RowCenter>
-        <RowBetween>
-          <div />
-          <CloseIcon onClick={onDismiss} />
-        </RowBetween>
-        <RowBetween>
-          <ConfirmedIcon>
-            <GradientSpinner className={'spinner'} background={'rgba(44, 47, 63)'} />
-          </ConfirmedIcon>
-        </RowBetween>
+        <RowCenter style={{ marginTop: '83px', marginBottom: '30px' }}>
+          {progress === 2 ? (
+            <img src="/images/gif_block_200.gif" width="180px" height="180px" alt="" />
+          ) : (
+            <img src="/images/gif_loading_300.gif" width="180px" height="180px" alt="" />
+          )}
+        </RowCenter>
+      </Section>
+      <Section
+        style={{
+          position: 'relative',
+          padding: '50px',
+        }}
+      >
         <RowCenter>
-          <ThemedText.Black
+          <ThemedText.Black fontSize={26} fontWeight={600} color={'#ffffff'} textAlign={'center'}>
+            {"We're doing some extra work to protect your transaction from MEV"}
+          </ThemedText.Black>
+          {/* <ThemedText.Black
             fontSize={20}
             fontWeight={600}
             color={'#0000aa'}
@@ -522,17 +556,39 @@ function PreparingForSwap({ onDismiss, progress }: { onDismiss: any; progress: n
                 Encrypting transaction before processing swap...
               </div>
             )}
-          </ThemedText.Black>
+          </ThemedText.Black> */}
         </RowCenter>
-        <br />
         <RowCenter style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
-          <div style={{ width: '90%' }}>
-            <ThemedText.Black fontSize={14} fontWeight={500} color={'#a8a8a8'}>
-              We&apos;re doing some extra work to protect your transaction from malicious operator activities.
+          <div style={{ width: '90%', marginTop: '20px' }}>
+            <ThemedText.Black
+              fontSize={18}
+              fontWeight={500}
+              style={{
+                background: 'linear-gradient(90.2deg, #0085FF 15.73%, #00FFD1 46.33%, #42FF00 101.67%)',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent',
+              }}
+            >
+              Generating proofs for your transaction...
             </ThemedText.Black>
           </div>
         </RowCenter>
-        <div style={{ padding: 5 }} />
+        <RowCenter style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
+          <button
+            style={{
+              width: '99%',
+              height: '70px',
+              border: 'none',
+              color: '#ffffff',
+              background: '#1f2232',
+              margin: '40px 10px 0px 10px',
+              fontSize: '18px',
+            }}
+            onClick={onDismiss}
+          >
+            Cancel
+          </button>
+        </RowCenter>
       </Section>
     </Wrapper>
   )
@@ -571,7 +627,7 @@ function WaitingForSwapConfirmation({
   useEffect(() => {
     setTimeout(() => {
       setComment(hurryMsg)
-    }, 5000)
+    }, 6000)
     setTimeout(() => {
       setComment(retryMsg)
     }, 10000)
@@ -582,22 +638,21 @@ function WaitingForSwapConfirmation({
       <Section
         style={{
           position: 'relative',
+          background: '#1f2232',
         }}
       >
         <RowCenter
           style={{
-            marginTop: '80px',
+            padding: '45px 0px 35px 0px',
           }}
         >
-          <img src={'./images/confirmation.png'} width="132" height="98" alt="" />
+          <img src={'./images/gif_sign_300.gif'} width="300" height="300" alt="" />
         </RowCenter>
-        <br />
-        <RowCenter>
+        {/* <RowCenter>
           <ThemedText.Black fontSize={24} fontWeight={600}>
             Waiting for confirmation...
           </ThemedText.Black>
         </RowCenter>
-        <br />
         <RowCenter
           style={{
             textAlign: 'center',
@@ -611,8 +666,8 @@ function WaitingForSwapConfirmation({
               {progress === 1 ? comment : retryMsg}
             </ThemedText.Black>
           </div>
-        </RowCenter>
-        <RowCenter>
+        </RowCenter> */}
+        {/* <RowCenter>
           <div
             style={{
               padding: '12px',
@@ -633,7 +688,12 @@ function WaitingForSwapConfirmation({
             </div>
             <div>{outAmount + ' ' + outSymbol}</div>
           </div>
-        </RowCenter>
+        </RowCenter> */}
+      </Section>
+      <Section style={{ padding: '50px' }}>
+        <ThemedText.White textAlign={'center'} fontWeight={'600'} fontSize={'24px'}>
+          Waiting for confirmation on your wallet...
+        </ThemedText.White>
       </Section>
     </Wrapper>
   )
@@ -645,42 +705,108 @@ function TransactionSubmitted({ onDismiss, progress }: { onDismiss: any; progres
       <Section
         style={{
           position: 'relative',
+          background: '#1f2232',
+          padding: '83px 0px 84px 0px',
         }}
       >
         <RowCenter>
-          <div
-            style={{
-              background: '#1b1e2d',
-              borderRadius: '66px',
-              width: '132px',
-              height: '132px',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <img src={'./images/MEV_protected.png'} width="85" height="78" alt="" />
-          </div>
+          <img src={'./images/gif_protected_200.gif'} width="120" height="120" alt="" />
         </RowCenter>
-        <RowCenter style={{ marginTop: '20px' }}>
-          <ThemedText.Black fontSize={20} fontWeight={600}>
+        <RowCenter style={{ paddingTop: '16px' }}>
+          <ThemedText.Label fontSize={'20px'} color={'#0DE08E'}>
+            MEV-Protected
+          </ThemedText.Label>
+        </RowCenter>
+      </Section>
+      <Section
+        style={{
+          position: 'relative',
+        }}
+      >
+        <RowCenter style={{ paddingTop: '50px' }}>
+          <ThemedText.Black fontSize={26} fontWeight={600}>
             Transaction Submitted
           </ThemedText.Black>
         </RowCenter>
-        <RowCenter style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center', marginTop: '12px' }}>
+        <RowCenter
+          style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center', padding: '20px 60px 0px 60px' }}
+        >
           <div style={{ width: '90%' }}>
-            <ThemedText.Black fontSize={14} fontWeight={500} color={'#a8a8a8'}>
-              You may continue to wait until the transaction is confirmed on the blockchain or try another secure swap.
-            </ThemedText.Black>
+            <ThemedText.White fontSize={18} fontWeight={500}>
+              Try another secure swap as you wait for the transaction to finalize on the blockchain.
+            </ThemedText.White>
           </div>
         </RowCenter>
-        <ButtonPrimary
-          style={{ background: '#1B1E2D', height: '46px', borderRadius: '23px', marginTop: '86px' }}
-          onClick={onDismiss}
+        <RowCenter style={{ padding: '40px 60px 50px 60px' }}>
+          <ButtonPrimary style={{ background: '#1f2232', height: '70px', borderRadius: '0px', fontSize: '18px' }}>
+            Back to Swap
+          </ButtonPrimary>
+        </RowCenter>
+      </Section>
+    </Wrapper>
+  )
+}
+
+function TransactionCanceled({ onDismiss, progress }: { onDismiss: any; progress: number }) {
+  return (
+    <Wrapper>
+      <Section
+        style={{
+          position: 'relative',
+          background: '#1f2232',
+          padding: '83px 0px 84px 0px',
+        }}
+      >
+        <RowCenter>
+          <img src={'./images/gif_protected_200.gif'} width="120" height="120" alt="" />
+        </RowCenter>
+        <RowCenter style={{ paddingTop: '16px' }}>
+          <ThemedText.Label fontSize={'20px'} color={'#0DE08E'}>
+            MEV-Protected
+          </ThemedText.Label>
+        </RowCenter>
+      </Section>
+      <Section
+        style={{
+          position: 'relative',
+        }}
+      >
+        <RowCenter style={{ paddingTop: '50px' }}>
+          <ThemedText.Black fontSize={26} fontWeight={600}>
+            Transaction Canceled
+          </ThemedText.Black>
+        </RowCenter>
+        <RowCenter
+          style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center', padding: '20px 60px 0px 60px' }}
         >
-          Close
-        </ButtonPrimary>
-        <div style={{ padding: 5 }} />
+          <div style={{ width: '90%' }}>
+            <ThemedText.White fontSize={18} fontWeight={500}>
+              We canceled your transaction due to a possible front-running attack or sandwich squeeze.
+            </ThemedText.White>
+          </div>
+        </RowCenter>
+        <RowCenter
+          style={{
+            textAlign: 'center',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '20px 60px 0px 60px',
+          }}
+        >
+          <div style={{ width: '90%' }}>
+            <ThemedText.White fontSize={16} fontWeight={400} color={'#8BB3FF'}>
+              Please try the swap again.
+            </ThemedText.White>
+          </div>
+        </RowCenter>
+        <RowCenter style={{ padding: '40px 60px 50px 60px' }}>
+          <ButtonPrimary
+            style={{ background: '#1f2232', height: '70px', borderRadius: '0px', fontSize: '18px' }}
+            onClick={onDismiss}
+          >
+            Back to Swap
+          </ButtonPrimary>
+        </RowCenter>
       </Section>
     </Wrapper>
   )
