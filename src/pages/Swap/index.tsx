@@ -176,6 +176,10 @@ export default function Swap({ history }: RouteComponentProps) {
     await db.pendingTxs.update(11, { round: 0 })
   }
 
+  const fixHistory = async () => {
+    await db.txHistory.update(2, { status: Status.REIMBURSE_AVAILABLE })
+  }
+
   const addReady = async () => {
     await db.readyTxs.add({
       tx: {
@@ -775,6 +779,7 @@ export default function Swap({ history }: RouteComponentProps) {
         onDismiss={handleDismissTokenWarning}
       />
       <HistoryModal isOpen={showHistory} onDismiss={() => setShowHistory(false)} />
+      <button onClick={() => fixHistory()}>fixHistory</button>
       <AppBody>
         {/* <button onClick={() => addPending()}>inputPending</button>
         <button onClick={() => addTxHistory()}>inputTx</button>
