@@ -68,7 +68,7 @@ const ContentWrapper = styled.div`
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
 
-  ${({ theme }) => theme.mediaWidth.upToMedium`padding: 0 1rem 1rem 1rem`};
+  /* ${({ theme }) => theme.mediaWidth.upToMedium`padding: 0 1rem 1rem 1rem`}; */
 `
 
 const UpperSection = styled.div`
@@ -98,10 +98,10 @@ const OptionGrid = styled.div`
   justify-content: center;
   align-items: center;
   grid-gap: 10px;
-  ${({ theme }) => theme.mediaWidth.upToMedium`
+  /* ${({ theme }) => theme.mediaWidth.upToMedium`
     grid-template-columns: 1fr;
     grid-gap: 10px;
-  `};
+  `}; */
 `
 
 const HoverText = styled.div`

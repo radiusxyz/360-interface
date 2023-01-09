@@ -27,7 +27,8 @@ export async function CheckPendingTx({
   recorder: Contract | null
 }) {
   console.log('Check PendingTx')
-  const doneRound = parseInt((await recorder?.currentRound()).toString()) - 1
+  const _currentRound = parseInt((await recorder?.currentRound()).toString())
+  const doneRound = _currentRound === 0 ? 0 : _currentRound - 1
   // const pendingTx = await db.pendingTxs.get({ progressHere: 1 }).catch((e) => console.log(e))
 
   const pendingTxs = await db.pendingTxs.where('progressHere').equals(1).toArray()
@@ -66,6 +67,7 @@ export async function CheckPendingTx({
                 let fromTmp: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
                 let toTmp: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
                 let cnt = 0
+                let flag = false
 
                 for (const log of Logs) {
                   if ((cnt === pendingTx.order || pendingTx.order === -1) && log.topics[0] === EventLogHashTransfer) {
@@ -97,11 +99,14 @@ export async function CheckPendingTx({
                   if (log.topics[0] === EventLogHashSwap) {
                     const dataList = splitBy64(log.data)
 
+                    console.log('dataList', dataList)
+
                     if (
                       dataList?.length === 5 &&
                       dataList[2].substring(24) === account?.substring(2).toLowerCase() &&
                       parseInt(dataList[3]) === readyTx?.tx.nonce
                     ) {
+                      flag = true
                       from = fromTmp
                       to = toTmp
                     }
@@ -111,32 +116,89 @@ export async function CheckPendingTx({
 
                 if (pendingTx.order === -1) {
                   console.log('pending tx order === -1', pendingTx, from, to)
-                  if (from.token !== '' && to.token !== '') {
-                    console.log('tx on log', from, to)
-                    db.pushTxHistory(
-                      { field: 'pendingTxId', value: pendingTx.id as number },
-                      {
-                        pendingTxId: pendingTx.id as number,
-                        txId: json?.txHash,
-                        txDate: txTime,
-                        from,
-                        to,
-                        status: Status.COMPLETED,
-                      }
-                    ).then(() => {
-                      db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
-                      dispatch(
-                        addPopup({
-                          content: {
-                            title: 'Success',
-                            status: 'success',
-                            data: { hash: json.txHash },
-                          },
-                          key: `success`,
-                          removeAfterMs: 10000,
+                  if (flag) {
+                    // 내 nonce의 값을 찾았다.
+                    if (from.token !== '' && to.token !== '') {
+                      console.log('right tx on log and success', from, to)
+                      db.pushTxHistory(
+                        { field: 'pendingTxId', value: pendingTx.id as number },
+                        {
+                          pendingTxId: pendingTx.id as number,
+                          txId: json?.txHash,
+                          txDate: txTime,
+                          from,
+                          to,
+                          status: Status.COMPLETED,
+                        }
+                      ).then(() => {
+                        db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
+                        dispatch(
+                          addPopup({
+                            content: {
+                              title: 'Success',
+                              status: 'success',
+                              data: { hash: json.txHash },
+                            },
+                            key: `success`,
+                            removeAfterMs: 10000,
+                          })
+                        )
+                      })
+                    } else {
+                      const isCanceled = await recorder?.useOfVeto(readyTx?.txHash, account)
+                      if (isCanceled) {
+                        await db
+                          .pushTxHistory(
+                            { field: 'pendingTxId', value: pendingTx.id as number },
+                            {
+                              pendingTxId: pendingTx.id as number,
+                              txId: json?.txHash,
+                              txDate: txTime,
+                              from: readyTx?.from as TokenAmount,
+                              to: readyTx?.to as TokenAmount,
+                              status: Status.CANCELED,
+                            }
+                          )
+                          .then(async () => {
+                            await db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
+                            dispatch(
+                              addPopup({
+                                content: {
+                                  title: 'Canceled',
+                                  status: 'canceled',
+                                  data: { hash: '' },
+                                },
+                                key: `canceled`,
+                                removeAfterMs: 10000,
+                              })
+                            )
+                          })
+                      } else {
+                        console.log('right tx on log and rejected', from, to)
+                        db.pushTxHistory(
+                          { field: 'pendingTxId', value: pendingTx.id as number },
+                          {
+                            pendingTxId: pendingTx.id as number,
+                            txId: json?.txHash,
+                            txDate: txTime,
+                            status: Status.REJECTED,
+                          }
+                        ).then(() => {
+                          db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
+                          dispatch(
+                            addPopup({
+                              content: {
+                                title: 'Rejected',
+                                status: 'rejected',
+                                data: { hash: json.txHash },
+                              },
+                              key: `rejected`,
+                              removeAfterMs: 10000,
+                            })
+                          )
                         })
-                      )
-                    })
+                      }
+                    }
                   } else {
                     console.log('no tx on log')
                     const isCanceled = await recorder?.useOfVeto(readyTx?.txHash, account)
@@ -149,7 +211,7 @@ export async function CheckPendingTx({
                             { field: 'pendingTxId', value: pendingTx.id as number },
                             {
                               pendingTxId: pendingTx.id as number,
-                              txId: '',
+                              txId: json?.txHash,
                               txDate: txTime,
                               from: readyTx?.from as TokenAmount,
                               to: readyTx?.to as TokenAmount,

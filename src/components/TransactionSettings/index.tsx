@@ -315,7 +315,7 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
               />
             </OptionCustom>
             <ThemedText.Body style={{ paddingLeft: '10px', paddingRight: '20px' }} color={'#8BB3FF'} fontSize={16}>
-              <Trans>Minutes</Trans>
+              <Trans>minutes</Trans>
             </ThemedText.Body>
           </RowBetween>
           {deadlineError ? (
