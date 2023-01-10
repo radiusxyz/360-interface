@@ -1,35 +1,20 @@
-import { BigNumber } from '@ethersproject/bignumber'
-import { Contract } from '@ethersproject/contracts'
 import { Trans } from '@lingui/macro'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, Fraction, Percent, TradeType } from '@uniswap/sdk-core'
-import { FeeOptions } from '@uniswap/v3-sdk'
 import { RowBetween, RowCenter, RowFixed } from 'components/Row'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
-import { SignatureData } from 'hooks/useERC20Permit'
-import { useSwapCallArguments } from 'hooks/useSwapCallArguments'
 import JSBI from 'jsbi'
 import { RadiusSwapResponse } from 'lib/hooks/swap/useSendSwapTransaction'
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
-import { Text } from 'rebass'
+import { useAppDispatch } from 'state/hooks'
 import { useProgress } from 'state/modal/hooks'
-import { useParametersManager } from 'state/parameters/hooks'
 import { InterfaceTrade } from 'state/routing/types'
 import styled from 'styled-components/macro'
 import { ThemedText } from 'theme'
 import { formatCurrencyAmount } from 'utils/formatCurrencyAmount'
 import { tradeMeaningfullyDiffers } from 'utils/tradeMeaningFullyDiffer'
-import { getTimeLockPuzzleProof } from 'wasm/timeLockPuzzle'
 
-import { useRecorderContract, useV2RouterContract } from '../../hooks/useContract'
-import {
-  getEncryptProof,
-  getSignTransaction,
-  sendEIP712Tx,
-  useTimeLockPuzzleParam,
-} from '../../lib/hooks/swap/useSendSwapTransaction'
 import { useCurrencyBalance } from '../../state/wallet/hooks'
-import { CloseIcon } from '../../theme'
 import { ButtonError, ButtonPrimary } from '../Button'
 import { AutoColumn, ColumnCenter } from '../Column'
 import Modal from '../Modal'
@@ -218,7 +203,7 @@ export default function ConfirmSwapModal({
       ) : progress === 2 || progress === 3 ? (
         <PreparingForSwap onDismiss={onDismiss} progress={progress} />
       ) : progress === 4 ? (
-        <TransactionSubmitted onDismiss={onDismiss} progress={progress} />
+        <TransactionSubmitted onDismiss={onDismiss} />
       ) : progress === 8 ? (
         <WaitingForSwapConfirmation onDismiss={onDismiss} progress={progress} trade={trade} />
       ) : (
@@ -242,221 +227,20 @@ export default function ConfirmSwapModal({
     </Modal>
   ) : progress === 4 ? (
     <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={700}>
-      <TransactionSubmitted onDismiss={onDismiss} progress={progress} />
+      <TransactionSubmitted onDismiss={onDismiss} />
     </Modal>
   ) : progress === 8 ? (
     <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={700}>
       <WaitingForSwapConfirmation onDismiss={onDismiss} progress={progress} trade={trade} />
     </Modal>
   ) : (
-    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={450}>
+    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={480}>
       <ConfirmationModalContent
         title={<Trans>You are swapping</Trans>}
         onDismiss={onDismiss}
         topContent={modalHeader}
         bottomContent={modalBottom}
       />
-    </Modal>
-  )
-
-  // <TransactionConfirmationModal
-  //   isOpen={isOpen}
-  //   onDismiss={onDismiss}
-  //   attemptingTxn={attemptingTxn}
-  //   hash={txHash}
-  //   trade={trade}
-  //   content={confirmationContent}
-  //   pendingText={pendingText}
-  //   swapResponse={swapResponse}
-  //   showTimeLockPuzzle={showTimeLockPuzzle}
-  // />
-}
-
-export function AAA({
-  trade,
-  originalTrade,
-  inputCurrency,
-  outputCurrency,
-  onAcceptChanges,
-  allowedSlippage,
-  onConfirm,
-  onDismiss,
-  recipient,
-  swapErrorMessage,
-  isOpen,
-  recipientAddressOrName,
-  signatureData,
-  deadline,
-  feeOptions,
-  sigHandler,
-}: {
-  isOpen: boolean
-  trade: InterfaceTrade<Currency, Currency, TradeType> | undefined
-  originalTrade: Trade<Currency, Currency, TradeType> | undefined
-  inputCurrency: Currency | undefined
-  outputCurrency: Currency | undefined
-  recipient: string | null
-  allowedSlippage: Percent
-  onAcceptChanges: () => void
-  onConfirm: () => void
-  swapErrorMessage: ReactNode | undefined
-  onDismiss: () => void
-  recipientAddressOrName: string | null
-  signatureData: SignatureData | null
-  deadline: BigNumber | undefined
-  feeOptions?: FeeOptions
-  sigHandler: () => void
-}) {
-  const [progress, setProgress] = useState(0)
-  const { chainId, account, library } = useActiveWeb3React()
-  const [parameters, updateParameters] = useParametersManager()
-
-  const showAcceptChanges = useMemo(
-    () => Boolean(trade && originalTrade && tradeMeaningfullyDiffers(trade, originalTrade)),
-    [originalTrade, trade]
-  )
-  const routerContract = useV2RouterContract() as Contract
-  const recorderContract = useRecorderContract() as Contract
-  const { timeLockPuzzleParam, timeLockPuzzleSnarkParam } = useTimeLockPuzzleParam(parameters)
-
-  const swapCalls = useSwapCallArguments(
-    trade,
-    allowedSlippage,
-    recipientAddressOrName,
-    signatureData,
-    deadline,
-    feeOptions
-  )
-
-  const runSwap = useCallback(async () => {
-    if (timeLockPuzzleParam && timeLockPuzzleSnarkParam) {
-      setProgress(1)
-      const timeLockPuzzleData = await getTimeLockPuzzleProof(timeLockPuzzleParam, timeLockPuzzleSnarkParam)
-      setProgress(2)
-      const encryptData = await getEncryptProof(
-        routerContract,
-        timeLockPuzzleData,
-        chainId,
-        account as string,
-        swapCalls,
-        sigHandler
-      )
-      setProgress(3)
-      const { encryptedSwapTx, sig } = await getSignTransaction(
-        routerContract,
-        timeLockPuzzleData,
-        encryptData,
-        chainId as number,
-        account as string,
-        library as any,
-        swapCalls
-      )
-      setProgress(4)
-
-      const sendResponse = await sendEIP712Tx(
-        chainId as number,
-        routerContract,
-        recorderContract,
-        encryptedSwapTx,
-        sig,
-        () => {
-          console.log('cancel')
-        }
-      )
-      //   const finalResponse: RadiusSwapResponse = {
-      //     data: sendResponse.data,
-      //     msg: sendResponse.msg,
-      //   }
-      //   return finalResponse
-      // }
-    }
-  }, [timeLockPuzzleParam, timeLockPuzzleSnarkParam])
-
-  const currencyBalance = useCurrencyBalance(account ?? undefined, trade?.inputAmount.currency ?? undefined)
-
-  const [showInverted, setShowInverted] = useState<boolean>(false)
-
-  const confirmationContent = useCallback(
-    () => (
-      <Wrapper>
-        <Section>
-          <RowBetween style={{ justifyContent: 'center' }}>
-            <Text fontWeight={600} fontSize={20}>
-              <Trans>You are swapping</Trans>
-            </Text>
-            <CloseIcon onClick={onDismiss} />
-          </RowBetween>
-          {trade && (
-            <SwapModalHeader
-              trade={trade}
-              inputCurrency={inputCurrency}
-              outputCurrency={outputCurrency}
-              allowedSlippage={allowedSlippage}
-              recipient={recipient}
-              showAcceptChanges={showAcceptChanges}
-              onAcceptChanges={onAcceptChanges}
-            />
-          )}
-        </Section>
-        <BottomSection gap="12px">
-          {trade && (
-            <SwapModalFooter
-              onConfirm={onConfirm}
-              trade={trade}
-              disabledConfirm={showAcceptChanges}
-              swapErrorMessage={swapErrorMessage}
-            />
-          )}
-          <RowBetween>
-            <RowFixed style={{ height: '10px' }}>
-              <ThemedText.Body
-                color={'#999999'}
-                fontWeight={500}
-                fontSize={14}
-                style={{ display: 'inline', cursor: 'pointer' }}
-              >
-                {currencyBalance ? <Trans>Balance: {formatCurrencyAmount(currencyBalance, 4)}</Trans> : null}
-              </ThemedText.Body>
-            </RowFixed>
-
-            {trade && (
-              <RowFixed style={{ height: '10px' }}>
-                <TradePrice
-                  price={trade.executionPrice}
-                  showInverted={showInverted}
-                  setShowInverted={setShowInverted}
-                />
-              </RowFixed>
-            )}
-          </RowBetween>
-        </BottomSection>
-        <button
-          onClick={() => {
-            runSwap()
-          }}
-        >
-          RunSwap
-        </button>
-      </Wrapper>
-    ),
-    [onDismiss, swapErrorMessage]
-  )
-
-  return progress === 1 ? (
-    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={500}>
-      <WaitingForSwapConfirmation onDismiss={onDismiss} progress={progress} trade={trade} />
-    </Modal>
-  ) : progress === 2 || progress === 3 ? (
-    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={500}>
-      <PreparingForSwap onDismiss={onDismiss} progress={progress} />
-    </Modal>
-  ) : progress === 4 ? (
-    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={500}>
-      <TransactionSubmitted onDismiss={onDismiss} progress={progress} />
-    </Modal>
-  ) : (
-    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={500}>
-      {confirmationContent}
     </Modal>
   )
 }
@@ -489,7 +273,7 @@ export function ModalTest({ isOpen, onDismiss, swapResponse }: ModalTestProps) {
       ) : progress === 4 ? (
         <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={500}>
           <Wrapper>
-            <TransactionSubmitted onDismiss={onDismiss} progress={progress} />
+            <TransactionSubmitted onDismiss={onDismiss} />
           </Wrapper>
         </Modal>
       ) : (
@@ -505,6 +289,7 @@ function TransactionSubmitted(onDismiss: any, progress: number) {
 */
 
 function PreparingForSwap({ onDismiss, progress }: { onDismiss: any; progress: number }) {
+  const dispatch = useAppDispatch()
   return (
     <Wrapper>
       <Section
@@ -573,7 +358,7 @@ function PreparingForSwap({ onDismiss, progress }: { onDismiss: any; progress: n
             </ThemedText.Black>
           </div>
         </RowCenter>
-        <RowCenter style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
+        {/* <RowCenter style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
           <button
             style={{
               width: '99%',
@@ -584,11 +369,14 @@ function PreparingForSwap({ onDismiss, progress }: { onDismiss: any; progress: n
               margin: '40px 10px 0px 10px',
               fontSize: '18px',
             }}
-            onClick={onDismiss}
+            onClick={() => {
+              dispatch(setProgress({ newParam: 8 }))
+              onDismiss()
+            }}
           >
             Cancel
           </button>
-        </RowCenter>
+        </RowCenter> */}
       </Section>
     </Wrapper>
   )
@@ -699,7 +487,8 @@ function WaitingForSwapConfirmation({
   )
 }
 
-function TransactionSubmitted({ onDismiss, progress }: { onDismiss: any; progress: number }) {
+function TransactionSubmitted({ onDismiss }: { onDismiss: any }) {
+  const dispatch = useAppDispatch()
   return (
     <Wrapper>
       <Section
@@ -734,68 +523,6 @@ function TransactionSubmitted({ onDismiss, progress }: { onDismiss: any; progres
           <div style={{ width: '90%' }}>
             <ThemedText.White fontSize={18} fontWeight={500}>
               Try another secure swap as you wait for the transaction to finalize on the blockchain.
-            </ThemedText.White>
-          </div>
-        </RowCenter>
-        <RowCenter style={{ padding: '40px 60px 50px 60px' }}>
-          <ButtonPrimary style={{ background: '#1f2232', height: '70px', borderRadius: '0px', fontSize: '18px' }}>
-            Back to Swap
-          </ButtonPrimary>
-        </RowCenter>
-      </Section>
-    </Wrapper>
-  )
-}
-
-function TransactionCanceled({ onDismiss, progress }: { onDismiss: any; progress: number }) {
-  return (
-    <Wrapper>
-      <Section
-        style={{
-          position: 'relative',
-          background: '#1f2232',
-          padding: '83px 0px 84px 0px',
-        }}
-      >
-        <RowCenter>
-          <img src={'./images/gif_protected_200.gif'} width="120" height="120" alt="" />
-        </RowCenter>
-        <RowCenter style={{ paddingTop: '16px' }}>
-          <ThemedText.Label fontSize={'20px'} color={'#0DE08E'}>
-            MEV-Protected
-          </ThemedText.Label>
-        </RowCenter>
-      </Section>
-      <Section
-        style={{
-          position: 'relative',
-        }}
-      >
-        <RowCenter style={{ paddingTop: '50px' }}>
-          <ThemedText.Black fontSize={26} fontWeight={600}>
-            Transaction Canceled
-          </ThemedText.Black>
-        </RowCenter>
-        <RowCenter
-          style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center', padding: '20px 60px 0px 60px' }}
-        >
-          <div style={{ width: '90%' }}>
-            <ThemedText.White fontSize={18} fontWeight={500}>
-              We canceled your transaction due to a possible front-running attack or sandwich squeeze.
-            </ThemedText.White>
-          </div>
-        </RowCenter>
-        <RowCenter
-          style={{
-            textAlign: 'center',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: '20px 60px 0px 60px',
-          }}
-        >
-          <div style={{ width: '90%' }}>
-            <ThemedText.White fontSize={16} fontWeight={400} color={'#8BB3FF'}>
-              Please try the swap again.
             </ThemedText.White>
           </div>
         </RowCenter>

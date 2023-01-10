@@ -58,46 +58,8 @@ export function useSwapCallArguments(
 
     const v2trade = trade as Trade<Currency, Currency, TradeType>
 
-    // TODO: input real number
-    // 1. use denominator
-    // 2. apply decimal
-    // 3. check is output calculated using slippage
-    console.log(
-      'in',
-      trade.inputAmount.numerator.toString(),
-      trade.inputAmount.denominator.toString(),
-      trade.inputAmount.decimalScale.toString()
-    )
-    console.log(
-      'out',
-      trade.outputAmount.numerator.toString(),
-      trade.outputAmount.denominator.toString(),
-      trade.outputAmount.decimalScale.toString()
-    )
-    console.log(
-      'priceImpact',
-      trade.priceImpact.numerator.toString(),
-      trade.priceImpact.denominator.toString(),
-      trade.priceImpact.toSignificant()
-    )
-    console.log(
-      'executionPrice',
-      trade.executionPrice.quotient.toString(),
-      trade.executionPrice.baseCurrency.symbol,
-      trade.executionPrice.baseCurrency.decimals,
-      trade.executionPrice.quoteCurrency.symbol,
-      trade.executionPrice.quoteCurrency.decimals,
-      trade.executionPrice.denominator.toString(),
-      trade.executionPrice.numerator.toString(),
-      trade.executionPrice.toSignificant()
-    )
-
     const amountIn = JSBI.toNumber(trade.inputAmount.numerator)
-    const amountOut = JSBI.toNumber(trade.outputAmount.numerator)
-
-    const minOut = trade.minimumAmountOut(_allowedSlippage)
-
-    console.log('minOut', minOut.numerator.toString(), minOut.denominator.toString(), minOut.decimalScale.toString())
+    const amountOut = JSBI.toNumber(trade.minimumAmountOut(_allowedSlippage).numerator)
 
     const availableFromNumber = Math.floor(Date.now() / 1000 + 70)
     const deadlineNumber = Math.floor(Date.now() / 1000 + 60 * 30)

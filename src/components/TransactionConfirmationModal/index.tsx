@@ -395,8 +395,6 @@ export default function TransactionConfirmationModal({
 
   if (!chainId) return null
 
-  // console.log('raynear', isL2, swapResponse, hash, attemptingTxn, showTimeLockPuzzle)
-
   // confirmation screen
   return (
     <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={700}>

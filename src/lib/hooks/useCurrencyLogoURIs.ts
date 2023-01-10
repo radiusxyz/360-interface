@@ -38,7 +38,7 @@ function getTokenLogoURI(address: string, chainId: SupportedChainId = SupportedC
   if (networksWithUrls.includes(chainId)) {
     return `https://raw.githubusercontent.com/Uniswap/assets/master/blockchains/${networkName}/assets/${address}/logo.png`
   } else {
-    return `https://raw.githubusercontent.com/radiusxyz/tex-interface/main/src/assets/images/radius.jpg`
+    return `https://raw.githubusercontent.com/radiusxyz/360-interface/main/src/assets/images/radius.jpg`
   }
 }
 
