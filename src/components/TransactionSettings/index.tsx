@@ -34,12 +34,6 @@ const FancyButton = styled.button`
   border: 0px solid ${({ theme }) => theme.bg3};
   outline: none;
   background: ${({ theme }) => theme.bg1};
-  :hover {
-    border: 0px solid ${({ theme }) => theme.bg4};
-  }
-  :focus {
-    border: 0px solid ${({ theme }) => theme.primary1};
-  }
 `
 
 const Option = styled(FancyButton)<{ active: boolean }>`
@@ -47,12 +41,13 @@ const Option = styled(FancyButton)<{ active: boolean }>`
   width: 57px;
   margin-right: 8px;
   padding: 0px 10px;
+  background-color: ${({ active }) => active && '#cccccc'};
+  color: ${({ active }) => active && '#485c83'};
+  border: ${({ active }) => active && '1px solid #485c83'};
   :hover {
-    cursor: pointer;
+    color: #ffffff;
+    border: 1px solid #ffffff;
   }
-  background-color: ${({ active, theme }) => active && theme.primary1};
-  color: #485c83;
-  border: 1px solid #485c83;
 `
 
 const Input = styled.input`
@@ -202,7 +197,10 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
                 onClick={() => {
                   parseSlippageInput('0.1')
                 }}
-                active={userSlippageTolerance === new Percent(1, 1000)}
+                active={
+                  userSlippageTolerance !== 'auto' &&
+                  userSlippageTolerance.toSignificant(6) === new Percent(10, 10_000).toSignificant(6)
+                }
               >
                 <Trans>0.1 %</Trans>
               </Option>
@@ -211,7 +209,10 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
                 onClick={() => {
                   parseSlippageInput('0.5')
                 }}
-                active={userSlippageTolerance === new Percent(5, 1000)}
+                active={
+                  userSlippageTolerance !== 'auto' &&
+                  userSlippageTolerance.toSignificant(6) === new Percent(50, 10_000).toSignificant(6)
+                }
               >
                 <Trans>0.5 %</Trans>
               </Option>
@@ -220,7 +221,10 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
                 onClick={() => {
                   parseSlippageInput('1')
                 }}
-                active={userSlippageTolerance === new Percent(1, 100)}
+                active={
+                  userSlippageTolerance !== 'auto' &&
+                  userSlippageTolerance.toSignificant(6) === new Percent(100, 10_000).toSignificant(6)
+                }
               >
                 <Trans>1 %</Trans>
               </Option>

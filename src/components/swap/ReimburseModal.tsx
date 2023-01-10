@@ -1,6 +1,7 @@
 import { Contract } from '@ethersproject/contracts'
 import { Fraction } from '@uniswap/sdk-core'
 import { RowBetween, RowCenter } from 'components/Row'
+import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import JSBI from 'jsbi'
 import { useEffect, useState } from 'react'
 import { ExternalLink as LinkIcon } from 'react-feather'
@@ -9,6 +10,7 @@ import { ThemedText } from 'theme'
 
 import { useV2RouterContract } from '../../hooks/useContract'
 import { db, Status, TxHistoryWithPendingTx } from '../../utils/db'
+import { ExplorerDataType, getExplorerLink } from '../../utils/getExplorerLink'
 import { ButtonPrimary } from '../Button'
 import { AutoColumn } from '../Column'
 import Modal from '../Modal'
@@ -16,10 +18,55 @@ import Modal from '../Modal'
 const Wrapper = styled.div`
   width: 100%;
   background: rgba(44, 47, 63);
-  padding: 35px;
 `
 const Section = styled(AutoColumn)<{ inline?: boolean }>`
   padding: ${({ inline }) => (inline ? '0' : '0')};
+`
+
+const GradientSpinner = styled.div<{ background: string }>`
+  @keyframes rotates {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(-360deg);
+    }
+  }
+
+  animation: rotates 2s linear reverse infinite;
+  border-radius: 50%;
+  height: 90px;
+  width: 90px;
+  position: relative;
+
+  ::before,
+  ::after {
+    content: '';
+    position: absolute;
+  }
+
+  ::before {
+    background: linear-gradient(0deg, #272b3e00 0%, #272b3ea0 100%) 0% 0%,
+      linear-gradient(90deg, #272b3ea0 0%, #01f76eff 100%) 100% 0%,
+      linear-gradient(180deg, #01f76eff 0%, #0157ffff 100%) 100% 100%,
+      linear-gradient(360deg, #0157ffff 0%, #0157ffff 100%) 0% 100%;
+    background-repeat: no-repeat;
+    background-size: 50% 50%;
+    border-radius: 50%;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+  }
+
+  ::after {
+    background: ${({ background }) => background};
+    border-radius: 50%;
+    top: 6%;
+    bottom: 6%;
+    left: 6%;
+    right: 6%;
+  }
 `
 
 export function ReimbursementModal({
@@ -52,6 +99,111 @@ export function ReimbursementModal({
   }
 }
 
+export function ProceedReimbursement({
+  isOpen,
+  onDismiss,
+  tokenAmount,
+  to,
+}: {
+  isOpen: boolean
+  onDismiss: () => void
+  tokenAmount: string
+  to: string
+}) {
+  const { chainId, account } = useActiveWeb3React()
+
+  const complete = true
+
+  return (
+    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={600}>
+      <Wrapper style={{ padding: '60px 30px 35px 30px' }}>
+        <Section
+          style={{
+            position: 'relative',
+          }}
+        >
+          <RowCenter style={{ marginBottom: '18px' }}>
+            {complete ? (
+              <div
+                style={{
+                  width: '90px',
+                  height: '90px',
+                  borderRadius: '45px',
+                  background: '#1B1E2D',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <img src="/images/check.png" width="32" height="19" alt="" />
+              </div>
+            ) : (
+              <GradientSpinner background={'rgba(48, 50, 65)'} />
+            )}
+          </RowCenter>
+          <RowCenter style={{ marginBottom: '40px' }}>
+            <ThemedText.Black fontSize={18} fontWeight={600}>
+              {complete ? 'You have been reimbursed' : 'reimbursement...'}
+            </ThemedText.Black>
+          </RowCenter>
+          <RowCenter
+            style={{
+              height: '170px',
+              background: 'rgba(37,39,53)',
+              textAlign: 'center',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginBottom: '35px',
+              padding: '35px',
+              display: 'flex',
+            }}
+          >
+            <div style={{ justifyContent: 'center', display: 'flex', flexDirection: 'row', width: '90%' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center' }}>
+                <ThemedText.White fontSize={34} fontWeight={800} style={{ marginBottom: '4px' }}>
+                  {'0.005 ETH'}
+                </ThemedText.White>
+                <ThemedText.White fontSize={14} fontWeight={400} color={'#dddddd'} style={{ marginBottom: '13px' }}>
+                  {'Reimburse To: ' + to.substring(0, 20)}
+                </ThemedText.White>
+                <a href="">
+                  <ThemedText.White fontSize={14} fontWeight={400} style={{ color: '#42aaff' }}>
+                    {'View on explorer'}
+                  </ThemedText.White>
+                </a>
+              </div>
+            </div>
+          </RowCenter>
+          <RowBetween>
+            <ButtonPrimary
+              style={{
+                background: 'transparent',
+                height: '46px',
+                borderRadius: '4px',
+                width: '100%',
+                border: '1px solid',
+                borderColor: 'white',
+              }}
+              onClick={onDismiss}
+            >
+              Back to Recent Transactions
+            </ButtonPrimary>
+          </RowBetween>
+          <RowCenter style={{ height: '38px' }}>
+            {complete ? (
+              <>&nbsp;</>
+            ) : (
+              <ThemedText.Gray fontSize={14} fontWeight={400} color={'#a8a8a8'}>
+                {"We'll notify you when the reimbursement is complete"}
+              </ThemedText.Gray>
+            )}
+          </RowCenter>
+        </Section>
+      </Wrapper>
+    </Modal>
+  )
+}
+
 export function ClaimReimbursement({
   isOpen,
   onDismiss,
@@ -61,6 +213,7 @@ export function ClaimReimbursement({
   onDismiss: any
   tx: TxHistoryWithPendingTx
 }) {
+  const { chainId } = useActiveWeb3React()
   const routerContract = useV2RouterContract()
 
   const [reimbursementAmount, setReimbursementAmount] = useState('0')
@@ -78,7 +231,7 @@ export function ClaimReimbursement({
 
   const claim = async () => {
     if (tx) {
-      await routerContract?.claim(
+      const result = await routerContract?.claim(
         tx.round,
         tx.order,
         tx.proofHash,
@@ -87,14 +240,16 @@ export function ClaimReimbursement({
         tx.operatorSignature?.r,
         tx.operatorSignature?.s
       )
+      console.log('🚀 ~ file: ReimburseModal.tsx:93 ~ claim ~ result', result)
+
       // TODO: reimbursement 성공, 실패 확인해야 하는지 고민해봐야 함
-      await db.txHistory?.update(tx?.id as number, { status: Status.REIMBURSED })
+      await db.txHistory.update(tx.id as number, { status: Status.REIMBURSED })
     }
   }
 
   return (
-    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={500}>
-      <Wrapper>
+    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={600}>
+      <Wrapper style={{ padding: '60px 30px 35px 30px' }}>
         {tx && (
           <Section
             style={{
@@ -165,7 +320,7 @@ export function ClaimReimbursement({
               </ThemedText.Black>
               <ThemedText.Black fontSize={14} fontWeight={400} color={'#ffffFF'}>
                 {tx.txId.length > 60 ? tx.txId.substring(0, 10) + '...' + tx.txId.substring(59) : tx.txId}
-                <a href={''}>
+                <a href={getExplorerLink(chainId ?? 80001, tx.txId, ExplorerDataType.TRANSACTION)}>
                   <LinkIcon size="12px" />
                 </a>
               </ThemedText.Black>
@@ -214,6 +369,7 @@ export function ClaimReimbursement({
 }
 
 export function ReimbursementDetails({ isOpen, onDismiss, tx }: { isOpen: boolean; onDismiss: () => void; tx: any }) {
+  const { chainId } = useActiveWeb3React()
   const routerContract = useV2RouterContract() as Contract
   const [reimburseAmount, setReimburseAmount] = useState('0')
 
@@ -227,8 +383,8 @@ export function ReimbursementDetails({ isOpen, onDismiss, tx }: { isOpen: boolea
   }, [routerContract])
 
   return (
-    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={500}>
-      <Wrapper>
+    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={600}>
+      <Wrapper style={{ padding: '60px 30px 35px 30px' }}>
         {tx && (
           <Section
             style={{
@@ -271,8 +427,8 @@ export function ReimbursementDetails({ isOpen, onDismiss, tx }: { isOpen: boolea
                   Transaction Hash
                 </ThemedText.Black>
                 <ThemedText.Black fontSize={16} fontWeight={400} color={'#dddddd'}>
-                  {tx.txId}
-                  <a href={'https://'}>
+                  {tx.txId.length > 60 ? tx.txId.substring(0, 10) + '...' + tx.txId.substring(58) : tx.txId}
+                  <a href={getExplorerLink(chainId ?? 80001, tx.txId, ExplorerDataType.TRANSACTION)}>
                     <LinkIcon size="12px" />
                   </a>
                 </ThemedText.Black>

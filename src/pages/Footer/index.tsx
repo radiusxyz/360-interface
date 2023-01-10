@@ -1,4 +1,3 @@
-import contractPackage from '@radiusxyz/threesixty-contracts/package.json'
 import styled from 'styled-components/macro'
 
 const AlertWrapper = styled.div`
@@ -57,15 +56,13 @@ export default function Footer() {
         >
           <button
             onClick={emptyCache}
-            style={{ height: '30px', border: 'none', background: '#cc8888', color: '#ffffff', marginRight: '10px' }}
+            style={{ height: '30px', border: 'none', marginRight: '10px', background: 'transparent' }}
           >
-            Clear Cache
+            &nbsp;
           </button>
-          <h5>{'Version: ' + contractPackage.version}</h5>
-          {/* TODO: 
           <a href="/#" style={{ textDecoration: 'none', color: '#ffffff' }}>
             <h5 style={{ fontWeight: 'normal' }}>Privacy Policy</h5>
-          </a> */}
+          </a>
         </div>
       </div>
     </div>
