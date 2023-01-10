@@ -115,7 +115,6 @@ export default function useSendSwapTransaction(
   parameters: ParameterState,
   sigHandler: () => void
 ): { callback: null | (() => Promise<RadiusSwapResponse>) } {
-  // console.log(parameters)
   const dispatch = useAppDispatch()
 
   const routerContract = useV2RouterContract() as Contract
@@ -172,12 +171,15 @@ export default function useSendSwapTransaction(
         const operatorPendingTxCnt = await fetch(
           `${process.env.REACT_APP_360_OPERATOR}/tx/pendingTxCnt?chainId=${chainId}&walletAddress=${account}`
         )
-        console.log('test', contractNonce, operatorPendingTxCnt)
+        const text = await operatorPendingTxCnt.text()
+        console.log('test', contractNonce, text)
 
-        const txNonce = parseInt(contractNonce) + parseInt(await operatorPendingTxCnt.text())
+        const txNonce = parseInt(contractNonce) + parseInt(text)
         console.log('test2', txNonce)
 
-        const { address, deadline, amountIn, amountOut, path, idPath } = resolvedCalls[0]
+        console.log('resolvedCalls', resolvedCalls)
+
+        const { deadline, amountIn, amountOut, path, idPath } = resolvedCalls[0]
 
         const message = {
           txOwner: signAddress,
@@ -237,7 +239,6 @@ export default function useSendSwapTransaction(
         dispatch(setProgress({ newParam: 1 }))
 
         const sig = await signWithEIP712(library, signAddress, typedData)
-        console.log('🚀 ~ file: useSendSwapTransaction.tsx:221 ~ onSwap ~ sig', sig)
 
         if (now + 10000 < Date.now()) {
           dispatch(setProgress({ newParam: 8 }))
