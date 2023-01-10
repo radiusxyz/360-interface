@@ -4118,10 +4118,10 @@
   resolved "https://registry.npmjs.org/@protobufjs/utf8/-/utf8-1.1.0.tgz"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@radiusxyz/threesixty-contracts-mumbai@0.0.2":
-  version "0.0.2"
-  resolved "https://npm.pkg.github.com/download/@radiusxyz/threesixty-contracts-mumbai/0.0.2/ede44a1a04da108c5ba8a30e24d9b6e138e18bd4#ede44a1a04da108c5ba8a30e24d9b6e138e18bd4"
-  integrity sha512-FpdLVWz/LlP8/4B+I1H2PculDj2UsjXS1jOJ18ssUcKNYAZulIsYkT9naduHGZJPJErBSrfaI5K78T4SbyEY0A==
+"@radiusxyz/threesixty-contracts-polygon@0.0.1":
+  version "0.0.1"
+  resolved "https://npm.pkg.github.com/download/@radiusxyz/threesixty-contracts-polygon/0.0.1/39952663220c65fe4976c44b39c1c95fe2386a6f#39952663220c65fe4976c44b39c1c95fe2386a6f"
+  integrity sha512-5tJT0JbvlQDUvw8t6LHxEZSqoYb6buYyf54fvkbOOuCGDzFZ8haB7qnZg29DbO0uzkfCzMOfF0psnC+QA4qrWA==
 
 "@radiusxyz/threesixty-contracts@^0.1.16":
   version "0.1.16"
