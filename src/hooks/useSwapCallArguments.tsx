@@ -94,6 +94,11 @@ export function useSwapCallArguments(
 
     const amountIn = JSBI.toNumber(trade.inputAmount.numerator)
     const amountOut = JSBI.toNumber(trade.outputAmount.numerator)
+
+    const minOut = trade.minimumAmountOut(_allowedSlippage)
+
+    console.log('minOut', minOut.numerator.toString(), minOut.denominator.toString(), minOut.decimalScale.toString())
+
     const availableFromNumber = Math.floor(Date.now() / 1000 + 70)
     const deadlineNumber = Math.floor(Date.now() / 1000 + 60 * 30)
 
