@@ -42,7 +42,7 @@ const StopOverflowQuery = `@media screen and (min-width: ${MEDIA_WIDTHS.upToMedi
 const FixedPopupColumn = styled(AutoColumn)<{ extraPadding: boolean; xlPadding: boolean }>`
   position: fixed;
   /*top: ${({ extraPadding }) => (extraPadding ? '64px' : '56px')};*/
-  top: 80px;
+  top: 110px;
   right: 1rem;
   max-width: 355px !important;
   width: 100%;
