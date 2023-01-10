@@ -54,7 +54,7 @@ export function useSwapCallArguments(
   const routerContract = useV2RouterContract() as Contract
 
   return useMemo(async () => {
-    if (!trade || !recipient || !library || !account || !chainId || !deadline) return []
+    if (!trade || !recipient || !library || !account || !chainId) return []
 
     const v2trade = trade as Trade<Currency, Currency, TradeType>
 
