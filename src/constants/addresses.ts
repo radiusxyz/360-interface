@@ -10,10 +10,11 @@ export const MULTICALL_ADDRESS: AddressMap = {
   ...constructSameAddressMap('0x1F98415757620B543A52E61c46B32eB19261F984', [
     SupportedChainId.OPTIMISTIC_KOVAN,
     SupportedChainId.OPTIMISM,
-    SupportedChainId.POLYGON_MUMBAI,
-    SupportedChainId.POLYGON,
     SupportedChainId.PRIVATE,
   ]),
+  //   [SupportedChainId.POLYGON]: '0x11ce4B23bD875D7F5C6a31084f55fDe1e9A87507',
+  [SupportedChainId.POLYGON]: '0x1F98415757620B543A52E61c46B32eB19261F984',
+  [SupportedChainId.POLYGON_MUMBAI]: '0x1F98415757620B543A52E61c46B32eB19261F984',
   [SupportedChainId.ARBITRUM_ONE]: '0xadF885960B47eA2CD9B55E6DAc6B42b7Cb2806dB',
   [SupportedChainId.ARBITRUM_RINKEBY]: '0xa501c031958F579dB7676fF1CE78AD305794d579',
 }
@@ -21,16 +22,19 @@ export const V2_FACTORY_ADDRESSES: AddressMap = constructSameAddressMap(contract
 
 export const RECORDER_ADDRESS = {
   ...constructSameAddressMap(contracts.recorder),
+  [SupportedChainId.POLYGON]: contracts.recorder,
   [SupportedChainId.POLYGON_MUMBAI]: contracts.recorder,
 }
 
 export const VAULT_ADDRESS = {
   ...constructSameAddressMap(contracts.vault),
+  [SupportedChainId.POLYGON]: contracts.vault,
   [SupportedChainId.POLYGON_MUMBAI]: contracts.vault,
 }
 
 export const V2_ROUTER_ADDRESS: AddressMap = {
   ...constructSameAddressMap(contracts.router),
+  [SupportedChainId.POLYGON]: contracts.router,
   [SupportedChainId.POLYGON_MUMBAI]: contracts.router,
 }
 export const V3_ROUTER_ADDRESS: AddressMap = {
@@ -39,8 +43,8 @@ export const V3_ROUTER_ADDRESS: AddressMap = {
     SupportedChainId.OPTIMISTIC_KOVAN,
     SupportedChainId.ARBITRUM_ONE,
     SupportedChainId.ARBITRUM_RINKEBY,
-    SupportedChainId.POLYGON,
   ]),
+  [SupportedChainId.POLYGON]: contracts.router,
   [SupportedChainId.POLYGON_MUMBAI]: contracts.router,
 }
 export const SWAP_ROUTER_ADDRESSES: AddressMap = {
@@ -49,8 +53,8 @@ export const SWAP_ROUTER_ADDRESSES: AddressMap = {
     SupportedChainId.OPTIMISTIC_KOVAN,
     SupportedChainId.ARBITRUM_ONE,
     SupportedChainId.ARBITRUM_RINKEBY,
-    SupportedChainId.POLYGON,
   ]),
+  [SupportedChainId.POLYGON]: contracts.router,
   [SupportedChainId.POLYGON_MUMBAI]: contracts.router,
 }
 /**

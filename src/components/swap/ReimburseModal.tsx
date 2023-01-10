@@ -320,7 +320,7 @@ export function ClaimReimbursement({
               </ThemedText.Black>
               <ThemedText.Black fontSize={14} fontWeight={400} color={'#ffffFF'}>
                 {tx.txId.length > 60 ? tx.txId.substring(0, 10) + '...' + tx.txId.substring(59) : tx.txId}
-                <a href={getExplorerLink(chainId ?? 80001, tx.txId, ExplorerDataType.TRANSACTION)}>
+                <a href={getExplorerLink(chainId ?? 137, tx.txId, ExplorerDataType.TRANSACTION)}>
                   <LinkIcon size="12px" />
                 </a>
               </ThemedText.Black>
@@ -428,7 +428,7 @@ export function ReimbursementDetails({ isOpen, onDismiss, tx }: { isOpen: boolea
                 </ThemedText.Black>
                 <ThemedText.Black fontSize={16} fontWeight={400} color={'#dddddd'}>
                   {tx.txId.length > 60 ? tx.txId.substring(0, 10) + '...' + tx.txId.substring(58) : tx.txId}
-                  <a href={getExplorerLink(chainId ?? 80001, tx.txId, ExplorerDataType.TRANSACTION)}>
+                  <a href={getExplorerLink(chainId ?? 137, tx.txId, ExplorerDataType.TRANSACTION)}>
                     <LinkIcon size="12px" />
                   </a>
                 </ThemedText.Black>
