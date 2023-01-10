@@ -1,4 +1,4 @@
-import tokens from '@radiusxyz/threesixty-contracts/tokens.json'
+import tokens from '@radiusxyz/threesixty-contracts-polygon/tokens.json'
 import { createReducer } from '@reduxjs/toolkit'
 import { getVersionUpgrade, TokenList, VersionUpgrade } from '@uniswap/token-lists'
 
