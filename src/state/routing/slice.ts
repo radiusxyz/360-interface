@@ -2,7 +2,7 @@ import { BaseProvider, JsonRpcProvider } from '@ethersproject/providers'
 import { createApi, fetchBaseQuery, FetchBaseQueryError } from '@reduxjs/toolkit/query/react'
 import { Protocol } from '@uniswap/router-sdk'
 import { ChainId } from '@uniswap/smart-order-router'
-import { CHAIN_INFO } from 'constants/chainInfo'
+// import { CHAIN_INFO } from 'constants/chainInfo'
 import { INFURA_NETWORK_URLS } from 'constants/infura'
 import { AUTO_ROUTER_SUPPORTED_CHAINS, getClientSideQuote } from 'lib/hooks/routing/clientSideSmartOrderRouter'
 import ms from 'ms.macro'
@@ -37,7 +37,7 @@ export const routingApi = createApi({
   reducerPath: 'routingApi',
   baseQuery: fetchBaseQuery({
     // baseUrl: 'https://api.uniswap.org/v1/',
-    baseUrl: 'http://147.46.240.248:40002',
+    baseUrl: process.env.REACT_APP_360_OPERATOR,
   }),
   endpoints: (build) => ({
     getQuote: build.query<
@@ -69,22 +69,20 @@ export const routingApi = createApi({
             result = await getClientSideQuote(args, params, { protocols })
           } else {
             const chainId = args.tokenInChainId
-            const chainName = CHAIN_INFO[chainId].label
             const query = qs.stringify({
               ...DEFAULT_QUERY_PARAMS,
-              blockChainName: chainName,
               chainId,
               inputTokenAddress: tokenInAddress,
               outputTokenAddress: tokenOutAddress,
               amountIn: amount,
               type,
             })
-            result = await fetch(`pair/path?${query}`)
+            result = await fetch(`router/path?${query}`)
           }
 
           return { data: result.data as GetQuoteResult }
         } catch (e) {
-          // TODO: fall back to client-side quoter when auto router fails.
+          // todo: fall back to client-side quoter when auto router fails.
           // deprecate 'legacy' v2/v3 routers first.
           return { error: e as FetchBaseQueryError }
         }

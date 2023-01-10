@@ -119,6 +119,8 @@ export function useDerivedSwapInfo(): {
     (isExactIn ? outputCurrency : inputCurrency) ?? undefined
   )
 
+  // console.log('TradeType', isExactIn, parsedAmount, inputCurrency, outputCurrency)
+
   const currencyBalances = useMemo(
     () => ({
       [Field.INPUT]: relevantTokenBalances[0],

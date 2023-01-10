@@ -1,16 +1,16 @@
 import { TransactionRequest } from '@ethersproject/abstract-provider'
 import { BigNumber } from '@ethersproject/bignumber'
 import { Contract } from '@ethersproject/contracts'
-import { Trade } from '@uniswap/router-sdk'
-import { Currency, Percent, Token, TradeType } from '@uniswap/sdk-core'
-import { Trade as V2Trade } from '@uniswap/v2-sdk'
-import { FeeOptions, Trade as V3Trade } from '@uniswap/v3-sdk'
-import TEX_JSON from 'abis/tex-router.json'
-import { SWAP_ROUTER_ADDRESSES } from 'constants/addresses'
+import { IRoute, Trade } from '@uniswap/router-sdk'
+import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
+import { Pair, Trade as V2Trade } from '@uniswap/v2-sdk'
+import { FeeOptions, Pool, Trade as V3Trade } from '@uniswap/v3-sdk'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import JSBI from 'jsbi'
 import { useMemo } from 'react'
+import { TokenWithId } from 'state/routing/types'
 
+import { useV2RouterContract } from './useContract'
 import useENS from './useENS'
 import { SignatureData } from './useERC20Permit'
 
@@ -23,10 +23,12 @@ export interface SwapCall {
   address: string
   calldata: string
   value: string
+  availableFrom: number
   deadline: number
   amountIn: number
-  amountoutMin: number
+  amountOut: number
   path: string[]
+  idPath: string
 }
 
 /**
@@ -49,27 +51,39 @@ export function useSwapCallArguments(
   const { address: recipientAddress } = useENS(recipientAddressOrName)
   const recipient = recipientAddressOrName === null ? account : recipientAddress
 
+  const routerContract = useV2RouterContract() as Contract
+
   return useMemo(async () => {
     if (!trade || !recipient || !library || !account || !chainId || !deadline) return []
 
-    const v2trade = trade as V2Trade<Currency, Currency, TradeType>
+    const v2trade = trade as Trade<Currency, Currency, TradeType>
 
     const amountIn = JSBI.toNumber(trade.inputAmount.numerator)
-    const amountoutMin = 0
-    const deadlineNumber = 1753105128
+    const amountOut = JSBI.toNumber(trade.minimumAmountOut(_allowedSlippage).numerator)
 
-    const token1 = v2trade.inputAmount.currency as Token
-    const address1 = token1.address
-    const token2 = v2trade.outputAmount.currency as Token
-    const address2 = token2.address
-    const path = [address1, address2]
+    const availableFromNumber = Math.floor(Date.now() / 1000 + 70)
+    const deadlineNumber = Math.floor(Date.now() / 1000 + 60 * 30)
 
-    const { abi: TEX_ABI } = TEX_JSON
-    const texContract = new Contract(SWAP_ROUTER_ADDRESSES[chainId], TEX_ABI, library)
+    const routePath = v2trade.routes as unknown as Omit<IRoute<Currency, Currency, Pair | Pool>, 'path'> &
+      { path: TokenWithId[] }[]
+    const path = []
+    let idPath = ''
 
-    const txRequest: TransactionRequest = await texContract.populateTransaction.swapExactTokensForTokens(
+    for (let i = 0; i < routePath.length; i++) {
+      for (let j = 0; j < routePath[i].path.length; j++) {
+        path.push(routePath[i].path[j].address)
+        if (routePath[i].path[j].id) {
+          idPath = idPath.concat(routePath[i].path[j].id as string).concat(',')
+        }
+      }
+    }
+
+    idPath = idPath.substring(0, idPath.length - 1)
+
+    const txRequest: TransactionRequest = await routerContract.populateTransaction.swapExactTokensForTokens(
+      account,
       `${amountIn}`,
-      `${amountoutMin}`,
+      `${amountOut}`,
       path,
       account,
       deadlineNumber
@@ -77,13 +91,15 @@ export function useSwapCallArguments(
 
     return [
       {
-        address: texContract.address,
+        address: routerContract.address,
         calldata: txRequest.data ? txRequest.data.toString() : '',
         value: txRequest.value ? txRequest.value.toString() : '0x00',
+        availableFrom: availableFromNumber,
         deadline: deadlineNumber,
         amountIn,
-        amountoutMin,
+        amountOut,
         path,
+        idPath,
       },
     ]
   }, [account, chainId, deadline, library, recipient, trade])

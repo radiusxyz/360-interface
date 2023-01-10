@@ -31,7 +31,9 @@ function currencyKey(currency: Currency): string {
 const StyledBalanceText = styled(Text)`
   white-space: nowrap;
   overflow: hidden;
-  max-width: 5rem;
+  max-width: 10rem;
+  font-size: 20px;
+  font-weight: 600;
   text-overflow: ellipsis;
 `
 
@@ -129,13 +131,14 @@ function CurrencyRow({
       onClick={() => (isSelected ? null : onSelect())}
       disabled={isSelected}
       selected={otherSelected}
+      maxWidth="560px"
     >
-      <CurrencyLogo currency={currency} size={'24px'} />
+      <CurrencyLogo currency={currency} size={'40px'} style={{ marginLeft: '20px' }} />
       <Column>
-        <Text title={currency.name} fontWeight={500}>
+        <Text title={currency.name} fontWeight={600} fontSize={20}>
           {currency.symbol}
         </Text>
-        <ThemedText.DarkGray ml="0px" fontSize={'12px'} fontWeight={300}>
+        <ThemedText.DarkGray ml="0px" fontSize={'14px'} fontWeight={300}>
           {!currency.isNative && !isOnSelectedList && customAdded ? (
             <Trans>{currency.name} • Added by user</Trans>
           ) : (
@@ -145,7 +148,7 @@ function CurrencyRow({
       </Column>
       <TokenTags currency={currency} />
       {showCurrencyAmount && (
-        <RowFixed style={{ justifySelf: 'flex-end' }}>
+        <RowFixed style={{ justifySelf: 'flex-end', marginRight: '20px' }}>
           {balance ? <Balance balance={balance} /> : account ? <Loader /> : null}
         </RowFixed>
       )}
@@ -269,16 +272,26 @@ export default function CurrencyList({
   }, [])
 
   return (
-    <FixedSizeList
-      height={height}
-      ref={fixedListRef as any}
-      width="100%"
-      itemData={itemData}
-      itemCount={itemData.length}
-      itemSize={56}
-      itemKey={itemKey}
+    <div
+      style={{
+        maxWidth: '560px',
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
     >
-      {Row}
-    </FixedSizeList>
+      <FixedSizeList
+        height={height}
+        ref={fixedListRef as any}
+        width="100%"
+        itemData={itemData}
+        itemCount={itemData.length}
+        itemSize={72}
+        itemKey={itemKey}
+      >
+        {Row}
+      </FixedSizeList>
+    </div>
   )
 }

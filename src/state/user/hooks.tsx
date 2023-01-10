@@ -59,7 +59,8 @@ export function useIsDarkMode(): boolean {
     shallowEqual
   )
 
-  return userDarkMode === null ? matchesDarkMode : userDarkMode
+  return true
+  // return userDarkMode === null ? matchesDarkMode : userDarkMode
 }
 
 export function useDarkModeManager(): [boolean, () => void] {
@@ -70,7 +71,8 @@ export function useDarkModeManager(): [boolean, () => void] {
     dispatch(updateUserDarkMode({ userDarkMode: !darkMode }))
   }, [darkMode, dispatch])
 
-  return [darkMode, toggleSetDarkMode]
+  return [true, toggleSetDarkMode]
+  // return [darkMode, toggleSetDarkMode]
 }
 
 export function useUserLocale(): SupportedLocale | null {

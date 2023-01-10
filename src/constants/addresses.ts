@@ -1,3 +1,5 @@
+import contracts from '@radiusxyz/threesixty-contracts/contracts.json'
+
 import { constructSameAddressMap } from '../utils/constructSameAddressMap'
 import { SupportedChainId } from './chains'
 
@@ -10,32 +12,47 @@ export const MULTICALL_ADDRESS: AddressMap = {
     SupportedChainId.OPTIMISM,
     SupportedChainId.POLYGON_MUMBAI,
     SupportedChainId.POLYGON,
-    SupportedChainId.TEX_PRIVATE,
+    SupportedChainId.PRIVATE,
   ]),
   [SupportedChainId.ARBITRUM_ONE]: '0xadF885960B47eA2CD9B55E6DAc6B42b7Cb2806dB',
   [SupportedChainId.ARBITRUM_RINKEBY]: '0xa501c031958F579dB7676fF1CE78AD305794d579',
 }
-export const V2_FACTORY_ADDRESSES: AddressMap = constructSameAddressMap('0xe829770F38873491c43125C76C5B7451ded73D88')
+export const V2_FACTORY_ADDRESSES: AddressMap = constructSameAddressMap(contracts.factory)
 
-export const RECORDER_ADDRESS = '0xC5A79C11747b729dBc73c5632e012B9c577954FA'
-export const V2_ROUTER_ADDRESS: AddressMap = constructSameAddressMap('0x234A135C71e267E89f4520988dCd4b828CEc4610')
-export const V3_ROUTER_ADDRESS: AddressMap = constructSameAddressMap('0x234A135C71e267E89f4520988dCd4b828CEc4610', [
-  SupportedChainId.OPTIMISM,
-  SupportedChainId.OPTIMISTIC_KOVAN,
-  SupportedChainId.ARBITRUM_ONE,
-  SupportedChainId.ARBITRUM_RINKEBY,
-  SupportedChainId.POLYGON,
-  SupportedChainId.POLYGON_MUMBAI,
-])
-export const SWAP_ROUTER_ADDRESSES: AddressMap = constructSameAddressMap('0x234A135C71e267E89f4520988dCd4b828CEc4610', [
-  SupportedChainId.OPTIMISM,
-  SupportedChainId.OPTIMISTIC_KOVAN,
-  SupportedChainId.ARBITRUM_ONE,
-  SupportedChainId.ARBITRUM_RINKEBY,
-  SupportedChainId.POLYGON,
-  SupportedChainId.POLYGON_MUMBAI,
-])
+export const RECORDER_ADDRESS = {
+  ...constructSameAddressMap(contracts.recorder),
+  [SupportedChainId.POLYGON_MUMBAI]: contracts.recorder,
+}
 
+export const VAULT_ADDRESS = {
+  ...constructSameAddressMap(contracts.vault),
+  [SupportedChainId.POLYGON_MUMBAI]: contracts.vault,
+}
+
+export const V2_ROUTER_ADDRESS: AddressMap = {
+  ...constructSameAddressMap(contracts.router),
+  [SupportedChainId.POLYGON_MUMBAI]: contracts.router,
+}
+export const V3_ROUTER_ADDRESS: AddressMap = {
+  ...constructSameAddressMap(contracts.router, [
+    SupportedChainId.OPTIMISM,
+    SupportedChainId.OPTIMISTIC_KOVAN,
+    SupportedChainId.ARBITRUM_ONE,
+    SupportedChainId.ARBITRUM_RINKEBY,
+    SupportedChainId.POLYGON,
+  ]),
+  [SupportedChainId.POLYGON_MUMBAI]: contracts.router,
+}
+export const SWAP_ROUTER_ADDRESSES: AddressMap = {
+  ...constructSameAddressMap(contracts.router, [
+    SupportedChainId.OPTIMISM,
+    SupportedChainId.OPTIMISTIC_KOVAN,
+    SupportedChainId.ARBITRUM_ONE,
+    SupportedChainId.ARBITRUM_RINKEBY,
+    SupportedChainId.POLYGON,
+  ]),
+  [SupportedChainId.POLYGON_MUMBAI]: contracts.router,
+}
 /**
  * The oldest V0 governance address
  */

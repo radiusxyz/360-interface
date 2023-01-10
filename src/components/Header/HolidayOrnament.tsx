@@ -15,6 +15,7 @@ const Christmas = <SantaHatImage src={SantaHat} alt="Santa hat" />
 const DATE_TO_ORNAMENT: { [date: string]: ReactElement } = {
   '12-24': Christmas,
   '12-25': Christmas,
+  '11-4': Christmas,
 }
 
 const HolidayOrnament = () => {

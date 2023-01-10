@@ -4,6 +4,7 @@ import { DEFAULT_TXN_DISMISS_MS } from 'constants/misc'
 import { SupportedChainId } from '../../constants/chains'
 
 export type PopupContent =
+  | { title: string; status: number; data: any }
   | {
       txn: {
         hash: string
@@ -11,6 +12,9 @@ export type PopupContent =
     }
   | {
       failedSwitchNetwork: SupportedChainId
+    }
+  | {
+      message: string
     }
 
 export enum ApplicationModal {

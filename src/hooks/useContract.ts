@@ -1,4 +1,7 @@
 import { Contract } from '@ethersproject/contracts'
+import RECORDER_JSON from '@radiusxyz/threesixty-contracts/artifacts/contracts/Recorder.sol/Recorder.json'
+import ROUTER_JSON from '@radiusxyz/threesixty-contracts/artifacts/contracts/ThreesixtyRouter02.sol/ThreesixtyRouter02.json'
+import VAULT_JSON from '@radiusxyz/threesixty-contracts/artifacts/contracts/Vault.sol/Vault.json'
 import IUniswapV2PairJson from '@uniswap/v2-core/build/IUniswapV2Pair.json'
 import QuoterJson from '@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Quoter.json'
 import TickLensJson from '@uniswap/v3-periphery/artifacts/contracts/lens/TickLens.sol/TickLens.json'
@@ -13,7 +16,6 @@ import ERC20_ABI from 'abis/erc20.json'
 import ERC20_BYTES32_ABI from 'abis/erc20_bytes32.json'
 import ERC721_ABI from 'abis/erc721.json'
 import ERC1155_ABI from 'abis/erc1155.json'
-import TEX_JSON from 'abis/tex-router.json'
 import { ArgentWalletDetector, EnsPublicResolver, EnsRegistrar, Erc20, Erc721, Erc1155, Weth } from 'abis/types'
 import WETH_ABI from 'abis/weth.json'
 import {
@@ -22,9 +24,11 @@ import {
   MULTICALL_ADDRESS,
   NONFUNGIBLE_POSITION_MANAGER_ADDRESSES,
   QUOTER_ADDRESSES,
+  RECORDER_ADDRESS,
   TICK_LENS_ADDRESSES,
   V2_ROUTER_ADDRESS,
   V3_MIGRATOR_ADDRESSES,
+  VAULT_ADDRESS,
 } from 'constants/addresses'
 import { WRAPPED_NATIVE_CURRENCY } from 'constants/tokens'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
@@ -35,7 +39,9 @@ import { V3Migrator } from 'types/v3/V3Migrator'
 import { getContract } from '../utils'
 
 const { abi: IUniswapV2PairABI } = IUniswapV2PairJson
-const { abi: TEX_ABI } = TEX_JSON
+const { abi: RouterABI } = ROUTER_JSON
+const { abi: RecorderABI } = RECORDER_JSON
+const { abi: VaultABI } = VAULT_JSON
 const { abi: QuoterABI } = QuoterJson
 const { abi: TickLensABI } = TickLensJson
 const { abi: MulticallABI } = UniswapInterfaceMulticallJson
@@ -115,7 +121,15 @@ export function usePairContract(pairAddress?: string, withSignerIfPossible?: boo
 }
 
 export function useV2RouterContract(): Contract | null {
-  return useContract(V2_ROUTER_ADDRESS, TEX_ABI, true)
+  return useContract(V2_ROUTER_ADDRESS, RouterABI, true)
+}
+
+export function useRecorderContract(): Contract | null {
+  return useContract(RECORDER_ADDRESS, RecorderABI, true)
+}
+
+export function useVaultContract(): Contract | null {
+  return useContract(VAULT_ADDRESS, VaultABI, true)
 }
 
 export function useInterfaceMulticall() {

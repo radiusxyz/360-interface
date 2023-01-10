@@ -15,6 +15,8 @@ export function swapErrorToUserReadableMessage(error: any): ReactNode {
   if (reason?.indexOf('execution reverted: ') === 0) reason = reason.substr('execution reverted: '.length)
 
   switch (reason) {
+    case 'Operator is not respond':
+      return <Trans>Operator가 응답하지 않습니다. Tx를 취소해주세요.</Trans>
     case 'UniswapV2Router: EXPIRED':
       return (
         <Trans>

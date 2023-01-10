@@ -1,3 +1,4 @@
+import contracts from '@radiusxyz/threesixty-contracts/contracts.json'
 import { Currency, Ether, NativeCurrency, Token, WETH9 } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
 
@@ -67,20 +68,6 @@ export const T2_OPTIMISTIC_KOVAN = new Token(
   'T2',
   'Test token-2'
 )
-export const GLD_OPTIMISTIC_KOVAN = new Token(
-  SupportedChainId.OPTIMISTIC_KOVAN,
-  '0x6C3D016A3Bd72D49BF1C4bDFe601e2C37700a01A',
-  18,
-  'GLD',
-  'Gold'
-)
-export const SLVR_OPTIMISTIC_KOVAN = new Token(
-  SupportedChainId.OPTIMISTIC_KOVAN,
-  '0xE9e84b42E53A8784dF45c761aCE4d1cf4f948Eb3',
-  18,
-  'SLVR',
-  'Silver'
-)
 export const USDC_ARBITRUM = new Token(
   SupportedChainId.ARBITRUM_ONE,
   '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8',
@@ -109,8 +96,8 @@ export const USDC_POLYGON_MUMBAI = new Token(
   'USDC',
   'USD//C'
 )
-export const USDC_TEX_PRIVATE = new Token(
-  SupportedChainId.TEX_PRIVATE,
+export const USDC_PRIVATE = new Token(
+  SupportedChainId.PRIVATE,
   '0xDadd1125B8Df98A66Abd5EB302C0d9Ca5A061dC2',
   6,
   'USDC',
@@ -157,7 +144,7 @@ export const USDC: { [chainId in SupportedChainId]: Token } = {
   [SupportedChainId.RINKEBY]: USDC_RINKEBY,
   [SupportedChainId.KOVAN]: USDC_KOVAN,
   [SupportedChainId.ROPSTEN]: USDC_ROPSTEN,
-  [SupportedChainId.TEX_PRIVATE]: USDC_TEX_PRIVATE,
+  [SupportedChainId.PRIVATE]: USDC_PRIVATE,
 }
 export const DAI_POLYGON = new Token(
   SupportedChainId.POLYGON,
@@ -287,7 +274,7 @@ export const SWISE = new Token(
 )
 export const WETH_POLYGON_MUMBAI = new Token(
   SupportedChainId.POLYGON_MUMBAI,
-  '0xa6fa4fb5f76172d178d61b04b0ecd319c5d1c0aa',
+  contracts.weth,
   18,
   'WETH',
   'Wrapped Ether'
@@ -307,13 +294,7 @@ export const rMATIC_POLYGON_MUMBAI = new Token(
   'rMATIC'
 )
 
-export const WETH_POLYGON = new Token(
-  SupportedChainId.POLYGON,
-  '0x7ceb23fd6bc0add59e62ac25578270cff1b9f619',
-  18,
-  'WETH',
-  'Wrapped Ether'
-)
+export const WETH_POLYGON = new Token(SupportedChainId.POLYGON, contracts.weth, 18, 'WETH', 'Wrapped Ether')
 export const UNI: { [chainId: number]: Token } = {
   [SupportedChainId.MAINNET]: new Token(SupportedChainId.MAINNET, UNI_ADDRESS[1], 18, 'UNI', 'Uniswap'),
   [SupportedChainId.RINKEBY]: new Token(SupportedChainId.RINKEBY, UNI_ADDRESS[4], 18, 'UNI', 'Uniswap'),
@@ -366,8 +347,8 @@ export const WRAPPED_NATIVE_CURRENCY: { [chainId: number]: Token | undefined } =
     'WMATIC',
     'Wrapped MATIC'
   ),
-  [SupportedChainId.TEX_PRIVATE]: new Token(
-    SupportedChainId.TEX_PRIVATE,
+  [SupportedChainId.PRIVATE]: new Token(
+    SupportedChainId.PRIVATE,
     '0xD499f5F7d3C918D0e553BA03954c4E02af16B6e4',
     18,
     'WETH',

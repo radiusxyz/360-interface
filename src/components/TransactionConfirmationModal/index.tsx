@@ -1,5 +1,5 @@
 import { Trans } from '@lingui/macro'
-import { Currency } from '@uniswap/sdk-core'
+import { Currency, TradeType } from '@uniswap/sdk-core'
 import Badge from 'components/Badge'
 import { CHAIN_INFO } from 'constants/chainInfo'
 import { L2_CHAIN_IDS, SupportedL2ChainId } from 'constants/chains'
@@ -8,28 +8,27 @@ import useAddTokenToMetamask from 'hooks/useAddTokenToMetamask'
 import { RadiusSwapResponse } from 'lib/hooks/swap/useSendSwapTransaction'
 import useInterval from 'lib/hooks/useInterval'
 import { ReactNode, useContext, useState } from 'react'
-import { AlertCircle, AlertTriangle, CheckCircle } from 'react-feather'
+import { AlertCircle, AlertTriangle } from 'react-feather'
 import { Text } from 'rebass'
+import { InterfaceTrade } from 'state/routing/types'
 import { useIsTransactionConfirmed, useTransaction } from 'state/transactions/hooks'
 import styled, { ThemeContext } from 'styled-components/macro'
-import { ThemedText } from 'theme'
 
 import Circle from '../../assets/images/blue-loader.svg'
-import MetaMaskLogo from '../../assets/images/metamask.png'
 import { ExternalLink } from '../../theme'
 import { CloseIcon, CustomLightSpinner } from '../../theme'
 import { ExplorerDataType, getExplorerLink } from '../../utils/getExplorerLink'
 import { TransactionSummary } from '../AccountDetails/TransactionSummary'
-import { ButtonLight, ButtonPrimary } from '../Button'
+import { ButtonError, ButtonPrimary } from '../Button'
 import { AutoColumn, ColumnCenter } from '../Column'
 import Modal from '../Modal'
-import QuestionHelper from '../QuestionHelper'
 import { RowBetween, RowFixed } from '../Row'
 import AnimatedConfirmation from './AnimatedConfirmation'
 
 const Wrapper = styled.div`
   width: 100%;
-  padding: 1rem;
+  background: rgba(44, 47, 63);
+  padding: 35px;
 `
 const Section = styled(AutoColumn)<{ inline?: boolean }>`
   padding: ${({ inline }) => (inline ? '0' : '0')};
@@ -48,6 +47,59 @@ const StyledLogo = styled.img`
   height: 16px;
   width: 16px;
   margin-left: 6px;
+`
+
+const ProceedButton = styled(ButtonError)`
+  background: linear-gradient(97deg, #0057ff 10%, #00ff66 65%, #2cff9a 100%);
+  border-radius: 4px;
+  color: #000;
+  border: 0px solid #fff;
+`
+
+const GradientSpinner = styled.div<{ background: string }>`
+  @keyframes rotate {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  animation: rotate 1s linear reverse infinite;
+  border-radius: 50%;
+  height: 90px;
+  width: 90px;
+  position: relative;
+
+  ::before,
+  ::after {
+    content: '';
+    position: absolute;
+  }
+
+  ::before {
+    border-radius: 50%;
+    background: linear-gradient(0deg, #272b3e00 0%, #272b3ea0 100%) 0% 0%,
+      linear-gradient(90deg, #272b3ea0 0%, #01f76eff 100%) 100% 0%,
+      linear-gradient(180deg, #01f76eff 0%, #0157ffff 100%) 100% 100%,
+      linear-gradient(360deg, #0157ffff 0%, #0157ffff 100%) 0% 100%;
+    background-repeat: no-repeat;
+    background-size: 50% 50%;
+    top: -1px;
+    bottom: -1px;
+    left: -1px;
+    right: -1px;
+  }
+
+  ::after {
+    background: ${({ background }) => background};
+    border-radius: 50%;
+    top: 6%;
+    bottom: 6%;
+    left: 6%;
+    right: 6%;
+  }
 `
 
 function ConfirmationPendingContent({
@@ -92,18 +144,19 @@ function ConfirmationPendingContent({
     </Wrapper>
   )
 }
+
 function TransactionSubmittedContent({
   onDismiss,
   chainId,
   hash,
-  currencyToAdd,
+  trade,
   inline,
   swapResponse,
 }: {
   onDismiss: () => void
   hash: string | undefined
+  trade: InterfaceTrade<Currency, Currency, TradeType> | undefined
   chainId: number
-  currencyToAdd?: Currency | undefined
   inline?: boolean // not in modal
   swapResponse?: RadiusSwapResponse | undefined
 }) {
@@ -111,13 +164,9 @@ function TransactionSubmittedContent({
 
   const { library } = useActiveWeb3React()
 
-  const { addToken, success } = useAddTokenToMetamask(currencyToAdd)
+  const { addToken, success } = useAddTokenToMetamask(trade?.outputAmount.currency)
 
   const [progressBarValue, setProgressBarValue] = useState<number>(0)
-
-  const showConfirmMessage = progressBarValue >= 6000 && swapResponse
-
-  const txHash = 'test'
 
   useInterval(() => {
     if (progressBarValue < 100) {
@@ -125,103 +174,7 @@ function TransactionSubmittedContent({
     }
   }, 80)
 
-  return (
-    <Wrapper>
-      <Section inline={inline}>
-        {!inline && (
-          <RowBetween>
-            <div />
-            <CloseIcon onClick={onDismiss} />
-          </RowBetween>
-        )}
-        <div style={{ margin: 20 }}>
-          <Text fontWeight={500} fontSize={20} textAlign="center">
-            <Trans>1. Transaction Encryption</Trans>
-          </Text>
-        </div>
-        <RowBetween>
-          <RowFixed>
-            <ThemedText.Black fontSize={14} fontWeight={400} color={'#565A69'}>
-              {'Encryption Progress'}
-            </ThemedText.Black>
-            <QuestionHelper text="Your VDF is currently being generated. Once the VDF is generated, your transaction would be submitted. Please wait for the progress bar to reach the end." />
-          </RowFixed>
-          <RowFixed>
-            {progressBarValue < 100 ? (
-              <ThemedText.Blue fontSize={14}>{'In Progress'}</ThemedText.Blue>
-            ) : (
-              <ThemedText.Blue fontSize={14}>{'Complete'}</ThemedText.Blue>
-            )}
-          </RowFixed>
-        </RowBetween>
-        <div style={{ padding: 5 }} />
-        {/* <ProgressBar
-            completed={progressBarValue}
-            labelSize={'12px'}
-            transitionDuration={'0.2s'}
-            transitionTimingFunction={'ease-in-out'}
-            labelAlignment={'outside'}
-            labelColor={'#ef9231'}
-            bgColor={'#ef9231'}
-          /> */}
-        <ConfirmedIcon inline={inline}>
-          <CustomLightSpinner src={Circle} alt="loader" size={inline ? '40px' : '90px'} />
-        </ConfirmedIcon>
-        <div style={{ marginBottom: 30 }} />
-
-        {showConfirmMessage && (
-          <>
-            <AutoColumn gap="12px" justify={'center'}>
-              <Text fontWeight={500} fontSize={20} textAlign="center">
-                <Trans>2. Transaction Submitted</Trans>
-              </Text>
-              <Text fontWeight={500} fontSize={14}>
-                <Trans>
-                  Round: {swapResponse.data.round}, Order: {swapResponse.data.order}
-                </Trans>
-              </Text>
-              <Text fontWeight={500} fontSize={14}>
-                <Trans>
-                  Transaction Hash: {txHash?.substring(0, 4)}...{txHash?.substring(txHash.length - 4, txHash.length)}
-                </Trans>
-              </Text>
-              <Text fontWeight={400} fontSize={14} color={'#565A69'}>
-                <Trans>Your transaction would be executed on fixed order.</Trans>
-              </Text>
-              {chainId && txHash && (
-                <ExternalLink href={getExplorerLink(chainId, txHash, ExplorerDataType.TRANSACTION)}>
-                  <Text fontWeight={500} fontSize={14} color={theme.primary1}>
-                    <Trans>View on Explorer</Trans>
-                  </Text>
-                </ExternalLink>
-              )}
-              {currencyToAdd && library?.provider?.isMetaMask && (
-                <ButtonLight mt="12px" padding="6px 12px" width="fit-content" onClick={addToken}>
-                  {!success ? (
-                    <RowFixed>
-                      <Trans>
-                        Add {currencyToAdd.symbol} to Metamask <StyledLogo src={MetaMaskLogo} />
-                      </Trans>
-                    </RowFixed>
-                  ) : (
-                    <RowFixed>
-                      <Trans>Added {currencyToAdd.symbol} </Trans>
-                      <CheckCircle size={'16px'} stroke={theme.green1} style={{ marginLeft: '6px' }} />
-                    </RowFixed>
-                  )}
-                </ButtonLight>
-              )}
-              <ButtonPrimary onClick={onDismiss} style={{ margin: '20px 0 0 0' }}>
-                <Text fontWeight={500} fontSize={20}>
-                  {inline ? <Trans>Return</Trans> : <Trans>Close</Trans>}
-                </Text>
-              </ButtonPrimary>
-            </AutoColumn>
-          </>
-        )}
-      </Section>
-    </Wrapper>
-  )
+  return <></>
 }
 
 export function ConfirmationModalContent({
@@ -238,11 +191,11 @@ export function ConfirmationModalContent({
   return (
     <Wrapper>
       <Section>
-        <RowBetween>
-          <Text fontWeight={500} fontSize={16}>
+        <RowBetween style={{ justifyContent: 'center' }}>
+          <Text fontWeight={600} fontSize={20}>
             {title}
           </Text>
-          <CloseIcon onClick={onDismiss} />
+          {/* <CloseIcon onClick={onDismiss} /> */}
         </RowBetween>
         {topContent()}
       </Section>
@@ -359,7 +312,7 @@ function L2Content({
                 <>
                   <Text fontWeight={500} fontSize={14} marginTop={20}>
                     <Trans>
-                      Round: {swapResponse.data.round}, Order: {swapResponse.data.order}
+                      Round: {swapResponse.data.txOrderMsg.round}, Order: {swapResponse.data.txOrderMsg.order}
                     </Trans>
                   </Text>
                   <Text fontWeight={400} fontSize={14} color={'#565A69'} marginTop={10}>
@@ -371,7 +324,7 @@ function L2Content({
                 <>
                   <Text fontWeight={500} fontSize={14} marginTop={20}>
                     <Trans>
-                      Round: {swapResponse.data.round}, Order: {swapResponse.data.order}
+                      Round: {swapResponse.data.txOrderMsg.round}, Order: {swapResponse.data.txOrderMsg.order}
                     </Trans>
                   </Text>
                   <Text fontWeight={400} fontSize={14} color={'#565A69'} marginTop={10}>
@@ -417,12 +370,12 @@ interface ConfirmationModalProps {
   isOpen: boolean
   onDismiss: () => void
   hash: string | undefined
+  trade: InterfaceTrade<Currency, Currency, TradeType> | undefined
   content: () => ReactNode
   attemptingTxn: boolean
   pendingText: ReactNode
-  currencyToAdd?: Currency | undefined
   swapResponse?: RadiusSwapResponse | undefined
-  showVdf?: boolean
+  showTimeLockPuzzle?: boolean
 }
 
 export default function TransactionConfirmationModal({
@@ -430,11 +383,11 @@ export default function TransactionConfirmationModal({
   onDismiss,
   attemptingTxn,
   hash,
+  trade,
   pendingText,
   content,
-  currencyToAdd,
   swapResponse,
-  showVdf,
+  showTimeLockPuzzle,
 }: ConfirmationModalProps) {
   const { chainId } = useActiveWeb3React()
 
@@ -444,7 +397,7 @@ export default function TransactionConfirmationModal({
 
   // confirmation screen
   return (
-    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90}>
+    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={700}>
       {isL2 && swapResponse && (hash || attemptingTxn) ? (
         <L2Content
           swapResponse={swapResponse}
@@ -453,19 +406,28 @@ export default function TransactionConfirmationModal({
           onDismiss={onDismiss}
           pendingText={pendingText}
         />
-      ) : attemptingTxn ? (
-        <ConfirmationPendingContent onDismiss={onDismiss} pendingText={pendingText} />
-      ) : hash || showVdf ? (
-        <TransactionSubmittedContent
-          chainId={chainId}
-          hash={hash}
-          onDismiss={onDismiss}
-          currencyToAdd={currencyToAdd}
-          swapResponse={swapResponse}
-        />
       ) : (
+        // attemptingTxn ||
+        // ? (
+        //  <ConfirmationPendingContent onDismiss={onDismiss} pendingText={pendingText} />
+        // ) :
+        // hash ||
+        // showTimeLockPuzzle ? (
+        // <TransactionSubmittedContent
+        //   chainId={chainId}
+        //   hash={hash}
+        //   onDismiss={onDismiss}
+        //   trade={trade}
+        //   swapResponse={swapResponse}
+        // />
+        // ) :
         content()
       )}
     </Modal>
   )
+  /*
+    <Wrapper>
+      <TransactionCancelSuggest onDismiss={onDismiss} />
+    </Wrapper>
+  */
 }

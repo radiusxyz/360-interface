@@ -1,7 +1,7 @@
 import { Trans } from '@lingui/macro'
 import useCopyClipboard from 'hooks/useCopyClipboard'
 import React, { useCallback } from 'react'
-import { CheckCircle, Copy } from 'react-feather'
+import { CheckCircle } from 'react-feather'
 import styled from 'styled-components/macro'
 import { LinkStyledButton } from 'theme'
 
@@ -31,6 +31,10 @@ interface BaseProps {
 }
 export type CopyHelperProps = BaseProps & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseProps>
 
+function Copy() {
+  return <img src="images/copy-duplicate.png" width="16px" height="16px" alt="copy" />
+}
+
 export default function CopyHelper({ color, toCopy, children }: CopyHelperProps) {
   const [isCopied, setCopied] = useCopyClipboard()
   const copy = useCallback(() => {
@@ -43,14 +47,14 @@ export default function CopyHelper({ color, toCopy, children }: CopyHelperProps)
       &nbsp;
       {isCopied ? (
         <TransactionStatusText>
-          <CheckCircle size={'12'} />
+          <CheckCircle size={'20'} />
           <TransactionStatusText>
             <Trans>Copied</Trans>
           </TransactionStatusText>
         </TransactionStatusText>
       ) : (
         <TransactionStatusText>
-          <Copy size={'12'} />
+          <Copy />
         </TransactionStatusText>
       )}
     </CopyIcon>

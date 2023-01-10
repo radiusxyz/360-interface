@@ -1,30 +1,24 @@
 // eslint-disable-next-line no-restricted-imports
 import { t, Trans } from '@lingui/macro'
+// import { Dialog } from '@reach/dialog'
 import { Percent } from '@uniswap/sdk-core'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
-import { AUTO_ROUTER_SUPPORTED_CHAINS } from 'lib/hooks/routing/clientSideSmartOrderRouter'
 import { useContext, useRef, useState } from 'react'
 import { Settings, X } from 'react-feather'
-import ReactGA from 'react-ga4'
 import { Text } from 'rebass'
 import styled, { ThemeContext } from 'styled-components/macro'
 
-import { useOnClickOutside } from '../../hooks/useOnClickOutside'
 import { useModalOpen, useToggleSettingsMenu } from '../../state/application/hooks'
 import { ApplicationModal } from '../../state/application/reducer'
 import { useClientSideRouter, useExpertModeManager } from '../../state/user/hooks'
-import { ThemedText } from '../../theme'
-import { ButtonError } from '../Button'
 import { AutoColumn } from '../Column'
 import Modal from '../Modal'
-import QuestionHelper from '../QuestionHelper'
-import { RowBetween, RowFixed } from '../Row'
-import Toggle from '../Toggle'
+import { RowCenter } from '../Row'
 import TransactionSettings from '../TransactionSettings'
 
 const StyledMenuIcon = styled(Settings)`
-  height: 20px;
-  width: 20px;
+  height: 24px;
+  width: 24px;
 
   > * {
     stroke: ${({ theme }) => theme.text1};
@@ -76,6 +70,7 @@ const StyledMenu = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+  background: #000000;
   position: relative;
   border: none;
   text-align: left;
@@ -83,22 +78,25 @@ const StyledMenu = styled.div`
 
 const MenuFlyout = styled.span`
   min-width: 20.125rem;
-  background-color: ${({ theme }) => theme.bg2};
-  border: 1px solid ${({ theme }) => theme.bg3};
+  width: 450px;
+  background: #272b3e;
+  /*background-color: ${({ theme }) => theme.bg2};*/
+  /*border: 1px solid ${({ theme }) => theme.bg3};*/
+  border: 1px solid rgba(58, 61, 86);
   box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.01), 0px 4px 8px rgba(0, 0, 0, 0.04), 0px 16px 24px rgba(0, 0, 0, 0.04),
     0px 24px 32px rgba(0, 0, 0, 0.01);
-  border-radius: 12px;
+  border-radius: 6px;
   display: flex;
   flex-direction: column;
   font-size: 1rem;
-  position: absolute;
+  position: relative;
   top: 2rem;
   right: 0rem;
   z-index: 100;
 
-  ${({ theme }) => theme.mediaWidth.upToMedium`
+  /* ${({ theme }) => theme.mediaWidth.upToMedium`
     min-width: 18.125rem;
-  `};
+  `}; */
 
   user-select: none;
 `
@@ -134,12 +132,12 @@ export default function SettingsTab({ placeholderSlippage }: { placeholderSlippa
   // show confirmation view before turning on
   const [showConfirmation, setShowConfirmation] = useState(false)
 
-  useOnClickOutside(node, open ? toggle : undefined)
+  // useOnClickOutside(node, open ? toggle : undefined)
 
   return (
     // https://github.com/DefinitelyTyped/DefinitelyTyped/issues/30451
     <StyledMenu ref={node as any}>
-      <Modal isOpen={showConfirmation} onDismiss={() => setShowConfirmation(false)} maxHeight={100}>
+      {/* <Modal isOpen={showConfirmation} onDismiss={() => setShowConfirmation(false)} maxHeight={100}>
         <ModalContentWrapper>
           <AutoColumn gap="lg">
             <RowBetween style={{ padding: '0 2rem' }}>
@@ -178,9 +176,15 @@ export default function SettingsTab({ placeholderSlippage }: { placeholderSlippa
             </AutoColumn>
           </AutoColumn>
         </ModalContentWrapper>
-      </Modal>
+      </Modal> */}
       <StyledMenuButton onClick={toggle} id="open-settings-dialog-button" aria-label={t`Transaction Settings`}>
-        <StyledMenuIcon />
+        <img
+          src={'/images/BTN_Setting.png'}
+          width={'24px'}
+          height={'24px'}
+          alt={'settings'}
+          style={{ marginRight: '20px' }}
+        />
         {expertMode ? (
           <EmojiWrapper>
             <span role="img" aria-label="wizard-icon">
@@ -189,67 +193,69 @@ export default function SettingsTab({ placeholderSlippage }: { placeholderSlippa
           </EmojiWrapper>
         ) : null}
       </StyledMenuButton>
-      {open && (
-        <MenuFlyout>
-          <AutoColumn gap="md" style={{ padding: '1rem' }}>
-            <Text fontWeight={600} fontSize={14}>
-              <Trans>Transaction Settings</Trans>
+      <Modal isOpen={open} onDismiss={toggle} width={450}>
+        <AutoColumn gap="md" style={{ padding: '10px' }}>
+          <RowCenter style={{ marginTop: '18px', marginBottom: '2px' }}>
+            <Text color={'#ffffff'} fontWeight={600} fontSize={20}>
+              <Trans>Setting</Trans>
             </Text>
+          </RowCenter>
+          <div style={{ background: '#101010', borderRadius: '4px', padding: '40px 30px' }}>
             <TransactionSettings placeholderSlippage={placeholderSlippage} />
-            <Text fontWeight={600} fontSize={14}>
-              <Trans>Interface Settings</Trans>
-            </Text>
-            {chainId && AUTO_ROUTER_SUPPORTED_CHAINS.includes(chainId) && (
+            {/* <Text fontWeight={600} fontSize={14}>
+                <Trans>Interface Settings</Trans>
+              </Text>
+              {chainId && AUTO_ROUTER_SUPPORTED_CHAINS.includes(chainId) && (
+                <RowBetween>
+                  <RowFixed>
+                    <ThemedText.Black fontWeight={400} fontSize={14} color={theme.text2}>
+                      <Trans>Auto Router API</Trans>
+                    </ThemedText.Black>
+                    <QuestionHelper text={<Trans>Use the Uniswap Labs API to get faster quotes.</Trans>} />
+                  </RowFixed>
+                  <Toggle
+                    id="toggle-optimized-router-button"
+                    isActive={!clientSideRouter}
+                    toggle={() => {
+                      ReactGA.event({
+                        category: 'Routing',
+                        action: clientSideRouter ? 'enable routing API' : 'disable routing API',
+                      })
+                      setClientSideRouter(!clientSideRouter)
+                    }}
+                  />
+                </RowBetween>
+              )}
               <RowBetween>
                 <RowFixed>
                   <ThemedText.Black fontWeight={400} fontSize={14} color={theme.text2}>
-                    <Trans>Auto Router API</Trans>
+                    <Trans>Expert Mode</Trans>
                   </ThemedText.Black>
-                  <QuestionHelper text={<Trans>Use the Uniswap Labs API to get faster quotes.</Trans>} />
+                  <QuestionHelper
+                    text={
+                      <Trans>Allow high price impact trades and skip the confirm screen. Use at your own risk.</Trans>
+                    }
+                  />
                 </RowFixed>
                 <Toggle
-                  id="toggle-optimized-router-button"
-                  isActive={!clientSideRouter}
-                  toggle={() => {
-                    ReactGA.event({
-                      category: 'Routing',
-                      action: clientSideRouter ? 'enable routing API' : 'disable routing API',
-                    })
-                    setClientSideRouter(!clientSideRouter)
-                  }}
-                />
-              </RowBetween>
-            )}
-            <RowBetween>
-              <RowFixed>
-                <ThemedText.Black fontWeight={400} fontSize={14} color={theme.text2}>
-                  <Trans>Expert Mode</Trans>
-                </ThemedText.Black>
-                <QuestionHelper
-                  text={
-                    <Trans>Allow high price impact trades and skip the confirm screen. Use at your own risk.</Trans>
+                  id="toggle-expert-mode-button"
+                  isActive={expertMode}
+                  toggle={
+                    expertMode
+                      ? () => {
+                          toggleExpertMode()
+                          setShowConfirmation(false)
+                        }
+                      : () => {
+                          toggle()
+                          setShowConfirmation(true)
+                        }
                   }
                 />
-              </RowFixed>
-              <Toggle
-                id="toggle-expert-mode-button"
-                isActive={expertMode}
-                toggle={
-                  expertMode
-                    ? () => {
-                        toggleExpertMode()
-                        setShowConfirmation(false)
-                      }
-                    : () => {
-                        toggle()
-                        setShowConfirmation(true)
-                      }
-                }
-              />
-            </RowBetween>
-          </AutoColumn>
-        </MenuFlyout>
-      )}
+              </RowBetween> */}
+          </div>
+        </AutoColumn>
+      </Modal>
     </StyledMenu>
   )
 }

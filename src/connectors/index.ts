@@ -15,7 +15,7 @@ const FORMATIC_KEY = process.env.REACT_APP_FORTMATIC_KEY
 
 export const network = new NetworkConnector({
   urls: INFURA_NETWORK_URLS,
-  defaultChainId: 1,
+  defaultChainId: 137,
 })
 
 let networkLibrary: Web3Provider | undefined
@@ -43,7 +43,7 @@ export const fortmatic = new FortmaticConnector({
 
 export const walletlink = new WalletLinkConnector({
   url: INFURA_NETWORK_URLS[SupportedChainId.MAINNET],
-  appName: 'TEX',
+  appName: '360',
   appLogoUrl: UNISWAP_LOGO_URL,
   supportedChainIds: ALL_SUPPORTED_CHAIN_IDS,
 })

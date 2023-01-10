@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 
-export interface VdfParam {
+export interface TimeLockPuzzleParam {
   readonly t: number
   readonly g: string
   readonly g_two_t: string
@@ -12,39 +12,24 @@ export interface VdfParam {
 }
 
 export interface ParameterState {
-  readonly vdfParam: boolean
-  readonly vdfSnarkParam: boolean
-  readonly encryptionParam: boolean
-  readonly encryptionProverKey: boolean
-  readonly encryptionVerifierData: boolean
+  readonly timeLockPuzzleParam: boolean
+  readonly timeLockPuzzleSnarkParam: boolean
 }
 
 const initialState: ParameterState = {
-  vdfParam: false,
-  vdfSnarkParam: false,
-  encryptionParam: false,
-  encryptionProverKey: false,
-  encryptionVerifierData: false,
+  timeLockPuzzleParam: false,
+  timeLockPuzzleSnarkParam: false,
 }
 
 const parameterSlice = createSlice({
   name: 'parameters',
   initialState,
   reducers: {
-    setVdfParam(state, action: { payload: { newParam: boolean } }) {
-      state.vdfParam = action.payload.newParam
+    setTimeLockPuzzleParam(state, action: { payload: { newParam: boolean } }) {
+      state.timeLockPuzzleParam = action.payload.newParam
     },
-    setVdfSnarkParam(state, action: { payload: { newParam: boolean } }) {
-      state.vdfSnarkParam = action.payload.newParam
-    },
-    setEncryptionParam(state, action: { payload: { newParam: boolean } }) {
-      state.encryptionParam = action.payload.newParam
-    },
-    setEncryptionProverKey(state, action: { payload: { newParam: boolean } }) {
-      state.encryptionProverKey = action.payload.newParam
-    },
-    setEncryptionVerifierData(state, action: { payload: { newParam: boolean } }) {
-      state.encryptionVerifierData = action.payload.newParam
+    setTimeLockPuzzleSnarkParam(state, action: { payload: { newParam: boolean } }) {
+      state.timeLockPuzzleSnarkParam = action.payload.newParam
     },
     setZkpParameters(state, action: { payload: { newParam: ParameterState } }) {
       state = action.payload.newParam
@@ -52,12 +37,5 @@ const parameterSlice = createSlice({
   },
 })
 
-export const {
-  setVdfParam,
-  setVdfSnarkParam,
-  setEncryptionParam,
-  setEncryptionProverKey,
-  setEncryptionVerifierData,
-  setZkpParameters,
-} = parameterSlice.actions
+export const { setTimeLockPuzzleParam, setTimeLockPuzzleSnarkParam, setZkpParameters } = parameterSlice.actions
 export default parameterSlice.reducer

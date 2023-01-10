@@ -72,7 +72,7 @@ function useAvatarFromNFT(nftUri = '', enforceOwnership: boolean): { avatar?: st
   const parts = nftUri.toLowerCase().split(':')
   const protocol = parts[0]
   // ignore the chain from eip155
-  // TODO: when we are able, pull only from the specified chain
+  // todo: when we are able, pull only from the specified chain
   const [, erc] = parts[1]?.split('/') ?? []
   const [contractAddress, id] = parts[2]?.split('/') ?? []
   const isERC721 = protocol === 'eip155' && erc === 'erc721'

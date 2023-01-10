@@ -1,9 +1,13 @@
 import { Trans } from '@lingui/macro'
+import { Fraction } from '@uniswap/sdk-core'
 import { Connector } from '@web3-react/types'
+import { useLiveQuery } from 'dexie-react-hooks'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
+import JSBI from 'jsbi'
 import { useCallback, useContext } from 'react'
-import { ExternalLink as LinkIcon } from 'react-feather'
+// import { ExternalLink as LinkIcon } from 'react-feather'
 import { useAppDispatch } from 'state/hooks'
+import { useShowHistoryManager } from 'state/modal/hooks'
 import styled, { ThemeContext } from 'styled-components/macro'
 import { AbstractConnector } from 'web3-react-abstract-connector'
 
@@ -11,8 +15,10 @@ import { ReactComponent as Close } from '../../assets/images/x.svg'
 import { injected, walletlink } from '../../connectors'
 import { SUPPORTED_WALLETS } from '../../constants/wallet'
 import { clearAllTransactions } from '../../state/transactions/reducer'
-import { ExternalLink, LinkStyledButton, ThemedText } from '../../theme'
+import { ExternalLink, ThemedText } from '../../theme'
+import { LinkStyledButton } from '../../theme'
 import { shortenAddress } from '../../utils'
+import { db, Status } from '../../utils/db'
 import { ExplorerDataType, getExplorerLink } from '../../utils/getExplorerLink'
 import { ButtonSecondary } from '../Button'
 import StatusIcon from '../Identicon/StatusIcon'
@@ -22,16 +28,14 @@ import Transaction from './Transaction'
 
 const HeaderRow = styled.div`
   ${({ theme }) => theme.flexRowNoWrap};
-  padding: 1rem 1rem;
-  font-weight: 500;
+  padding: 30px;
+  font-weight: 600;
   color: ${(props) => (props.color === 'blue' ? ({ theme }) => theme.primary1 : 'inherit')};
-  ${({ theme }) => theme.mediaWidth.upToMedium`
-    padding: 1rem;
-  `};
 `
 
 const UpperSection = styled.div`
   position: relative;
+  background: rgba(44, 47, 63);
 
   h5 {
     margin: 0;
@@ -51,13 +55,11 @@ const UpperSection = styled.div`
 `
 
 const InfoCard = styled.div`
-  padding: 1rem;
-  border: 1px solid ${({ theme }) => theme.bg3};
-  border-radius: 20px;
+  padding: 22px 24px;
+  border-radius: 2px;
+  background: rgba(23, 26, 38, 0.5);
   position: relative;
-  display: grid;
-  grid-row-gap: 12px;
-  margin-bottom: 20px;
+  margin: 0px 30px 0px 30px;
 `
 
 const AccountGroupingRow = styled.div`
@@ -73,10 +75,7 @@ const AccountGroupingRow = styled.div`
   }
 `
 
-const AccountSection = styled.div`
-  padding: 0rem 1rem;
-  ${({ theme }) => theme.mediaWidth.upToMedium`padding: 0rem 1rem 1.5rem 1rem;`};
-`
+const AccountSection = styled.div``
 
 const YourAccount = styled.div`
   h5 {
@@ -92,12 +91,11 @@ const YourAccount = styled.div`
 
 const LowerSection = styled.div`
   ${({ theme }) => theme.flexColumnNoWrap}
-  padding: 1.5rem;
-  flex-grow: 1;
+  padding: 24px;
+  border-radius: 2px;
+  background: rgba(23, 26, 38, 0.5);
+  margin: 14px 30px 30px 30px;
   overflow: auto;
-  background-color: ${({ theme }) => theme.bg2};
-  border-bottom-left-radius: 20px;
-  border-bottom-right-radius: 20px;
 
   h5 {
     margin: 0;
@@ -131,7 +129,6 @@ const AccountControl = styled.div`
 const AddressLink = styled(ExternalLink)<{ hasENS: boolean; isENS: boolean }>`
   font-size: 0.825rem;
   color: ${({ theme }) => theme.text3};
-  margin-left: 1rem;
   font-size: 0.825rem;
   display: flex;
   :hover {
@@ -141,8 +138,8 @@ const AddressLink = styled(ExternalLink)<{ hasENS: boolean; isENS: boolean }>`
 
 const CloseIcon = styled.div`
   position: absolute;
-  right: 1rem;
-  top: 14px;
+  right: 30px;
+  top: 31px;
   &:hover {
     cursor: pointer;
     opacity: 0.6;
@@ -172,10 +169,23 @@ const IconWrapper = styled.div<{ size?: number }>`
     height: ${({ size }) => (size ? size + 'px' : '32px')};
     width: ${({ size }) => (size ? size + 'px' : '32px')};
   }
-  ${({ theme }) => theme.mediaWidth.upToMedium`
-    align-items: flex-end;
-  `};
 `
+
+function LinkIcon() {
+  return <img src="images/launch-link-open.png" width="16px" height="16px" alt="link" />
+}
+
+function LinkIconThin() {
+  return (
+    <img
+      src="images/launch-link-open-thin.png"
+      width="16px"
+      height="16px"
+      alt="link"
+      style={{ position: 'relative' }}
+    />
+  )
+}
 
 function WrappedStatusIcon({ connector }: { connector: AbstractConnector | Connector }) {
   return (
@@ -192,11 +202,12 @@ const TransactionListWrapper = styled.div`
 const WalletAction = styled(ButtonSecondary)`
   width: fit-content;
   font-weight: 400;
-  margin-left: 8px;
-  font-size: 0.825rem;
-  padding: 4px 6px;
+  font-size: 14px;
+  color: #ffffff;
+  border: 0px solid;
+  padding: 0px;
   :hover {
-    cursor: pointer;
+    border: 0px solid;
     text-decoration: underline;
   }
 `
@@ -205,9 +216,90 @@ function renderTransactions(transactions: string[]) {
   return (
     <TransactionListWrapper>
       {transactions.map((hash, i) => {
-        return <Transaction key={i} hash={hash} />
+        return <Transaction key={hash} hash={hash} />
       })}
     </TransactionListWrapper>
+  )
+}
+
+function getStatus(status: Status) {
+  switch (status) {
+    case Status.CANCELED:
+      return <span style={{ color: '#A8A8A8' }}>Void</span>
+    case Status.COMPLETED:
+      return <span style={{ color: '#51FF6D' }}>Completed</span>
+    case Status.PENDING:
+      return <span style={{ color: '#FF4444' }}>Pending</span>
+    case Status.REIMBURSED:
+      return <span style={{ color: '#FFBF44' }}>Reimbursed</span>
+    case Status.REIMBURSE_AVAILABLE:
+      return <span style={{ color: '#00A3FF' }}>Reimburse Available</span>
+    case Status.REJECTED:
+      return <span style={{ color: '#FFFFFF' }}>Rejected</span>
+  }
+}
+
+function renderRecentTx(chainId: number | undefined, recentTx: any) {
+  if (chainId === undefined) {
+    return <></>
+  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', marginTop: '12px', gap: '8px', height: '73px' }}>
+      {recentTx.map((i: any) => {
+        return (
+          <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }} key={i.id}>
+            <div style={{ display: 'flex', flexDirection: 'row' }}>
+              <div style={{ color: '#a8a8a8', fontSize: '14px' }}>
+                {JSBIDivide(JSBI.BigInt(i.from.amount), JSBI.BigInt(i.from.decimal), 3) +
+                  ' ' +
+                  i.from.token +
+                  ' to ' +
+                  JSBIDivide(JSBI.BigInt(i.to.amount), JSBI.BigInt(i.to.decimal), 3) +
+                  ' ' +
+                  i.to.token}
+              </div>
+              <div style={{ padding: '0px 0px 0px 16px', display: 'flex', verticalAlign: 'bottom' }}>
+                {i.txId !== '' ? (
+                  <AddressLink
+                    hasENS={false}
+                    isENS={false}
+                    href={getExplorerLink(chainId, i.txId, ExplorerDataType.TRANSACTION)}
+                    style={{
+                      marginLeft: '0px',
+                      position: 'relative',
+                      display: 'flex',
+                      verticalAlign: 'bottom',
+                      alignItems: 'end',
+                    }}
+                  >
+                    <LinkIconThin />
+                  </AddressLink>
+                ) : (
+                  <></>
+                )}
+              </div>
+            </div>
+            <div style={{ fontSize: '14px' }}>{getStatus(i.status)}</div>
+          </div>
+        )
+      })}
+      {recentTx.length === 0 && (
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            textAlign: 'center',
+            justifyContent: 'center',
+            verticalAlign: 'middle',
+            color: '#a8a8a8',
+          }}
+        >
+          You have no recent transactions
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -229,8 +321,9 @@ export default function AccountDetails({
   const { chainId, account, connector } = useActiveWeb3React()
   const theme = useContext(ThemeContext)
   const dispatch = useAppDispatch()
+  const [showHistory, setShowHistory] = useShowHistoryManager()
 
-  function formatConnectorName() {
+  function formatConnectorIcon() {
     const { ethereum } = window
     const isMetaMask = !!(ethereum && ethereum.isMetaMask)
     const name = Object.keys(SUPPORTED_WALLETS)
@@ -239,16 +332,33 @@ export default function AccountDetails({
           SUPPORTED_WALLETS[k].connector === connector && (connector !== injected || isMetaMask === (k === 'METAMASK'))
       )
       .map((k) => SUPPORTED_WALLETS[k].name)[0]
+    const icon = Object.keys(SUPPORTED_WALLETS)
+      .filter(
+        (k) =>
+          SUPPORTED_WALLETS[k].connector === connector && (connector !== injected || isMetaMask === (k === 'METAMASK'))
+      )
+      .map((k) => SUPPORTED_WALLETS[k].iconURL)[0]
+
     return (
-      <WalletName>
-        <Trans>Connected with {name}</Trans>
-      </WalletName>
+      <div style={{ marginRight: '10px' }}>
+        <img src={icon} width="28" height="28" alt="" />
+      </div>
     )
+
+    // return (
+    //   <WalletName>
+    //     <Trans>Connected with {name}</Trans>
+    //   </WalletName>
+    // )
   }
 
   const clearAllTransactionsCallback = useCallback(() => {
     if (chainId) dispatch(clearAllTransactions({ chainId }))
   }, [dispatch, chainId])
+
+  const recentTx = useLiveQuery(async () => {
+    return await db.txHistory.orderBy('id').reverse().limit(3).toArray()
+  })
 
   return (
     <>
@@ -257,124 +367,140 @@ export default function AccountDetails({
           <CloseColor />
         </CloseIcon>
         <HeaderRow>
-          <Trans>Account</Trans>
+          <Trans>Connected Wallet</Trans>
         </HeaderRow>
         <AccountSection>
           <YourAccount>
             <InfoCard>
-              <AccountGroupingRow>
-                {formatConnectorName()}
-                <div>
-                  {connector !== injected && connector !== walletlink && (
-                    <WalletAction
-                      style={{ fontSize: '.825rem', fontWeight: 400, marginRight: '8px' }}
-                      onClick={() => {
-                        ;(connector as any).close()
-                      }}
-                    >
-                      <Trans>Disconnect</Trans>
-                    </WalletAction>
-                  )}
-                  <WalletAction
-                    style={{ fontSize: '.825rem', fontWeight: 400 }}
-                    onClick={() => {
-                      openOptions()
-                    }}
-                  >
-                    <Trans>Change</Trans>
-                  </WalletAction>
-                </div>
-              </AccountGroupingRow>
               <AccountGroupingRow id="web3-account-identifier-row">
                 <AccountControl>
                   {ENSName ? (
                     <>
                       <div>
-                        {connector && <WrappedStatusIcon connector={connector} />}
+                        {/*connector && <WrappedStatusIcon connector={connector} />*/}
+                        {formatConnectorIcon()}
                         <p> {ENSName}</p>
                       </div>
                     </>
                   ) : (
                     <>
                       <div>
-                        {connector && <WrappedStatusIcon connector={connector} />}
-                        <p> {account && shortenAddress(account)}</p>
+                        {/*connector && <WrappedStatusIcon connector={connector} />*/}
+                        {formatConnectorIcon()}
+                        <p style={{ marginRight: '12px' }}> {account && shortenAddress(account)}</p>
                       </div>
                     </>
                   )}
+                  {ENSName ? (
+                    <>
+                      <AccountControl>
+                        <div>
+                          {account && <Copy toCopy={account} />}
+                          {chainId && account && (
+                            <AddressLink
+                              hasENS={!!ENSName}
+                              isENS={true}
+                              href={getExplorerLink(chainId, ENSName, ExplorerDataType.ADDRESS)}
+                              style={{ marginLeft: '12px' }}
+                            >
+                              <LinkIcon />
+                            </AddressLink>
+                          )}
+                        </div>
+                      </AccountControl>
+                    </>
+                  ) : (
+                    <>
+                      <AccountControl>
+                        <div>
+                          {account && <Copy toCopy={account} />}
+                          {chainId && account && (
+                            <AddressLink
+                              hasENS={!!ENSName}
+                              isENS={false}
+                              href={getExplorerLink(chainId, account, ExplorerDataType.ADDRESS)}
+                              style={{ marginLeft: '12px' }}
+                            >
+                              <LinkIcon />
+                            </AddressLink>
+                          )}
+                        </div>
+                      </AccountControl>
+                    </>
+                  )}
                 </AccountControl>
-              </AccountGroupingRow>
-              <AccountGroupingRow>
-                {ENSName ? (
-                  <>
-                    <AccountControl>
-                      <div>
-                        {account && (
-                          <Copy toCopy={account}>
-                            <span style={{ marginLeft: '4px' }}>
-                              <Trans>Copy Address</Trans>
-                            </span>
-                          </Copy>
-                        )}
-                        {chainId && account && (
-                          <AddressLink
-                            hasENS={!!ENSName}
-                            isENS={true}
-                            href={getExplorerLink(chainId, ENSName, ExplorerDataType.ADDRESS)}
-                          >
-                            <LinkIcon size={16} />
-                            <span style={{ marginLeft: '4px' }}>
-                              <Trans>View on Explorer</Trans>
-                            </span>
-                          </AddressLink>
-                        )}
-                      </div>
-                    </AccountControl>
-                  </>
-                ) : (
-                  <>
-                    <AccountControl>
-                      <div>
-                        {account && (
-                          <Copy toCopy={account}>
-                            <span style={{ marginLeft: '4px' }}>
-                              <Trans>Copy Address</Trans>
-                            </span>
-                          </Copy>
-                        )}
-                        {chainId && account && (
-                          <AddressLink
-                            hasENS={!!ENSName}
-                            isENS={false}
-                            href={getExplorerLink(chainId, account, ExplorerDataType.ADDRESS)}
-                          >
-                            <LinkIcon size={16} />
-                            <span style={{ marginLeft: '4px' }}>
-                              <Trans>View on Explorer</Trans>
-                            </span>
-                          </AddressLink>
-                        )}
-                      </div>
-                    </AccountControl>
-                  </>
-                )}
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'end',
+                    width: '50%',
+                    height: '44px',
+                    verticalAlign: 'middle',
+                  }}
+                >
+                  <WalletAction
+                    style={{ fontSize: '14px', fontWeight: 600 }}
+                    onClick={() => {
+                      openOptions()
+                    }}
+                  >
+                    <Trans>Change Wallet</Trans>
+                  </WalletAction>
+                  {connector !== injected && connector !== walletlink && (
+                    <WalletAction
+                      style={{ fontSize: '14px', fontWeight: 600 }}
+                      onClick={() => {
+                        ;(connector as any).close()
+                      }}
+                    >
+                      <Trans>Disconnect Wallet</Trans>
+                    </WalletAction>
+                  )}
+                </div>
               </AccountGroupingRow>
             </InfoCard>
           </YourAccount>
         </AccountSection>
       </UpperSection>
-      {!!pendingTransactions.length || !!confirmedTransactions.length ? (
+      {!!recentTx || !!pendingTransactions.length || !!confirmedTransactions.length ? (
         <LowerSection>
-          <AutoRow mb={'1rem'} style={{ justifyContent: 'space-between' }}>
+          <AutoRow mb={'10px'} style={{ justifyContent: 'space-between' }}>
             <ThemedText.Body>
               <Trans>Recent Transactions</Trans>
             </ThemedText.Body>
-            <LinkStyledButton onClick={clearAllTransactionsCallback}>
+            {/* <LinkStyledButton onClick={clearAllTransactionsCallback}>
               <Trans>(clear all)</Trans>
-            </LinkStyledButton>
+            </LinkStyledButton> */}
+            {recentTx && recentTx.length !== 0 && (
+              <LinkStyledButton
+                onClick={() => setShowHistory(true)}
+                style={{
+                  color: '#ffffff',
+                  padding: '0px',
+                  fontWeight: 'bold',
+                  fontSize: '14px',
+                }}
+              >
+                View All
+              </LinkStyledButton>
+            )}
           </AutoRow>
-          {renderTransactions(pendingTransactions)}
-          {renderTransactions(confirmedTransactions)}
+          <hr
+            style={{
+              width: '100%',
+              height: '0px',
+              margin: '0px',
+              borderTop: '1px solid #272b3e',
+              borderBottom: '0px solid #000',
+              borderLeft: '0px solid #000',
+              borderRight: '0px solid #000',
+            }}
+          />
+          {recentTx ? renderRecentTx(chainId, recentTx) : <div style={{ height: 50 }}>No recent Transaction</div>}
+          {/* renderTransactions(pendingTransactions) */}
+          {/* renderTransactions(confirmedTransactions) */}
         </LowerSection>
       ) : (
         <LowerSection>
@@ -385,4 +511,8 @@ export default function AccountDetails({
       )}
     </>
   )
+}
+
+export function JSBIDivide(numerator: JSBI, denominator: JSBI, precision: number) {
+  return new Fraction(numerator, denominator).toSignificant(precision).toString()
 }
