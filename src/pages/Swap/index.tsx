@@ -779,9 +779,9 @@ export default function Swap({ history }: RouteComponentProps) {
         onDismiss={handleDismissTokenWarning}
       />
       <HistoryModal isOpen={showHistory} onDismiss={() => setShowHistory(false)} />
-      <button onClick={() => fixHistory()}>fixHistory</button>
       <AppBody>
         {/* <button onClick={() => addPending()}>inputPending</button>
+        <button onClick={() => fixHistory()}>fixHistory</button>
         <button onClick={() => addTxHistory()}>inputTx</button>
         <button onClick={() => showDB()}>log</button>
         <button onClick={() => showModal()}>modal</button>
