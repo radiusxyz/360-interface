@@ -829,6 +829,7 @@ export default function Swap({ history }: RouteComponentProps) {
                     independentField === Field.OUTPUT && !showWrap ? <Trans>From (at most)</Trans> : <Trans>From</Trans>
                   }
                   value={formattedAmounts[Field.INPUT]}
+                  disableNonToken={true}
                   showMaxButton={showMaxButton}
                   currency={currencies[Field.INPUT]}
                   onUserInput={handleTypeInput}
@@ -860,6 +861,7 @@ export default function Swap({ history }: RouteComponentProps) {
                 </ArrowWrapper>
                 <CurrencyInputPanel
                   value={formattedAmounts[Field.OUTPUT]}
+                  disableNonToken={true}
                   onUserInput={() => {
                     return
                   }}
