@@ -244,9 +244,10 @@ export async function CheckPendingTx({
                   console.log('pending tx exist', pendingTx)
                   // 2.1 HashChain 검증
                   const txHashes = await recorder?.getRoundTxHashes(pendingTx.round)
+                  console.log('txHashes', txHashes)
 
-                  let hashChain = txHashes[0]
-                  for (let i = 1; i < pendingTx.order; i++) {
+                  let hashChain = '0x0000000000000000000000000000000000000000000000000000000000000000'
+                  for (let i = 0; i < pendingTx.order; i++) {
                     hashChain = solidityKeccak256(['bytes32', 'bytes32'], [hashChain, txHashes[i]])
                   }
 
@@ -264,6 +265,7 @@ export async function CheckPendingTx({
                   )
                   if (
                     // doneRound >= pendingTx.round &&
+                    txHashes.length > 0 &&
                     txHashes[pendingTx.order] === readyTx?.txHash &&
                     ((pendingTx.order === 0 &&
                       pendingTx.proofHash === '0x0000000000000000000000000000000000000000000000000000000000000000') ||
