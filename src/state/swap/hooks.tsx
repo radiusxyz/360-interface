@@ -226,7 +226,7 @@ export function queryParametersToSwapState(parsedQs: ParsedQs): SwapState {
 
   if (inputCurrency === '' && outputCurrency === '' && typedValue === '' && independentField === Field.INPUT) {
     // Defaults to having the native currency selected
-    inputCurrency = 'ETH'
+    inputCurrency = ''
   } else if (inputCurrency === outputCurrency) {
     // clear output if identical
     outputCurrency = ''

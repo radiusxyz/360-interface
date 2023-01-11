@@ -2,7 +2,7 @@ import { Trans } from '@lingui/macro'
 import { Currency, CurrencyAmount, Percent, Token } from '@uniswap/sdk-core'
 import { Pair } from '@uniswap/v2-sdk'
 import { AutoColumn } from 'components/Column'
-import { LoadingOpacityContainer, loadingOpacityMixin } from 'components/Loader/styled'
+import { loadingOpacityMixin } from 'components/Loader/styled'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { darken } from 'polished'
 import { ReactNode, useCallback, useState } from 'react'
@@ -20,7 +20,6 @@ import DoubleCurrencyLogo from '../DoubleLogo'
 import { Input as NumericalInput } from '../NumericalInput'
 import { RowBetween, RowFixed } from '../Row'
 import CurrencySearchModal from '../SearchModal/CurrencySearchModal'
-import { FiatValue } from './FiatValue'
 
 const InputPanel = styled.div<{ hideInput?: boolean }>`
   ${({ theme }) => theme.flexColumnNoWrap}
@@ -363,7 +362,7 @@ export default function CurrencyInputPanel({
             ) : (
               <span />
             )}
-            <LoadingOpacityContainer $loading={loading}>
+            {/* <LoadingOpacityContainer $loading={loading}>
               <FiatValue fiatValue={fiatValue} priceImpact={priceImpact} />
             </LoadingOpacityContainer>
             <ThemedText.Body
@@ -373,7 +372,7 @@ export default function CurrencyInputPanel({
               style={{ display: 'inline', cursor: 'pointer' }}
             >
               {fiatValue && '$' + fiatValue}
-            </ThemedText.Body>
+            </ThemedText.Body> */}
           </RowBetween>
         </FiatRow>
       </Container>
