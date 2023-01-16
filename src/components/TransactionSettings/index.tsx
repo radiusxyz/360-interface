@@ -1,7 +1,6 @@
 import { Trans } from '@lingui/macro'
 import { Percent } from '@uniswap/sdk-core'
 import { MouseoverTooltip } from 'components/Tooltip'
-import { L2_CHAIN_IDS } from 'constants/chains'
 import { DEFAULT_DEADLINE_FROM_NOW } from 'constants/misc'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import ms from 'ms.macro'
@@ -158,7 +157,8 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
     }
   }
 
-  const showCustomDeadlineRow = Boolean(chainId && !L2_CHAIN_IDS.includes(chainId))
+  // const showCustomDeadlineRow = Boolean(chainId && !L2_CHAIN_IDS.includes(chainId))
+  const showCustomDeadlineRow = false
 
   return (
     <AutoColumn gap="40px">
@@ -267,9 +267,9 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
             {slippageError ? (
               <Trans>Enter a valid slippage percentage</Trans>
             ) : tooLow ? (
-              <Trans>Too Low</Trans>
+              <Trans>Slippage is too low. Your transaction may fail.</Trans>
             ) : (
-              <Trans>Too High</Trans>
+              <Trans>Slippage is too high.</Trans>
             )}
           </RowBetween>
         ) : null}
@@ -330,7 +330,7 @@ export default function TransactionSettings({ placeholderSlippage }: Transaction
                 color: slippageError ? '#ff4747' : '#ff4747',
               }}
             >
-              <Trans>Your transaction will be pending for a long time. Use at your own risk</Trans>
+              <Trans>Your transaction will be pending for a long period of time. Use at your own risk</Trans>
             </RowBetween>
           ) : null}
         </AutoColumn>

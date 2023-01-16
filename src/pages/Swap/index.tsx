@@ -1,7 +1,8 @@
+import { Contract } from '@ethersproject/contracts'
+import { Web3Provider } from '@ethersproject/providers'
 import { Trans } from '@lingui/macro'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, CurrencyAmount, Token, TradeType } from '@uniswap/sdk-core'
-import { Percent } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'
 import { Trade as V3Trade } from '@uniswap/v3-sdk'
 import SwapDetailsDropdown from 'components/swap/SwapDetailsDropdown'
@@ -13,13 +14,14 @@ import { useSwapCallback } from 'hooks/useSwapCallback'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import JSBI from 'jsbi'
 import { RadiusSwapResponse } from 'lib/hooks/swap/useSendSwapTransaction'
+import { watcher_test } from 'lib/utils/watcher'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { ArrowDown, CheckCircle, HelpCircle, Info } from 'react-feather'
 import ReactGA from 'react-ga4'
 import { BsArrowDown } from 'react-icons/bs'
 import { RouteComponentProps } from 'react-router-dom'
 import { Text } from 'rebass'
-import { addPopup } from 'state/application/reducer'
+import { addPopup, removePopup } from 'state/application/reducer'
 import { useAppDispatch } from 'state/hooks'
 import { useCancelManager, useReimbursementManager, useShowHistoryManager } from 'state/modal/hooks'
 import { setProgress } from 'state/modal/reducer'
@@ -50,6 +52,7 @@ import TokenWarningModal from '../../components/TokenWarningModal'
 import { TOKEN_SHORTHANDS } from '../../constants/tokens'
 import { useAllTokens, useCurrency } from '../../hooks/Tokens'
 import { ApprovalState, useApprovalOptimizedTrade, useApproveCallbackFromTrade } from '../../hooks/useApproveCallback'
+import { useRecorderContract } from '../../hooks/useContract'
 import useENSAddress from '../../hooks/useENSAddress'
 import { useERC20PermitFromTrade, UseERC20PermitState } from '../../hooks/useERC20Permit'
 import useIsArgentWallet from '../../hooks/useIsArgentWallet'
@@ -172,6 +175,28 @@ export default function Swap({ history }: RouteComponentProps) {
     }
   }
 
+  const recorderContract = useRecorderContract() as Contract
+  const { library } = useActiveWeb3React()
+  function watcher(recorderContract: Contract, library: Web3Provider) {
+    const txId = ''
+    const account = ''
+    const round = 0
+    const order = 0
+    const nonce = 0
+    const proofHash = ''
+    const txHash = ''
+    const doneRound = 0
+    watcher_test(recorderContract, library, txId, account, { round, order, proofHash, txHash, nonce }, doneRound)
+    /**
+     * recorder: Contract,
+     * library: Web3Provider,
+     * txHash: string,
+     * account: string,
+     * given: { round: number; order: number; proofHash: string; txHash: string; nonce: number },
+     * doneRound: number
+     */
+  }
+
   const resetPendingTx = async () => {
     await db.pendingTxs.update(11, { round: 0 })
   }
@@ -243,11 +268,19 @@ export default function Swap({ history }: RouteComponentProps) {
       addPopup({
         content: {
           title: 'Transaction pending',
-          status: 'success',
+          status: 'pending',
           data: { hash: '0x1111111111111111111111111111111111111111' },
         },
         key: `popup-test`,
-        removeAfterMs: 1000000,
+        removeAfterMs: 31536000000,
+      })
+    )
+  }
+
+  const removePopUp = () => {
+    dispatch(
+      removePopup({
+        key: `popup-test`,
       })
     )
   }
@@ -289,9 +322,7 @@ export default function Swap({ history }: RouteComponentProps) {
 
   useEffect(() => {
     fetch(`${process.env.REACT_APP_360_OPERATOR}/whiteList?walletAddress=` + account).then(async (is) => {
-      console.log(is)
       const val = await is.text()
-      console.log(val)
       if (val === 'false') setDisabled(true)
       else setDisabled(false)
     })
@@ -762,11 +793,13 @@ export default function Swap({ history }: RouteComponentProps) {
     }
   }, [isValid, routeIsSyncing, routeIsLoading, swapCallbackError, controls])
 
-  const minimum = trade
-    ?.minimumAmountOut(new Percent((100 - parseInt(allowedSlippage.toSignificant())).toString()))
-    .multiply('100')
-    .toSignificant()
-    .toString()
+  // const minimum = trade
+  //   ?.minimumAmountOut(new Percent((100 - parseInt(allowedSlippage.toSignificant())).toString()))
+  //   .multiply('100')
+  //   .toSignificant()
+  //   .toString()
+
+  const minimum = trade?.minimumAmountOut(allowedSlippage).toSignificant(6).toString()
 
   function openProgress() {
     dispatch(setProgress({ newParam: 4 }))
@@ -781,6 +814,37 @@ export default function Swap({ history }: RouteComponentProps) {
     })
   }
 
+  const [input, setInput] = useState<{
+    txId: string
+    account: string
+    round: number
+    order: number
+    nonce: number
+    proofHash: string
+    txHash: string
+    doneRound: number
+  }>({
+    txId: '',
+    account: '',
+    round: 0,
+    order: 0,
+    nonce: 0,
+    proofHash: '',
+    txHash: '',
+    doneRound: 0,
+  })
+
+  /**
+    const txId = ''
+    const account = ''
+    const round = 0
+    const order = 0
+    const nonce = 0
+    const proofHash = ''
+    const txHash = ''
+    const doneRound = 0
+   */
+
   // TODO: CLEAR CACHE 자동로딩
   return (
     <>
@@ -790,14 +854,98 @@ export default function Swap({ history }: RouteComponentProps) {
         onConfirm={handleConfirmTokenWarning}
         onDismiss={handleDismissTokenWarning}
       />
-      <HistoryModal isOpen={showHistory} onDismiss={() => setShowHistory(false)} />
+      <button onClick={() => showPopUp()}>add popup</button>
+      <button onClick={() => removePopUp()}>remove popup</button>
+      <div>
+        <div>
+          txId:
+          <input
+            onChange={(e) => {
+              setInput({ ...input, txId: e.target.value })
+            }}
+            value={input.txId}
+            type={'text'}
+          />
+        </div>
+        <div>
+          account:
+          <input
+            onChange={(e) => {
+              setInput({ ...input, account: e.target.value })
+            }}
+            value={input.account}
+            type={'text'}
+          />
+        </div>
+        <div>
+          round:
+          <input
+            onChange={(e) => {
+              setInput({ ...input, round: parseInt(e.target.value) })
+            }}
+            value={input.round}
+            type={'number'}
+          />
+        </div>
+        <div>
+          order:
+          <input
+            onChange={(e) => {
+              setInput({ ...input, order: parseInt(e.target.value) })
+            }}
+            value={input.order}
+            type={'number'}
+          />
+        </div>
+        <div>
+          nonce:
+          <input
+            onChange={(e) => {
+              setInput({ ...input, nonce: parseInt(e.target.value) })
+            }}
+            value={input.nonce}
+            type={'number'}
+          />
+        </div>
+
+        <div>
+          proofHash:
+          <input
+            onChange={(e) => {
+              setInput({ ...input, proofHash: e.target.value })
+            }}
+            value={input.proofHash}
+            type={'text'}
+          />
+        </div>
+        <div>
+          txHash:
+          <input
+            onChange={(e) => {
+              setInput({ ...input, txHash: e.target.value })
+            }}
+            value={input.txHash}
+            type={'text'}
+          />
+        </div>
+        <div>
+          doneRound:
+          <input
+            onChange={(e) => {
+              setInput({ ...input, doneRound: parseInt(e.target.value) })
+            }}
+            value={input.doneRound}
+            type={'number'}
+          />
+        </div>
+        <button onClick={() => watcher(recorderContract, library as Web3Provider)}>watcher test</button>
+      </div>
       <AppBody>
         {/* <button onClick={() => addPending()}>inputPending</button>
         <button onClick={() => fixHistory()}>fixHistory</button>
         <button onClick={() => addTxHistory()}>inputTx</button>
         <button onClick={() => showDB()}>log</button>
         <button onClick={() => showModal()}>modal</button>
-        <button onClick={() => showPopUp()}>popup</button>
         <button onClick={() => showReimbursementModal()}>reimbursement</button>
         <button onClick={() => openProgress()}>Open Progress</button>
         <button onClick={() => showCancel()}>cancel</button> */}
@@ -811,6 +959,7 @@ export default function Swap({ history }: RouteComponentProps) {
         >
           <SwapHeader allowedSlippage={allowedSlippage} />
           <Wrapper id="swap-page">
+            <HistoryModal isOpen={showHistory} onDismiss={() => setShowHistory(false)} />
             <ConfirmSwapModal
               isOpen={showConfirm}
               trade={trade}
@@ -938,6 +1087,12 @@ export default function Swap({ history }: RouteComponentProps) {
               <SwapButtonLight onClick={toggleWalletModal}>
                 <Trans>Connect Wallet</Trans>
               </SwapButtonLight>
+            ) : disabled ? (
+              <SwapButtonPrimary disabled={true}>
+                <ThemedText.Main mb="4px">
+                  <Trans>Your address is not whitelisted</Trans>
+                </ThemedText.Main>
+              </SwapButtonPrimary>
             ) : showWrap ? (
               <SwapButtonPrimary disabled={Boolean(wrapInputError)} onClick={onWrap}>
                 {wrapInputError ? (

@@ -18,6 +18,20 @@ const ProceedButton = styled(ButtonError)`
   border: 0px solid #fff;
 `
 
+const CancelButton = styled(ButtonError)`
+  background: transparent;
+  width: 209px;
+  height: 40px;
+  border-radius: 0px;
+  padding: 10px 40px 10px 40px;
+  color: #8bb3ff;
+  font-size: 14px;
+  border: none;
+  :hover {
+    background: #1f2232;
+  }
+`
+
 const Popup = styled.div`
   /*background-color: ${({ theme }) => theme.bg0};*/
   position: relative;
@@ -95,7 +109,7 @@ export default function PopupItem({
 
   const Status =
     values?.status === 'pending' ? (
-      'p'
+      <img src="images/pending.png" width="16px" height="16px" alt="" />
     ) : values?.status === 'success' ? (
       <CheckCircle size={'16px'} color={'#00ffa3'} />
     ) : values?.status === 'rejected' ? (
@@ -109,32 +123,61 @@ export default function PopupItem({
 
   return (
     <Popup>
-      <div
-        style={{
-          position: 'absolute',
-          top: 18,
-          left: 0,
-          right: 18,
-          bottom: 0,
-          display: 'flex',
-          justifyContent: 'right',
-          alignItems: 'right',
-          textAlign: 'right',
-        }}
-      >
-        <X color={theme.text2} onClick={removeThisPopup} />
-      </div>
-      <div style={{ marginBottom: '31px' }}>
-        <ThemedText.White fontSize={'18px'} fontWeight={'600'}>
-          {values?.title} {Status}
-        </ThemedText.White>
-      </div>
-      <a href="https://" style={{ textDecoration: 'none', color: '#8BB3FF', marginBottom: '8px' }}>
-        View on explorer
-      </a>
-      <a href="https://" style={{ textDecoration: 'none', color: '#8BB3FF' }}>
-        Go to Recent Transaction
-      </a>
+      {values?.status === 'pending' ? (
+        <>
+          <div
+            style={{
+              position: 'absolute',
+              top: 18,
+              left: 0,
+              right: 18,
+              bottom: 0,
+              display: 'flex',
+              justifyContent: 'right',
+              alignItems: 'right',
+              textAlign: 'right',
+            }}
+          >
+            <X color={theme.text2} onClick={removeThisPopup} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+            <img src="images/gif_pending.gif" width="66px" height="66px" alt="" />
+            <span style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '10px', marginBottom: '7px' }}>
+              Transaction Pending
+            </span>
+            <CancelButton style={{ marginBottom: '1px' }}>Cancel Transaction</CancelButton>
+          </div>
+        </>
+      ) : (
+        <>
+          <div
+            style={{
+              position: 'absolute',
+              top: 18,
+              left: 0,
+              right: 18,
+              bottom: 0,
+              display: 'flex',
+              justifyContent: 'right',
+              alignItems: 'right',
+              textAlign: 'right',
+            }}
+          >
+            <X color={theme.text2} onClick={removeThisPopup} />
+          </div>
+          <div style={{ marginBottom: '31px' }}>
+            <ThemedText.White fontSize={'18px'} fontWeight={'600'}>
+              {values?.title} {Status}
+            </ThemedText.White>
+          </div>
+          <a href="https://" style={{ textDecoration: 'none', color: '#8BB3FF', marginBottom: '8px' }}>
+            View on explorer
+          </a>
+          <a href="https://" style={{ textDecoration: 'none', color: '#8BB3FF' }}>
+            Go to Recent Transaction
+          </a>
+        </>
+      )}
       {claimReimbursement && (
         <>
           <ProceedButton style={{ marginTop: '20px', marginBottom: '8px', height: '46px' }}>

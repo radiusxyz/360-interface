@@ -125,7 +125,7 @@ export default function CurrencySearchModal({
       break
   }
   return (
-    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={80} minHeight={minHeight}>
+    <Modal isOpen={isOpen} onDismiss={onDismiss} width={564} maxHeight={80} minHeight={minHeight}>
       {content}
     </Modal>
   )

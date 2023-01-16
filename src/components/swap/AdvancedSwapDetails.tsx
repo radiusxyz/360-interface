@@ -71,22 +71,23 @@ export function AdvancedSwapDetails({
             <MouseoverTooltip
               text={
                 <Trans>
-                  The amount you expect to receive at the current market price. You may receive less or more if the
-                  market price changes while your transaction is pending.
+                  The minimum amount of tokens you will receive after slippage. You may receive a greater amount
+                  depending on the market conditions as your transaction is pending.
                 </Trans>
               }
               disableHover={hideInfoTooltips}
             >
               <ThemedText.SubHeader color={'#d0d0d0'}>
-                <Trans>Expected Output</Trans>
+                <Trans>You receive minimum</Trans>
               </ThemedText.SubHeader>
             </MouseoverTooltip>
           </RowFixed>
           <TextWithLoadingPlaceholder syncing={syncing} width={65}>
             <ThemedText.SubHeader textAlign="right" fontSize={14} color={'#d0d0d0'} fontWeight={'600'}>
-              {expectedOutputAmount
+              {trade.minimumAmountOut(allowedSlippage).toSignificant(6)} {trade.outputAmount.currency.symbol}
+              {/*expectedOutputAmount
                 ? `${expectedOutputAmount.toSignificant(6)}  ${expectedOutputAmount.currency.symbol}`
-                : '-'}
+            : '-'*/}
             </ThemedText.SubHeader>
           </TextWithLoadingPlaceholder>
         </RowBetween>
@@ -95,8 +96,8 @@ export function AdvancedSwapDetails({
             <MouseoverTooltip
               text={
                 <Trans>
-                  The minimum amount you are guaranteed to receive. If the price slips any further, your transaction
-                  will revert.
+                  The maximum change in price you are willing to accept. Your transaction will revert if the price
+                  decreases further.
                 </Trans>
               }
               disableHover={hideInfoTooltips}
@@ -116,7 +117,7 @@ export function AdvancedSwapDetails({
         <RowBetween>
           <RowFixed>
             <MouseoverTooltip
-              text={<Trans>The impact your trade has on the market price of this pool.</Trans>}
+              text={<Trans>The change in market price of the asset due to the impact of your trade.</Trans>}
               disableHover={hideInfoTooltips}
             >
               <ThemedText.SubHeader color={'#d0d0d0'}>
@@ -126,26 +127,15 @@ export function AdvancedSwapDetails({
           </RowFixed>
           <TextWithLoadingPlaceholder syncing={syncing} width={50}>
             <ThemedText.SubHeader textAlign="right" fontSize={14} color={'#F5AC37'} fontWeight={'600'}>
-              {priceImpact}
-              {/* <FormattedPriceImpact priceImpact={priceImpact} /> */}
+              {priceImpact} %{/* <FormattedPriceImpact priceImpact={priceImpact} /> */}
             </ThemedText.SubHeader>
           </TextWithLoadingPlaceholder>
         </RowBetween>
         <RowBetween>
           <RowFixed style={{ marginRight: '20px' }}>
-            <MouseoverTooltip
-              text={
-                <Trans>
-                  The minimum amount you are guaranteed to receive. If the price slips any further, your transaction
-                  will revert.
-                </Trans>
-              }
-              disableHover={hideInfoTooltips}
-            >
-              <ThemedText.SubHeader color={'#d0d0d0'}>
-                <Trans>Total Fee (including gas fee)</Trans>
-              </ThemedText.SubHeader>
-            </MouseoverTooltip>
+            <ThemedText.SubHeader color={'#d0d0d0'}>
+              <Trans>Total Fee (including gas fee)</Trans>
+            </ThemedText.SubHeader>
           </RowFixed>
           <TextWithLoadingPlaceholder syncing={syncing} width={70}>
             <ThemedText.Black textAlign="right" fontSize={14} color={'#0EFF76'} fontWeight={'600'}>
