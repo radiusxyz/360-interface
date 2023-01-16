@@ -272,6 +272,12 @@ export default function NetworkSelector() {
     [dispatch, library, toggle, history, chainId]
   )
 
+  // useEffect(() => {
+  //   if (chainId !== SupportedChainId.POLYGON && library !== undefined) {
+  //     switchToNetwork({ provider: library.provider, chainId: SupportedChainId.POLYGON })
+  //   }
+  // }, [chainId, library])
+
   useEffect(() => {
     if (!chainId || !prevChainId) return
 
@@ -296,7 +302,15 @@ export default function NetworkSelector() {
   }
 
   return (
-    <SelectorWrapper ref={node as any} onMouseDown={toggle}>
+    <SelectorWrapper
+      ref={node as any}
+      onMouseDown={() => {
+        if (!open) toggle()
+      }}
+      onMouseLeave={() => {
+        if (open) toggle()
+      }}
+    >
       <SelectorControls interactive>
         <SelectorLogo interactive src={info.logoUrl} />
         <SelectorLabel>{info.label}</SelectorLabel>

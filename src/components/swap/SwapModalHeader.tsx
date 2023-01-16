@@ -9,10 +9,8 @@ import styled, { ThemeContext } from 'styled-components/macro'
 import { useUSDCValue } from '../../hooks/useUSDCPrice'
 import { ThemedText } from '../../theme'
 import { isAddress, shortenAddress } from '../../utils'
-import { computeFiatValuePriceImpact } from '../../utils/computeFiatValuePriceImpact'
 import { ButtonPrimary } from '../Button'
 import { AutoColumn } from '../Column'
-import { FiatValue } from '../CurrencyInputPanel/FiatValue'
 import CurrencyLogo from '../CurrencyLogo'
 import { AutoRow, RowBetween, RowFixed } from '../Row'
 import { AdvancedSwapDetails } from './AdvancedSwapDetails'
@@ -161,14 +159,14 @@ export default function SwapModalHeader({
                 </Text>
               </RowFixed>
             </div>
-            <RowBetween>
+            {/* <RowBetween>
               <ThemedText.Body fontSize={14} color={theme.text3}>
                 <FiatValue
                   fiatValue={fiatValueOutput}
                   priceImpact={computeFiatValuePriceImpact(fiatValueInput, fiatValueOutput)}
                 />
               </ThemedText.Body>
-            </RowBetween>
+            </RowBetween> */}
           </div>
         </div>
       </div>

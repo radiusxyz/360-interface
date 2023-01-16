@@ -208,6 +208,7 @@
     "polished": "^3.3.2",
     "popper-max-size-modifier": "^0.2.0",
     "react-app-rewired": "^2.2.1",
+    "react-error-overlay": "^6.0.11",
     "react-feather": "^2.0.8",
     "react-icons": "^4.7.1",
     "react-popper": "^2.2.3",

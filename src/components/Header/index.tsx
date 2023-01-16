@@ -18,9 +18,9 @@ import HolidayOrnament from './HolidayOrnament'
 import NetworkSelector from './NetworkSelector'
 
 const HeaderFrame = styled.div<{ showBackground: boolean }>`
-  display: grid;
+  display: flex;
   grid-template-columns: 120px 1fr 1fr;
-  justify-content: between;
+  justify-content: space-between;
   align-items: center;
   flex-direction: row;
   width: 100%;
@@ -37,20 +37,6 @@ const HeaderFrame = styled.div<{ showBackground: boolean }>`
   box-shadow: 0px 0px 0px 1px ${({ theme, showBackground }) => (showBackground ? theme.bg2 : 'transparent;')};
   transition: background-position 0.1s, box-shadow 0.1s;
   background-blend-mode: hard-light;
-
-  ${({ theme }) => theme.mediaWidth.upToLarge`
-    grid-template-columns: 148px 1fr 1fr;
-  `};
-
-  ${({ theme }) => theme.mediaWidth.upToMedium`
-    padding:  1rem;
-    grid-template-columns: 1fr 1fr;
-  `};
-
-  ${({ theme }) => theme.mediaWidth.upToSmall`
-    padding:  1rem;
-    grid-template-columns: 136px 1fr;
-  `};
 `
 
 const HeaderControls = styled.div`
@@ -84,7 +70,7 @@ const HeaderLinks = styled(Row)`
   padding: 2px;
   display: grid;
   grid-auto-flow: column;
-  grid-gap: 40px;
+  grid-gap: 10px;
   overflow: auto;
   align-items: center;
   ${({ theme }) => theme.mediaWidth.upToLarge`
@@ -99,7 +85,7 @@ const HeaderLinks = styled(Row)`
     justify-self: center;
     z-index: 99;
     position: fixed;
-    bottom: 0; right: 50%;
+    bottom: 30px; right: 50%;
     transform: translate(50%,-50%);
     margin: 0 auto;
     background-color: ${({ theme }) => theme.bg0};

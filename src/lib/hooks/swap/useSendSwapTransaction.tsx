@@ -13,6 +13,7 @@ import { SwapCall } from 'hooks/useSwapCallArguments'
 import JSBI from 'jsbi'
 import localForage from 'localforage'
 import { useMemo } from 'react'
+import { addPopup } from 'state/application/reducer'
 import { useAppDispatch } from 'state/hooks'
 import { useCancelManager } from 'state/modal/hooks'
 import { setProgress } from 'state/modal/reducer'
@@ -167,7 +168,13 @@ export default function useSendSwapTransaction(
         const signer = library.getSigner()
         const signAddress = await signer.getAddress()
 
+        console.log('resolvedCalls', resolvedCalls)
+
+        const { deadline, availableFrom, amountIn, amountOut, path, idPath } = resolvedCalls[0]
+
+        // TODO: 1 need
         const contractNonce = await routerContract.nonces(account)
+
         const operatorPendingTxCnt = await fetch(
           `${process.env.REACT_APP_360_OPERATOR}/tx/pendingTxCnt?chainId=${chainId}&walletAddress=${account}`
         )
@@ -177,11 +184,7 @@ export default function useSendSwapTransaction(
         const txNonce = parseInt(contractNonce) + parseInt(text)
         console.log('test2', txNonce)
 
-        console.log('resolvedCalls', resolvedCalls)
-
-        const { deadline, amountIn, amountOut, path, idPath } = resolvedCalls[0]
-
-        const message = {
+        const signMessage = {
           txOwner: signAddress,
           functionSelector: swapExactTokensForTokens,
           amountIn: `${amountIn}`,
@@ -190,9 +193,44 @@ export default function useSendSwapTransaction(
           to: signAddress,
           nonce: txNonce,
           deadline,
+          availableFrom,
         }
 
-        console.log('message', message)
+        sigHandler()
+
+        // const disableTxHash = serialize(tx, sign)
+
+        // console.log('disableTxHash', disableTxHash)
+        // console.log(signer, signAddress)
+        // const availableFrom = Math.floor(Date.now() / 1000) + 70
+        dispatch(setProgress({ newParam: 1 }))
+
+        const typedData = JSON.stringify({
+          types: {
+            EIP712Domain: DOMAIN_TYPE,
+            Swap: SWAP_TYPE,
+          },
+          primaryType: 'Swap',
+          domain: domain(chainId),
+          message: signMessage,
+        })
+
+        const now = Date.now()
+
+        const sig = await signWithEIP712(library, signAddress, typedData)
+
+        if (now + 10000 < Date.now()) {
+          dispatch(setProgress({ newParam: 8 }))
+          return emptyResponse
+        }
+
+        dispatch(setProgress({ newParam: 2 }))
+
+        const timeLockPuzzleData = await getTimeLockPuzzleProof(timeLockPuzzleParam, timeLockPuzzleSnarkParam)
+
+        // console.log(timeLockPuzzleData)
+
+        dispatch(setProgress({ newParam: 3 }))
 
         if (path.length > 3) {
           console.error('Cannot encrypt path which length is over 3')
@@ -214,44 +252,6 @@ export default function useSendSwapTransaction(
           nonce: `${txNonce}`,
           path: pathToHash,
         }
-
-        sigHandler()
-
-        // const disableTxHash = serialize(tx, sign)
-
-        // console.log('disableTxHash', disableTxHash)
-        // console.log(signer, signAddress)
-        const availableFrom = Math.floor(Date.now() / 1000) + 70
-        const now = Date.now()
-
-        const signMessage = { ...message, availableFrom }
-
-        const typedData = JSON.stringify({
-          types: {
-            EIP712Domain: DOMAIN_TYPE,
-            Swap: SWAP_TYPE,
-          },
-          primaryType: 'Swap',
-          domain: domain(chainId),
-          message: signMessage,
-        })
-
-        dispatch(setProgress({ newParam: 1 }))
-
-        const sig = await signWithEIP712(library, signAddress, typedData)
-
-        if (now + 10000 < Date.now()) {
-          dispatch(setProgress({ newParam: 8 }))
-          return emptyResponse
-        }
-
-        dispatch(setProgress({ newParam: 2 }))
-
-        const timeLockPuzzleData = await getTimeLockPuzzleProof(timeLockPuzzleParam, timeLockPuzzleSnarkParam)
-
-        // console.log(timeLockPuzzleData)
-
-        dispatch(setProgress({ newParam: 3 }))
 
         const encryptData = await poseidonEncryptWithTxHash(
           txInfoToHash,
@@ -309,7 +309,7 @@ export default function useSendSwapTransaction(
         const outSymbol =
           trade?.outputAmount?.currency?.symbol !== undefined ? trade?.outputAmount?.currency?.symbol : ''
 
-        await db.readyTxs.add({
+        const readyTxId = await db.readyTxs.add({
           txHash,
           mimcHash: '0x' + encryptData.tx_id,
           tx: signMessage,
@@ -324,18 +324,25 @@ export default function useSendSwapTransaction(
           recorderContract,
           encryptedSwapTx,
           sig,
+          dispatch,
           setCancel
+        )
+
+        dispatch(
+          addPopup({
+            content: {
+              title: 'Transaction pending',
+              status: 'pending',
+              data: { readyTxId },
+            },
+            key: `${sendResponse.data.txOrderMsg.round}-${sendResponse.data.txOrderMsg.order}`,
+            removeAfterMs: 31536000000,
+          })
         )
 
         dispatch(setProgress({ newParam: 4 }))
 
-        // console.log('sendResponse', sendResponse)
-
-        const finalResponse: RadiusSwapResponse = {
-          data: sendResponse.data,
-          msg: sendResponse.msg,
-        }
-        return finalResponse
+        return sendResponse
       },
     }
   }, [trade, library, account, chainId, parameters, swapCalls, sigHandler, dispatch])
@@ -379,8 +386,10 @@ export async function sendEIP712Tx(
   recorderContract: Contract,
   encryptedSwapTx: EncryptedSwapTx,
   signature: Signature,
+  dispatch: any,
   setCancel: (cancel: number) => void
 ): Promise<RadiusSwapResponse> {
+  // TODO: 2 need
   const _currentRound = parseInt((await recorderContract.currentRound()).toString())
   const doneRound = _currentRound === 0 ? 0 : _currentRound - 1
   const readyTx = await db.readyTxs.where({ txHash: encryptedSwapTx.txHash }).first()
@@ -392,6 +401,7 @@ export async function sendEIP712Tx(
       headers,
       body: JSON.stringify({
         chainId,
+        // TODO: 3
         routerAddress: routerContract.address,
         encryptedSwapTx,
         signature,
@@ -407,10 +417,8 @@ export async function sendEIP712Tx(
       const msgHash = typedDataEncoder.hash(domain(chainId), { Claim: CLAIM_TYPE }, res.txOrderMsg)
 
       const verifySigner = recoverAddress(msgHash, res.signature)
+      // TODO: 4
       const operatorAddress = await routerContract.operator()
-
-      // console.log('verifySigner', verifySigner)
-      // console.log('operatorAddress from router', operatorAddress)
 
       if (
         verifySigner === operatorAddress &&
@@ -451,32 +459,33 @@ export async function sendEIP712Tx(
           msg: "Successfully received tx's order and round",
         }
       } else {
-        await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
-        const pendingTxId = await db.pushPendingTx(
-          {
-            field: 'readyTxId',
-            value: readyTx?.id as number,
-          },
-          {
-            round: doneRound,
-            order: -1,
-            proofHash: '',
-            sendDate: Math.floor(Date.now() / 1000),
-            operatorSignature: { r: '', s: '', v: 27 },
-            readyTxId: readyTx?.id as number,
-            progressHere: 1,
-          }
-        )
-        await db.pushTxHistory(
-          { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
-          {
-            pendingTxId: parseInt(pendingTxId.toString()),
-            from: readyTx?.from as TokenAmount,
-            to: readyTx?.to as TokenAmount,
-            status: Status.PENDING,
-          }
-        )
-        setCancel(readyTx?.id as number)
+        console.log('operator sign verify error')
+        // await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
+        // const pendingTxId = await db.pushPendingTx(
+        //   {
+        //     field: 'readyTxId',
+        //     value: readyTx?.id as number,
+        //   },
+        //   {
+        //     round: doneRound,
+        //     order: -1,
+        //     proofHash: '',
+        //     sendDate: Math.floor(Date.now() / 1000),
+        //     operatorSignature: { r: '', s: '', v: 27 },
+        //     readyTxId: readyTx?.id as number,
+        //     progressHere: 1,
+        //   }
+        // )
+        // await db.pushTxHistory(
+        //   { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
+        //   {
+        //     pendingTxId: parseInt(pendingTxId.toString()),
+        //     from: readyTx?.from as TokenAmount,
+        //     to: readyTx?.to as TokenAmount,
+        //     status: Status.PENDING,
+        //   }
+        // )
+        // setCancel(readyTx?.id as number)
 
         throw new Error(`Operator answered wrong response.`)
         // return {
