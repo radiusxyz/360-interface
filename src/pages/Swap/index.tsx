@@ -178,15 +178,14 @@ export default function Swap({ history }: RouteComponentProps) {
   const recorderContract = useRecorderContract() as Contract
   const { library } = useActiveWeb3React()
   function watcher(recorderContract: Contract, library: Web3Provider) {
-    const txId = ''
-    const account = ''
-    const round = 0
-    const order = 0
-    const nonce = 0
-    const proofHash = ''
-    const txHash = ''
-    const doneRound = 0
-    watcher_test(recorderContract, library, txId, account, { round, order, proofHash, txHash, nonce }, doneRound)
+    watcher_test(
+      recorderContract,
+      library,
+      input.txId,
+      input.account,
+      { round: input.round, order: input.order, proofHash: input.proofHash, txHash: input.txHash, nonce: input.nonce },
+      input.doneRound
+    )
     /**
      * recorder: Contract,
      * library: Web3Provider,
