@@ -27,6 +27,7 @@ export default function Footer() {
         width: '100%',
         height: '40px',
         position: 'fixed',
+        zIndex: 20,
         bottom: '0px',
         justifyContent: 'center',
         alignItems: 'center',

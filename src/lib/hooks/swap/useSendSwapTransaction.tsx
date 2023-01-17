@@ -30,6 +30,7 @@ import { getTimeLockPuzzleProof } from 'wasm/timeLockPuzzle'
 
 import { useRecorderContract, useV2RouterContract } from '../../../hooks/useContract'
 import { db, Status, TokenAmount } from '../../../utils/db'
+import { TimeLockPuzzleResponse } from '../../../wasm/timeLockPuzzle'
 
 type AnyTrade =
   | V2Trade<Currency, Currency, TradeType>
@@ -115,7 +116,32 @@ export default function useSendSwapTransaction(
   allowedSlippage: Percent,
   parameters: ParameterState,
   sigHandler: () => void
-): { callback: null | (() => Promise<RadiusSwapResponse>) } {
+): {
+  callback: null | (() => Promise<RadiusSwapResponse>)
+  split1?: () => Promise<{
+    signMessage: any
+    timeLockPuzzleParam: TimeLockPuzzleParam
+    timeLockPuzzleSnarkParam: string
+    txNonce: number
+  }>
+  split2?: (signMessage: any) => Promise<{ sig: Signature }>
+  split3?: (
+    timeLockPuzzleParam: TimeLockPuzzleParam,
+    timeLockPuzzleSnarkParam: string
+  ) => Promise<{ timeLockPuzzleData: TimeLockPuzzleResponse }>
+  split4?: (
+    timeLockPuzzleData: TimeLockPuzzleResponse,
+    txNonce: number,
+    signMessage: any
+  ) => Promise<{ txHash: string; mimcHash: string; encryptedSwapTx: any }>
+  split5?: (
+    txHash: string,
+    mimcHash: string,
+    signMessage: any,
+    encryptedSwapTx: any,
+    sig: Signature
+  ) => Promise<RadiusSwapResponse>
+} {
   const dispatch = useAppDispatch()
 
   const routerContract = useV2RouterContract() as Contract
@@ -344,6 +370,223 @@ export default function useSendSwapTransaction(
 
         return sendResponse
       },
+      split1: async function split1(): Promise<{
+        signMessage: any
+        timeLockPuzzleParam: TimeLockPuzzleParam
+        timeLockPuzzleSnarkParam: string
+        txNonce: number
+      }> {
+        let timeLockPuzzleParam: TimeLockPuzzleParam | null = await localForage.getItem('time_lock_puzzle_param')
+        let timeLockPuzzleSnarkParam: string | null = await localForage.getItem('time_lock_puzzle_snark_param')
+
+        // if save flag is false or getItem result is null
+        if (!parameters.timeLockPuzzleParam || !timeLockPuzzleParam) {
+          timeLockPuzzleParam = await fetchTimeLockPuzzleParam((newParam: boolean) => {
+            dispatch(setTimeLockPuzzleParam({ newParam }))
+          })
+        }
+
+        if (!parameters.timeLockPuzzleSnarkParam || !timeLockPuzzleSnarkParam) {
+          timeLockPuzzleSnarkParam = await fetchTimeLockPuzzleSnarkParam((newParam: boolean) => {
+            dispatch(setTimeLockPuzzleSnarkParam({ newParam }))
+          })
+        }
+
+        const signer = library.getSigner()
+        const signAddress = await signer.getAddress()
+
+        const resolvedCalls = await swapCalls
+        console.log('resolvedCalls', resolvedCalls)
+        const { deadline, availableFrom, amountIn, amountOut, path, idPath } = resolvedCalls[0]
+
+        // TODO: 1 need
+        const contractNonce = await routerContract.nonces(account)
+
+        const operatorPendingTxCnt = await fetch(
+          `${process.env.REACT_APP_360_OPERATOR}/tx/pendingTxCnt?chainId=${chainId}&walletAddress=${account}`
+        )
+        const text = await operatorPendingTxCnt.text()
+        console.log('test', contractNonce, text)
+
+        const txNonce = parseInt(contractNonce) + parseInt(text)
+        console.log('test2', txNonce)
+
+        const signMessage = {
+          txOwner: signAddress,
+          functionSelector: swapExactTokensForTokens,
+          amountIn: `${amountIn}`,
+          amountOut: `${amountOut}`,
+          path,
+          to: signAddress,
+          nonce: txNonce,
+          deadline,
+          availableFrom,
+        }
+
+        sigHandler()
+
+        return { signMessage, timeLockPuzzleParam, timeLockPuzzleSnarkParam, txNonce }
+      },
+      split2: async function split2(signMessage: any): Promise<{ sig: Signature }> {
+        const typedData = JSON.stringify({
+          types: {
+            EIP712Domain: DOMAIN_TYPE,
+            Swap: SWAP_TYPE,
+          },
+          primaryType: 'Swap',
+          domain: domain(chainId),
+          message: signMessage,
+        })
+        const signer = library.getSigner()
+        const signAddress = await signer.getAddress()
+
+        const now = Date.now()
+
+        const sig = await signWithEIP712(library, signAddress, typedData)
+
+        if (now + 10000 < Date.now()) {
+          dispatch(setProgress({ newParam: 8 }))
+          throw Error('error progress 8')
+        }
+
+        return { sig }
+      },
+      split3: async function split3(
+        timeLockPuzzleParam: TimeLockPuzzleParam,
+        timeLockPuzzleSnarkParam: string
+      ): Promise<{ timeLockPuzzleData: TimeLockPuzzleResponse }> {
+        const timeLockPuzzleData = await getTimeLockPuzzleProof(timeLockPuzzleParam, timeLockPuzzleSnarkParam)
+        return { timeLockPuzzleData }
+      },
+      split4: async function split4(
+        timeLockPuzzleData: TimeLockPuzzleResponse,
+        txNonce: number,
+        signMessage: any
+      ): Promise<{ txHash: string; mimcHash: string; encryptedSwapTx: any }> {
+        const resolvedCalls = await swapCalls
+        const { deadline, availableFrom, amountIn, amountOut, path, idPath } = resolvedCalls[0]
+
+        const signer = library.getSigner()
+        const signAddress = await signer.getAddress()
+
+        if (path.length > 3) {
+          console.error('Cannot encrypt path which length is over 3')
+        }
+
+        const pathToHash: string[] = new Array(MAXIMUM_PATH_LENGTH)
+
+        for (let i = 0; i < MAXIMUM_PATH_LENGTH; i++) {
+          pathToHash[i] = i < path.length ? path[i].split('x')[1] : '0'
+        }
+
+        const txInfoToHash: TxInfo = {
+          tx_owner: signAddress.split('x')[1],
+          function_selector: swapExactTokensForTokens.split('x')[1],
+          amount_in: `${amountIn}`,
+          amount_out: `${amountOut}`,
+          to: signAddress.split('x')[1],
+          deadline: `${deadline}`,
+          nonce: `${txNonce}`,
+          path: pathToHash,
+        }
+
+        const encryptData = await poseidonEncryptWithTxHash(
+          txInfoToHash,
+          timeLockPuzzleData.s2_string,
+          timeLockPuzzleData.s2_field_hex,
+          timeLockPuzzleData.commitment_hex,
+          idPath
+        )
+
+        const encryptedPath = {
+          message_length: encryptData.message_length,
+          nonce: encryptData.nonce,
+          commitment: timeLockPuzzleData.commitment_hex,
+          cipher_text: [encryptData.cipher_text],
+          r1: timeLockPuzzleData.r1,
+          r3: timeLockPuzzleData.r3,
+          s1: timeLockPuzzleData.s1,
+          s3: timeLockPuzzleData.s3,
+          k: timeLockPuzzleData.k,
+          time_lock_puzzle_snark_proof: timeLockPuzzleData.time_lock_puzzle_snark_proof,
+          encryption_proof: encryptData.proof,
+        }
+
+        // console.log(sig)
+
+        const txHash = typedDataEncoder.hash(domain(chainId), { Swap: SWAP_TYPE }, signMessage)
+        const mimcHash = '0x' + encryptData.tx_id
+
+        const encryptedSwapTx: EncryptedSwapTx = {
+          txOwner: signAddress,
+          functionSelector: swapExactTokensForTokens,
+          amountIn: `${amountIn}`,
+          amountOut: `${amountOut}`,
+          path: encryptedPath,
+          to: signAddress,
+          nonce: txNonce,
+          availableFrom,
+          deadline,
+          txHash,
+          mimcHash,
+        }
+
+        return { txHash, mimcHash, encryptedSwapTx }
+      },
+      split5: async function split5(
+        txHash: string,
+        mimcHash: string,
+        signMessage: any,
+        encryptedSwapTx: any,
+        sig: Signature
+      ): Promise<RadiusSwapResponse> {
+        let input = trade?.inputAmount?.numerator
+        let output = trade?.outputAmount?.numerator
+        input = !input ? JSBI.BigInt(0) : input
+        output = !output ? JSBI.BigInt(0) : output
+
+        const inDecimal =
+          trade?.inputAmount?.decimalScale !== undefined ? trade?.inputAmount?.decimalScale : JSBI.BigInt(1)
+        const outDecimal =
+          trade?.outputAmount?.decimalScale !== undefined ? trade?.outputAmount?.decimalScale : JSBI.BigInt(1)
+
+        const inSymbol = trade?.inputAmount?.currency?.symbol !== undefined ? trade?.inputAmount?.currency?.symbol : ''
+        const outSymbol =
+          trade?.outputAmount?.currency?.symbol !== undefined ? trade?.outputAmount?.currency?.symbol : ''
+
+        const readyTxId = await db.readyTxs.add({
+          txHash,
+          mimcHash,
+          tx: signMessage,
+          progressHere: 1,
+          from: { token: inSymbol, amount: input.toString(), decimal: inDecimal.toString() },
+          to: { token: outSymbol, amount: output.toString(), decimal: outDecimal.toString() },
+        })
+
+        const sendResponse = await sendEIP712Tx(
+          chainId,
+          routerContract,
+          recorderContract,
+          encryptedSwapTx,
+          sig,
+          dispatch,
+          setCancel
+        )
+
+        dispatch(
+          addPopup({
+            content: {
+              title: 'Transaction pending',
+              status: 'pending',
+              data: { readyTxId },
+            },
+            key: `${sendResponse.data.txOrderMsg.round}-${sendResponse.data.txOrderMsg.order}`,
+            removeAfterMs: 31536000000,
+          })
+        )
+
+        return sendResponse
+      },
     }
   }, [trade, library, account, chainId, parameters, swapCalls, sigHandler, dispatch])
 }
@@ -528,7 +771,6 @@ export async function sendEIP712Tx(
           `Operator is not respond: ${swapErrorToUserReadableMessage({ ...error, message: 'Operator is not respond' })}`
         )
       } else {
-        console.error(error)
         throw new Error(`Send failed: ${swapErrorToUserReadableMessage(error)}`)
       }
     })
