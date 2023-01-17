@@ -3,15 +3,16 @@ import { Fraction } from '@uniswap/sdk-core'
 import { RowBetween, RowCenter } from 'components/Row'
 import JSBI from 'jsbi'
 import { useEffect, useState } from 'react'
+import { addPopup, removePopup } from 'state/application/reducer'
+import { useAppDispatch } from 'state/hooks'
 import styled from 'styled-components/macro'
 import { ThemedText } from 'theme'
 
 import { useRecorderContract } from '../../hooks/useContract'
-import { db, ReadyTx, Status, TokenAmount } from '../../utils/db'
+import { db, PendingTx, ReadyTx, Status, TokenAmount } from '../../utils/db'
 import { ButtonError, ButtonPrimary } from '../Button'
 import { AutoColumn } from '../Column'
 import Modal from '../Modal'
-
 const Wrapper = styled.div`
   width: 100%;
   background: rgba(44, 47, 63);
@@ -36,10 +37,12 @@ export function CancelSuggestModal({
   readyTxId: number
   onDismiss: () => void
 }) {
+  const dispatch = useAppDispatch()
   // const { account, chainId, library } = useActiveWeb3React()
 
   // const signer = library?.getSigner()
   const [readyTx, setReadyTx] = useState<ReadyTx | undefined>(undefined)
+  const [pendingTx, setPendingTx] = useState<PendingTx | undefined>(undefined)
   const [cancelProgress, setCancelProgress] = useState(0)
 
   const recorderContract = useRecorderContract() as Contract
@@ -51,12 +54,13 @@ export function CancelSuggestModal({
   //   }
   // }, [time])
   useEffect(() => {
-    const updateReadyTx = async () => {
+    const updateTx = async () => {
       if (readyTx === undefined) {
         setReadyTx(await db.readyTxs.get(readyTxId))
+        setPendingTx(await db.pendingTxs.where('readyTxId').equals(readyTxId).first())
       }
     }
-    updateReadyTx()
+    updateTx()
     setCancelProgress(0)
   }, [readyTxId])
 
@@ -83,6 +87,23 @@ export function CancelSuggestModal({
           to: readyTx?.to as TokenAmount,
           status: Status.PENDING,
         }
+      )
+      dispatch(
+        removePopup({
+          key: `${pendingTx?.round}-${pendingTx?.order}`,
+        })
+      )
+
+      dispatch(
+        addPopup({
+          content: {
+            title: 'Transaction Pending',
+            status: 'pending',
+            data: { hash: readyTx.txHash },
+          },
+          key: `${pendingTx?.round}-${pendingTx?.order}`,
+          removeAfterMs: 31536000,
+        })
       )
     }
     onDismiss()
@@ -113,6 +134,22 @@ export function CancelSuggestModal({
           to: readyTx?.to as TokenAmount,
           status: Status.PENDING,
         }
+      )
+      dispatch(
+        removePopup({
+          key: `${pendingTx?.round}-${pendingTx?.order}`,
+        })
+      )
+      dispatch(
+        addPopup({
+          content: {
+            title: 'Validating cancel success',
+            status: 'pending',
+            data: { hash: readyTx.txHash, readyTxId: readyTx.id },
+          },
+          key: `${pendingTx?.round}-${pendingTx?.order}`,
+          removeAfterMs: 31536000,
+        })
       )
     }
     onDismiss()

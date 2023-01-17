@@ -196,6 +196,12 @@ export default function Swap({ history }: RouteComponentProps) {
      */
   }
 
+  const [myState, setMyState] = useState<any>({ process: 0 })
+
+  function sleep(ms: number) {
+    return new Promise((r) => setTimeout(r, ms))
+  }
+
   const resetPendingTx = async () => {
     await db.pendingTxs.update(11, { round: 0 })
   }
@@ -569,16 +575,107 @@ export default function Swap({ history }: RouteComponentProps) {
   }
 
   // the callback to execute the swap
-  const { callback: swapCallback, error: swapCallbackError } = useSwapCallback(
-    approvalOptimizedTrade,
-    allowedSlippage,
-    recipient,
-    signatureData,
-    sigHandler,
-    parameters
-  )
+  const {
+    callback: swapCallback,
+    error: swapCallbackError,
+    split1,
+    split2,
+    split3,
+    split4,
+    split5,
+  } = useSwapCallback(approvalOptimizedTrade, allowedSlippage, recipient, signatureData, sigHandler, parameters)
 
-  const handleSwap = useCallback(() => {
+  useEffect(() => {
+    if (split1 && split2 && split3 && split4 && split5) {
+      const func1 = async () => {
+        setSwapState({
+          attemptingTxn: true,
+          tradeToConfirm,
+          showConfirm,
+          swapErrorMessage: undefined,
+          txHash: undefined,
+          swapResponse: undefined,
+          showTimeLockPuzzle: false,
+        })
+
+        const res = await split1()
+        console.log('res', res)
+        setMyState({ ...myState, process: 2, ...res })
+      }
+      const func2 = async () => {
+        const res = await split2(myState.signMessage)
+        console.log('res', res)
+        setMyState({ ...myState, process: 3, ...res })
+      }
+      const func3 = async () => {
+        await sleep(300)
+        const res = await split3(myState.timeLockPuzzleParam, myState.timeLockPuzzleSnarkParam)
+        console.log('res', res)
+        setMyState({ ...myState, process: 4, ...res })
+      }
+      const func4 = async () => {
+        const res = await split4(myState.timeLockPuzzleData, myState.txNonce, myState.signMessage)
+        console.log('res', res)
+        setMyState({ ...myState, process: 5, ...res })
+      }
+      const func5 = async () => {
+        split5(myState.txHash, myState.mimcHash, myState.signMessage, myState.encryptedSwapTx, myState.sig)
+          .then((res) => {
+            setMyState({ process: 0 })
+            setSwapState({
+              attemptingTxn: false,
+              tradeToConfirm,
+              showConfirm: false,
+              swapErrorMessage: undefined,
+              txHash: 'test',
+              swapResponse: res,
+              showTimeLockPuzzle,
+            })
+          })
+          .catch((e) => {
+            console.error(e)
+            setMyState({ process: 6 })
+            setSwapState({
+              attemptingTxn: false,
+              tradeToConfirm,
+              showConfirm: false,
+              swapErrorMessage: e.message,
+              txHash: undefined,
+              swapResponse: undefined,
+              showTimeLockPuzzle,
+            })
+          })
+      }
+
+      if (myState.process === 1) {
+        console.log('1', myState)
+        func1()
+      }
+      if (myState.process === 2) {
+        console.log('2', myState)
+        func2()
+      }
+      if (myState.process === 3) {
+        console.log('3', myState)
+        func3()
+      }
+      if (myState.process === 4) {
+        console.log('4', myState)
+        func4()
+      }
+      if (myState.process === 5) {
+        console.log('5', myState)
+        func5()
+      }
+    }
+  }, [myState])
+
+  const handleSwap = () => {
+    console.log('handleSwap', myState)
+    setMyState({ process: 1 })
+  }
+
+  const handleSwap2 = useCallback(() => {
     if (!swapCallback) {
       return
     }
@@ -693,6 +790,7 @@ export default function Swap({ history }: RouteComponentProps) {
     !(priceImpactSeverity > 3 && !isExpertMode)
 
   const handleConfirmDismiss = useCallback(() => {
+    setMyState({ process: 0 })
     setSwapState({
       showConfirm: false,
       tradeToConfirm,
@@ -853,7 +951,7 @@ export default function Swap({ history }: RouteComponentProps) {
         onConfirm={handleConfirmTokenWarning}
         onDismiss={handleDismissTokenWarning}
       />
-      <button onClick={() => showPopUp()}>add popup</button>
+      {/* <button onClick={() => showPopUp()}>add popup</button>
       <button onClick={() => removePopUp()}>remove popup</button>
       <div>
         <div>
@@ -938,9 +1036,11 @@ export default function Swap({ history }: RouteComponentProps) {
           />
         </div>
         <button onClick={() => watcher(recorderContract, library as Web3Provider)}>watcher test</button>
-      </div>
+      </div> */}
       <AppBody>
         {/* <button onClick={() => addPending()}>inputPending</button>
+        <div>{myState.process}</div>
+        <button onClick={() => waitAndChange()}>waitAndChange</button>
         <button onClick={() => fixHistory()}>fixHistory</button>
         <button onClick={() => addTxHistory()}>inputTx</button>
         <button onClick={() => showDB()}>log</button>
@@ -962,6 +1062,7 @@ export default function Swap({ history }: RouteComponentProps) {
             <ConfirmSwapModal
               isOpen={showConfirm}
               trade={trade}
+              progress={myState.process}
               originalTrade={tradeToConfirm}
               inputCurrency={currencies[Field.INPUT]}
               outputCurrency={currencies[Field.OUTPUT]}
@@ -1246,7 +1347,7 @@ export default function Swap({ history }: RouteComponentProps) {
           width: '80%',
           transform: 'translateY(-40px) perspective(4.0em) rotateX(2deg)',
           padding: '24px',
-          zIndex: 300,
+          zIndex: 9,
           opacity: 1,
         }}
       >

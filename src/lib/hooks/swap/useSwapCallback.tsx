@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import { BigNumber } from '@ethersproject/bignumber'
+import { Signature } from '@ethersproject/bytes'
 // import { TransactionResponse } from '@ethersproject/providers'
 import { Trans } from '@lingui/macro'
 import { Percent } from '@uniswap/sdk-core'
@@ -11,6 +12,8 @@ import { AnyTrade, useSwapCallArguments } from 'hooks/useSwapCallArguments'
 import { ReactNode, useMemo } from 'react'
 import { ParameterState } from 'state/parameters/reducer'
 
+import { TimeLockPuzzleParam } from '../../../state/parameters/reducer'
+import { TimeLockPuzzleResponse } from '../../../wasm/timeLockPuzzle'
 import useSendSwapTransaction, { RadiusSwapResponse } from './useSendSwapTransaction'
 
 export enum SwapCallbackState {
@@ -22,6 +25,29 @@ export enum SwapCallbackState {
 interface UseSwapCallbackReturns {
   state: SwapCallbackState
   callback?: () => Promise<RadiusSwapResponse>
+  split1?: () => Promise<{
+    signMessage: any
+    timeLockPuzzleParam: TimeLockPuzzleParam
+    timeLockPuzzleSnarkParam: string
+    txNonce: number
+  }>
+  split2?: (signMessage: any) => Promise<{ sig: Signature }>
+  split3?: (
+    timeLockPuzzleParam: TimeLockPuzzleParam,
+    timeLockPuzzleSnarkParam: string
+  ) => Promise<{ timeLockPuzzleData: TimeLockPuzzleResponse }>
+  split4?: (
+    timeLockPuzzleData: TimeLockPuzzleResponse,
+    txNonce: number,
+    signMessage: any
+  ) => Promise<{ txHash: string; mimcHash: string; encryptedSwapTx: any }>
+  split5?: (
+    txHash: string,
+    mimcHash: string,
+    signMessage: any,
+    encryptedSwapTx: any,
+    sig: Signature
+  ) => Promise<RadiusSwapResponse>
   error?: ReactNode
 }
 interface UseSwapCallbackArgs {
@@ -57,7 +83,7 @@ export function useSwapCallback({
     deadline,
     feeOptions
   )
-  const { callback } = useSendSwapTransaction(
+  const { callback, split1, split2, split3, split4, split5 } = useSendSwapTransaction(
     account,
     chainId,
     library,
@@ -73,7 +99,18 @@ export function useSwapCallback({
   const recipient = recipientAddressOrName === null ? account : recipientAddress
 
   return useMemo(() => {
-    if (!trade || !library || !account || !chainId || !callback) {
+    if (
+      !trade ||
+      !library ||
+      !account ||
+      !chainId ||
+      !callback ||
+      !split1 ||
+      !split2 ||
+      !split3 ||
+      !split4 ||
+      !split5
+    ) {
       return { state: SwapCallbackState.INVALID, error: <Trans>Missing dependencies</Trans> }
     }
     if (!recipient) {
@@ -87,6 +124,11 @@ export function useSwapCallback({
     return {
       state: SwapCallbackState.VALID,
       callback: async () => callback(),
+      split1: async () => split1(),
+      split2: async (a: any) => split2(a),
+      split3: async (a: any, b: any) => split3(a, b),
+      split4: async (a: any, b: any, c: any) => split4(a, b, c),
+      split5: async (a: any, b: any, c: any, d: any, e: any) => split5(a, b, c, d, e),
     }
   }, [trade, library, account, chainId, callback, recipient, recipientAddressOrName])
 }

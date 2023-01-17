@@ -1,12 +1,15 @@
+import pendingImage from 'assets/images/gif_pending.gif'
 import { useCallback, useContext, useEffect } from 'react'
 import { CheckCircle, X, XCircle } from 'react-feather'
 import { animated } from 'react-spring'
-import { useSpring } from 'react-spring/web'
+import { useCancelManager, useReimbursementManager, useShowHistoryManager } from 'state/modal/hooks'
 import styled, { ThemeContext } from 'styled-components/macro'
 import { ThemedText } from 'theme'
 
+import useActiveWeb3React from '../../hooks/useActiveWeb3React'
 import { useRemovePopup } from '../../state/application/hooks'
 import { PopupContent } from '../../state/application/reducer'
+import { ExplorerDataType, getExplorerLink } from '../../utils/getExplorerLink'
 import { ButtonError } from '../Button'
 import FailedNetworkSwitchPopup from './FailedNetworkSwitchPopup'
 import TransactionPopup from './TransactionPopup'
@@ -16,19 +19,22 @@ const ProceedButton = styled(ButtonError)`
   border-radius: 4px;
   color: #000;
   border: 0px solid #fff;
+  font-size: 14px;
+  font-weight: 500;
 `
 
-const CancelButton = styled(ButtonError)`
-  background: transparent;
-  width: 209px;
-  height: 40px;
+const RecentTxButton = styled(ButtonError)`
+  background: #1f2232;
+  width: 300px;
+  height: 50px;
   border-radius: 0px;
   padding: 10px 40px 10px 40px;
   color: #8bb3ff;
   font-size: 14px;
   border: none;
   :hover {
-    background: #1f2232;
+    background: #0085ff;
+    color: #ffffff;
   }
 `
 
@@ -72,6 +78,13 @@ export default function PopupItem({
 }) {
   const removePopup = useRemovePopup()
   const removeThisPopup = useCallback(() => removePopup(popKey), [popKey, removePopup])
+
+  const { chainId } = useActiveWeb3React()
+
+  const [showHistory, setShowHistory] = useShowHistoryManager()
+  const [showCancel, setShowCancel] = useCancelManager()
+  const [reimbursement, setReimbursement] = useReimbursementManager()
+
   useEffect(() => {
     if (removeAfterMs === null) return undefined
 
@@ -99,17 +112,17 @@ export default function PopupItem({
     popupContent = message
   }
 
-  const faderStyle = useSpring({
-    from: { width: '100%' },
-    to: { width: '0%' },
-    config: { duration: removeAfterMs ?? undefined },
-  })
+  // const faderStyle = useSpring({
+  //   from: { width: '100%' },
+  //   to: { width: '0%' },
+  //   config: { duration: removeAfterMs ?? undefined },
+  // })
 
   const values = content as any
 
   const Status =
     values?.status === 'pending' ? (
-      <img src="images/pending.png" width="16px" height="16px" alt="" />
+      <img src={pendingImage} width="16px" height="16px" alt="" />
     ) : values?.status === 'success' ? (
       <CheckCircle size={'16px'} color={'#00ffa3'} />
     ) : values?.status === 'rejected' ? (
@@ -119,7 +132,9 @@ export default function PopupItem({
     )
 
   // TODO: match content to reimbursement
-  const claimReimbursement = Object.keys(values).includes('reimbursement') ? values.claimReimbursement : false
+  // const claimReimbursement = Object.keys(values).includes('reimbursement') ? values.claimReimbursement : false
+
+  console.log(values)
 
   return (
     <Popup>
@@ -141,11 +156,34 @@ export default function PopupItem({
             <X color={theme.text2} onClick={removeThisPopup} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-            <img src="images/gif_pending.gif" width="66px" height="66px" alt="" />
-            <span style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '10px', marginBottom: '7px' }}>
-              Transaction Pending
+            <img src={pendingImage} width="66px" height="66px" alt="" />
+            <span style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '10px', marginBottom: '17px' }}>
+              {values?.title}
             </span>
-            <CancelButton style={{ marginBottom: '1px' }}>Cancel Transaction</CancelButton>
+            <RecentTxButton
+              style={{ marginBottom: '6px' }}
+              onClick={() => {
+                setShowHistory(true)
+              }}
+            >
+              Go to Recent Transactions
+            </RecentTxButton>
+            {values?.title !== 'Validating cancel success' && (
+              <button
+                style={{
+                  color: '#4B5466',
+                  fontSize: '10px',
+                  border: 'none',
+                  background: 'transparent',
+                }}
+                onClick={() => {
+                  console.log('values', values)
+                  setShowCancel(values.data.readyTxId)
+                }}
+              >
+                Cancel Transaction
+              </button>
+            )}
           </div>
         </>
       ) : (
@@ -170,17 +208,39 @@ export default function PopupItem({
               {values?.title} {Status}
             </ThemedText.White>
           </div>
-          <a href="https://" style={{ textDecoration: 'none', color: '#8BB3FF', marginBottom: '8px' }}>
+          <a
+            href={getExplorerLink(chainId as number, values?.data.hash, ExplorerDataType.TRANSACTION)}
+            style={{ textDecoration: 'none', color: '#8BB3FF', marginBottom: '8px' }}
+          >
             View on explorer
           </a>
-          <a href="https://" style={{ textDecoration: 'none', color: '#8BB3FF' }}>
+          <button
+            onClick={() => {
+              setShowHistory(true)
+            }}
+            style={{
+              textDecoration: 'none',
+              color: '#8BB3FF',
+              fontSize: '16px',
+              border: 'none',
+              background: 'transparent',
+              textAlign: 'left',
+              padding: '0px',
+              margin: '0px',
+            }}
+          >
             Go to Recent Transaction
-          </a>
+          </button>
         </>
       )}
-      {claimReimbursement && (
+      {values.status === 'reimbursement' && (
         <>
-          <ProceedButton style={{ marginTop: '20px', marginBottom: '8px', height: '46px' }}>
+          <ProceedButton
+            onClick={() => {
+              setReimbursement(values?.data.txHistoryId)
+            }}
+            style={{ marginTop: '20px', marginBottom: '8px', height: '46px' }}
+          >
             Claim Reimbursement
           </ProceedButton>
           <div style={{ display: 'flex', flexDirection: 'row' }}>
@@ -197,7 +257,7 @@ export default function PopupItem({
         </>
       )}
       {/*popupContent*/}
-      {removeAfterMs !== null ? <AnimatedFader style={faderStyle} /> : null}
+      {/*removeAfterMs !== null ? <AnimatedFader style={faderStyle} /> : null*/}
     </Popup>
   )
 }

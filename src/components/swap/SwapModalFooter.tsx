@@ -30,6 +30,7 @@ export default function SwapModalFooter({
   disabledConfirm: boolean
 }) {
   const [enable, setEnable] = useState(true)
+
   return (
     <>
       <AutoRow>
