@@ -30,6 +30,9 @@ export async function CheckPendingTx({
 }) {
   console.log('Check PendingTx')
 
+  if (!account) {
+    return
+  }
   const pendingTxs = await db.pendingTxs.where('progressHere').equals(1).toArray()
 
   for (const pendingTx of pendingTxs) {
