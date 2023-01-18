@@ -61,16 +61,11 @@ export default function App() {
   const recorder = useRecorderContract()
 
   useEffect(() => {
-    const iframe = document.querySelector('iframe')
-    if (iframe) iframe.remove()
-  }, [])
-  useEffect(() => {
     const interval = setInterval(async () => {
       await CheckPendingTx({ chainId, account, library, dispatch, router, recorder })
     }, 10000)
-
     return () => clearInterval(interval)
-  }, [chainId, account, library, dispatch, router, recorder])
+  }, [])
 
   return (
     <ErrorBoundary>

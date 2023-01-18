@@ -5,12 +5,14 @@ import { animated } from 'react-spring'
 import { useCancelManager, useReimbursementManager, useShowHistoryManager } from 'state/modal/hooks'
 import styled, { ThemeContext } from 'styled-components/macro'
 import { ThemedText } from 'theme'
+import { ExternalLink } from 'theme'
 
 import useActiveWeb3React from '../../hooks/useActiveWeb3React'
 import { useRemovePopup } from '../../state/application/hooks'
 import { PopupContent } from '../../state/application/reducer'
 import { ExplorerDataType, getExplorerLink } from '../../utils/getExplorerLink'
-import { ButtonError } from '../Button'
+import { BaseButton, ButtonError } from '../Button'
+import { RowBetween } from '../Row/index'
 import FailedNetworkSwitchPopup from './FailedNetworkSwitchPopup'
 import TransactionPopup from './TransactionPopup'
 
@@ -39,18 +41,13 @@ const RecentTxButton = styled(ButtonError)`
 `
 
 // TODO: erase hover color
-const CancelButton = styled(ButtonError)`
+const CancelButton = styled(BaseButton)`
   color: #4b5466;
   font-size: 10px;
   padding: 0px;
   margin: 0px;
   border: none;
-  background: transparent;
-  &:hover &:active &:focus {
-    background: transparent;
-    background-color: transparent;
-    border: none;
-  }
+  background: rgba(39, 43, 62);
 `
 
 const Popup = styled.div`
@@ -195,35 +192,21 @@ export default function PopupItem({
           </div>
         </>
       ) : (
-        <>
-          <div
-            style={{
-              position: 'absolute',
-              top: 18,
-              left: 0,
-              right: 18,
-              bottom: 0,
-              display: 'flex',
-              justifyContent: 'right',
-              alignItems: 'right',
-              textAlign: 'right',
-            }}
-          >
-            <X color={theme.text2} onClick={removeThisPopup} />
-          </div>
-          <div style={{ marginBottom: '31px' }}>
+        <div style={{ justifyContent: 'left' }}>
+          <RowBetween style={{ marginBottom: '30px' }}>
             <ThemedText.White fontSize={'18px'} fontWeight={'600'}>
               {values?.title} {Status}
             </ThemedText.White>
-          </div>
+            <X color={theme.text2} onClick={removeThisPopup} />
+          </RowBetween>
           {/* TODO: click 안됨 */}
-          <a
+          <ExternalLink
             href={getExplorerLink(chainId as number, values?.data.hash, ExplorerDataType.TRANSACTION)}
-            style={{ textDecoration: 'none', color: '#8BB3FF', marginBottom: '8px' }}
+            style={{ textDecoration: 'none', color: '#8BB3FF' }}
           >
             View on explorer
-          </a>
-          <button
+          </ExternalLink>
+          <BaseButton
             onClick={() => {
               setShowHistory(true)
             }}
@@ -235,12 +218,13 @@ export default function PopupItem({
               background: 'transparent',
               textAlign: 'left',
               padding: '0px',
-              margin: '0px',
+              margin: '8px 0px 0px 0px',
+              width: 'auto',
             }}
           >
             Go to Recent Transaction
-          </button>
-        </>
+          </BaseButton>
+        </div>
       )}
       {values.status === 'reimbursement' && (
         <>

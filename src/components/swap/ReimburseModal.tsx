@@ -1,7 +1,6 @@
 import { Contract } from '@ethersproject/contracts'
 import { Fraction } from '@uniswap/sdk-core'
 import ERC20_ABI from 'abis/erc20.json'
-import checkImage from 'assets/images/check.png'
 import { RowBetween, RowCenter } from 'components/Row'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import JSBI from 'jsbi'
@@ -9,6 +8,7 @@ import { useEffect, useState } from 'react'
 import { ExternalLink as LinkIcon } from 'react-feather'
 import styled from 'styled-components/macro'
 import { ThemedText } from 'theme'
+import { ExternalLink } from 'theme'
 import { getContract } from 'utils'
 
 import { useV2RouterContract, useVaultContract } from '../../hooks/useContract'
@@ -102,111 +102,6 @@ export function ReimbursementModal({
   }
 }
 
-export function ProceedReimbursement({
-  isOpen,
-  onDismiss,
-  tokenAmount,
-  to,
-}: {
-  isOpen: boolean
-  onDismiss: () => void
-  tokenAmount: string
-  to: string
-}) {
-  const { chainId, account } = useActiveWeb3React()
-
-  const complete = true
-
-  return (
-    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={600}>
-      <Wrapper style={{ padding: '60px 30px 35px 30px' }}>
-        <Section
-          style={{
-            position: 'relative',
-          }}
-        >
-          <RowCenter style={{ marginBottom: '18px' }}>
-            {complete ? (
-              <div
-                style={{
-                  width: '90px',
-                  height: '90px',
-                  borderRadius: '45px',
-                  background: '#1B1E2D',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <img src={checkImage} width="32" height="19" alt="" />
-              </div>
-            ) : (
-              <GradientSpinner background={'rgba(48, 50, 65)'} />
-            )}
-          </RowCenter>
-          <RowCenter style={{ marginBottom: '40px' }}>
-            <ThemedText.Black fontSize={18} fontWeight={600}>
-              {complete ? 'You have been reimbursed' : 'reimbursement...'}
-            </ThemedText.Black>
-          </RowCenter>
-          <RowCenter
-            style={{
-              height: '170px',
-              background: 'rgba(37,39,53)',
-              textAlign: 'center',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginBottom: '35px',
-              padding: '35px',
-              display: 'flex',
-            }}
-          >
-            <div style={{ justifyContent: 'center', display: 'flex', flexDirection: 'row', width: '90%' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center' }}>
-                <ThemedText.White fontSize={34} fontWeight={800} style={{ marginBottom: '4px' }}>
-                  {'0.005 ETH'}
-                </ThemedText.White>
-                <ThemedText.White fontSize={14} fontWeight={400} color={'#dddddd'} style={{ marginBottom: '13px' }}>
-                  {'Reimburse To: ' + to.substring(0, 20)}
-                </ThemedText.White>
-                <a href="">
-                  <ThemedText.White fontSize={14} fontWeight={400} style={{ color: '#42aaff' }}>
-                    {'View on explorer'}
-                  </ThemedText.White>
-                </a>
-              </div>
-            </div>
-          </RowCenter>
-          <RowBetween>
-            <ButtonPrimary
-              style={{
-                background: 'transparent',
-                height: '46px',
-                borderRadius: '4px',
-                width: '100%',
-                border: '1px solid',
-                borderColor: 'white',
-              }}
-              onClick={onDismiss}
-            >
-              Back to Recent Transactions
-            </ButtonPrimary>
-          </RowBetween>
-          <RowCenter style={{ height: '38px' }}>
-            {complete ? (
-              <>&nbsp;</>
-            ) : (
-              <ThemedText.Gray fontSize={14} fontWeight={400} color={'#a8a8a8'}>
-                {"We'll notify you when the reimbursement is complete"}
-              </ThemedText.Gray>
-            )}
-          </RowCenter>
-        </Section>
-      </Wrapper>
-    </Modal>
-  )
-}
-
 export function ClaimReimbursement({
   isOpen,
   onDismiss,
@@ -227,15 +122,17 @@ export function ClaimReimbursement({
     if (library) {
       const amount = await routerContract?.reimbursementAmount()
       const tokenAddress = await vaultContract?.tokenAddress
-      const token = getContract(tokenAddress, ERC20_ABI, library)
-      const decimal = await token.decimals()
-      console.log(decimal)
-      setReimbursementAmount(amount)
+      if (tokenAddress) {
+        const token = getContract(tokenAddress, ERC20_ABI, library)
+        const decimal = await token.decimals()
+        console.log(decimal)
+        setReimbursementAmount(amount)
+      }
     }
   }
 
   useEffect(() => {
-    if (routerContract) {
+    if (routerContract && vaultContract && library) {
       loadAmount()
     }
   }, [])
@@ -275,7 +172,7 @@ export function ClaimReimbursement({
               We will cover a fixed reimbursement for any completed transaction we identify as invalid behavior from an
               operator. You may claim this reimbursement at any time. If you would like to receive the reimbursement
               now, click <span style={{ fontWeight: 'bold', color: 'white' }}>Confirm Reimbursement.</span>{' '}
-              <a href="">Learn more</a>
+              <ExternalLink href="">Learn more</ExternalLink>
             </ThemedText.Black>
             <RowCenter
               style={{
@@ -322,7 +219,7 @@ export function ClaimReimbursement({
                 Swap Date
               </ThemedText.Black>
               <ThemedText.Black fontSize={14} fontWeight={400} color={'#ffffFF'}>
-                {new Date(tx.sendDate).toLocaleDateString()}
+                {new Date(tx.sendDate * 1000).toLocaleDateString()}
               </ThemedText.Black>
             </RowBetween>
             <RowBetween style={{ marginBottom: '10px' }}>
@@ -331,9 +228,9 @@ export function ClaimReimbursement({
               </ThemedText.Black>
               <ThemedText.Black fontSize={14} fontWeight={400} color={'#ffffFF'}>
                 {tx.txId.length > 60 ? tx.txId.substring(0, 10) + '...' + tx.txId.substring(59) : tx.txId}
-                <a href={getExplorerLink(chainId ?? 137, tx.txId, ExplorerDataType.TRANSACTION)}>
+                <ExternalLink href={getExplorerLink(chainId ?? 137, tx.txId, ExplorerDataType.TRANSACTION)}>
                   <LinkIcon size="12px" />
-                </a>
+                </ExternalLink>
               </ThemedText.Black>
             </RowBetween>
             <RowBetween style={{ marginBottom: '10px' }}>
@@ -341,7 +238,9 @@ export function ClaimReimbursement({
                 Reimburse To
               </ThemedText.Black>
               <ThemedText.Black fontSize={14} fontWeight={400} color={'#ffffFF'}>
-                {tx.txId.length > 40 ? tx.txId.substring(0, 10) + '...' + tx.txId.substring(59) : tx.txId}
+                {tx.tx.txOwner.length > 40
+                  ? tx.tx.txOwner.substring(0, 8) + '...' + tx.tx.txOwner.substring(39)
+                  : tx.tx.txOwner}
               </ThemedText.Black>
             </RowBetween>
             <RowBetween style={{ marginTop: '40px' }}>
@@ -439,9 +338,9 @@ export function ReimbursementDetails({ isOpen, onDismiss, tx }: { isOpen: boolea
                 </ThemedText.Black>
                 <ThemedText.Black fontSize={16} fontWeight={400} color={'#dddddd'}>
                   {tx.txId.length > 60 ? tx.txId.substring(0, 10) + '...' + tx.txId.substring(58) : tx.txId}
-                  <a href={getExplorerLink(chainId ?? 137, tx.txId, ExplorerDataType.TRANSACTION)}>
+                  <ExternalLink href={getExplorerLink(chainId ?? 137, tx.txId, ExplorerDataType.TRANSACTION)}>
                     <LinkIcon size="12px" />
-                  </a>
+                  </ExternalLink>
                 </ThemedText.Black>
               </div>
             </div>

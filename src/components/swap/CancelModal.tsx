@@ -70,7 +70,6 @@ export function CancelSuggestModal({
 
   const continueTx = async () => {
     if (readyTx && pendingTx) {
-      // TODO: round order 확인해서 넣기
       const doneRound = parseInt(await recorderContract.currentRound()) - 1
       await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
       if (pendingTx.order === -1) {
@@ -120,7 +119,6 @@ export function CancelSuggestModal({
 
   const sendCancelTx = async () => {
     if (readyTx && pendingTx) {
-      // TODO: round order 확인해서 넣기
       const canceled = await recorderContract.disableTxHash(readyTx.txHash)
       console.log(canceled)
       setCancelProgress(1)
@@ -176,7 +174,12 @@ export function CancelSuggestModal({
   if (cancelProgress === 0) {
     return (
       <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={700}>
-        <TransactionCancelSuggest continueTx={continueTx} sendCancelTx={sendCancelTx} readyTx={readyTx} />
+        <TransactionCancelSuggest
+          continueTx={continueTx}
+          sendCancelTx={sendCancelTx}
+          readyTx={readyTx}
+          flag={pendingTx?.order === -1}
+        />
       </Modal>
     )
   } else if (cancelProgress === 1) {
@@ -198,10 +201,12 @@ function TransactionCancelSuggest({
   continueTx,
   sendCancelTx,
   readyTx,
+  flag,
 }: {
   continueTx: () => void
   sendCancelTx: () => void
   readyTx: ReadyTx | undefined
+  flag: boolean
 }) {
   const [time, setTime] = useState(Date.now())
 
@@ -214,8 +219,6 @@ function TransactionCancelSuggest({
       clearInterval(interval)
     }
   }, [])
-
-  const flag = false
 
   return (
     <Wrapper>
@@ -266,7 +269,7 @@ function TransactionCancelSuggest({
               </ThemedText.Black>
             </div> */}
             <ThemedText.White fontSize={24} fontWeight={500}>
-              {flag ? 'Swap Error' : 'Oops! Swap is not responding'}
+              {flag ? 'Oops! Swap is not responding' : 'Do you want to cancel transaction?'}
             </ThemedText.White>
             <br />
             {flag && (
@@ -279,10 +282,10 @@ function TransactionCancelSuggest({
             )}
             <ThemedText.Gray fontSize={16} fontWeight={500} color={'#bbbbbb'}>
               {flag
-                ? "Cancel the transaction and try the swap again. If you don't cancel within the remaining time, it may proceed and finalize on the blockchain."
-                : 'You may cancel for a transaction timeout as the operator is not responding. Cancellation must be made within the remaining time or it may be processed on the blockchain.'}
+                ? 'You may cancel for a transaction timeout as the operator is not responding. Cancellation must be made within the remaining time or it may be processed on the blockchain.'
+                : 'Transaction is successfully submitted. but you can cancel if you want.'}
             </ThemedText.Gray>
-            {!flag && (
+            {flag && (
               <>
                 <br />
                 <ThemedText.White fontSize={16} fontWeight={500}>
@@ -291,55 +294,32 @@ function TransactionCancelSuggest({
               </>
             )}
           </RowCenter>
-          {flag ? (
-            <RowCenter>
-              <ButtonPrimary
-                style={{
-                  background: 'transparent',
-                  height: '46px',
-                  borderRadius: '4px',
-                  width: '100%',
-                  marginRight: '16px',
-                  border: '1px solid',
-                  borderColor: 'white',
-                }}
-                onClick={() => sendCancelTx()}
-              >
-                <span>{'Cancel transaction' + (readyTx.tx.availableFrom - Math.floor(time) < 0 ? '' : ' in ')}</span>
-                <span style={{ color: 'red', fontWeight: 'bold' }}>
-                  &nbsp;
-                  {readyTx.tx.availableFrom - Math.floor(time) < 0 ? '' : readyTx.tx.availableFrom - Math.floor(time)}
-                </span>
-              </ButtonPrimary>
-            </RowCenter>
-          ) : (
-            <RowBetween>
-              <ButtonPrimary
-                style={{
-                  background: 'transparent',
-                  height: '46px',
-                  borderRadius: '4px',
-                  width: '65%',
-                  marginRight: '16px',
-                  border: '1px solid',
-                  borderColor: 'white',
-                }}
-                onClick={() => sendCancelTx()}
-              >
-                <span>{'Cancel transaction' + (readyTx.tx.availableFrom - Math.floor(time) < 0 ? '' : ' in ')}</span>
-                <span style={{ color: 'red', fontWeight: 'bold' }}>
-                  &nbsp;
-                  {readyTx.tx.availableFrom - Math.floor(time) < 0 ? '' : readyTx.tx.availableFrom - Math.floor(time)}
-                </span>
-              </ButtonPrimary>
-              <ProceedButton
-                style={{ width: '35%', height: '46px', borderRadius: '4px', margin: '0px', fontWeight: 'bold' }}
-                onClick={() => continueTx()}
-              >
-                Proceed Swap
-              </ProceedButton>
-            </RowBetween>
-          )}
+          <RowBetween>
+            <ButtonPrimary
+              style={{
+                background: 'transparent',
+                height: '46px',
+                borderRadius: '4px',
+                width: '65%',
+                marginRight: '16px',
+                border: '1px solid',
+                borderColor: 'white',
+              }}
+              onClick={() => sendCancelTx()}
+            >
+              <span>{'Cancel transaction' + (readyTx.tx.availableFrom - Math.floor(time) < 0 ? '' : ' in ')}</span>
+              <span style={{ color: 'red', fontWeight: 'bold' }}>
+                &nbsp;
+                {readyTx.tx.availableFrom - Math.floor(time) < 0 ? '' : readyTx.tx.availableFrom - Math.floor(time)}
+              </span>
+            </ButtonPrimary>
+            <ProceedButton
+              style={{ width: '35%', height: '46px', borderRadius: '4px', margin: '0px', fontWeight: 'bold' }}
+              onClick={() => continueTx()}
+            >
+              Proceed Swap
+            </ProceedButton>
+          </RowBetween>
         </Section>
       )}
     </Wrapper>

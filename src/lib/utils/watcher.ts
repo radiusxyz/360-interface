@@ -24,6 +24,7 @@ async function getTxId(
   if (`${routerAddress}-${round}` in responseList) {
     return responseList[`${routerAddress}-${round}`]
   } else {
+    console.log('not in responseList')
     const isSaved = await recorder?.isSaved(round)
 
     if (isSaved) {
@@ -60,8 +61,7 @@ export async function CheckPendingTx({
   router: Contract | null
   recorder: Contract | null
 }) {
-  console.log('Check PendingTx')
-
+  console.log('watcher', responseList)
   if (!account) {
     return
   }
@@ -71,7 +71,9 @@ export async function CheckPendingTx({
     // 1. round에 해당하는 txId 받아오기
     const readyTx = await db.readyTxs.get(pendingTx.readyTxId)
 
+    console.log('get', pendingTx.round)
     const txHash = await getTxId(recorder, chainId, router?.address, pendingTx.round)
+    console.log('TxId', txHash)
     if (txHash === null) return
 
     console.log('has txHash', txHash)
@@ -239,7 +241,20 @@ export async function CheckPendingTx({
           }
         }
         console.log(`check next round: ${pendingTx.round + 1}`)
+        dispatch(removePopup({ key: `${pendingTx.round}-${pendingTx.order}` }))
+        dispatch(
+          addPopup({
+            content: {
+              title: 'Transaction pending',
+              status: 'pending',
+              data: { readyTxId: readyTx?.id },
+            },
+            key: `${pendingTx.round + 1}-${pendingTx.order}`,
+            removeAfterMs: 31536000,
+          })
+        )
         db.pendingTxs.update(pendingTx.id as number, { round: pendingTx.round + 1 })
+
         return
       } else {
         // 라운드에 해당하는 오더를 알고 있을때
