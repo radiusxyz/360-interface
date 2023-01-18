@@ -245,9 +245,9 @@ export default function Header() {
           <StyledNavLink id={`swap-nav-link`} to={'/swap'}>
             <Trans>Swap</Trans>
           </StyledNavLink>
-          <StyledExternalLink id={`charts-nav-link`} href={infoLink}>
+          {/* <StyledExternalLink id={`charts-nav-link`} href={infoLink}>
             <Trans>Docs</Trans>
-          </StyledExternalLink>
+          </StyledExternalLink> */}
           <StyledExternalLink id={`charts-nav-link`} href={infoLink}>
             <Trans>About</Trans>
           </StyledExternalLink>

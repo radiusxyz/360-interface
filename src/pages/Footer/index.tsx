@@ -1,4 +1,5 @@
 import styled from 'styled-components/macro'
+import { ExternalLink } from 'theme'
 
 const AlertWrapper = styled.div`
   max-width: 460px;
@@ -61,9 +62,9 @@ export default function Footer() {
           >
             &nbsp;
           </button>
-          <a href="/#" style={{ textDecoration: 'none', color: '#ffffff' }}>
+          <ExternalLink href="/#" style={{ textDecoration: 'none', color: '#ffffff' }}>
             <h5 style={{ fontWeight: 'normal' }}>Privacy Policy</h5>
-          </a>
+          </ExternalLink>
         </div>
       </div>
     </div>

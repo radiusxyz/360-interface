@@ -501,20 +501,20 @@ function WaitingForSwapConfirmation({
   progress: number
   trade?: InterfaceTrade<Currency, Currency, TradeType> | undefined
 }) {
-  let input = trade?.inputAmount?.numerator
-  let output = trade?.outputAmount?.numerator
-  input = !input ? JSBI.BigInt(0) : input
-  output = !output ? JSBI.BigInt(0) : output
+  // let input = trade?.inputAmount?.numerator
+  // let output = trade?.outputAmount?.numerator
+  // input = !input ? JSBI.BigInt(0) : input
+  // output = !output ? JSBI.BigInt(0) : output
 
-  const inDecimal = trade?.inputAmount?.decimalScale !== undefined ? trade?.inputAmount?.decimalScale : JSBI.BigInt(1)
-  const outDecimal =
-    trade?.outputAmount?.decimalScale !== undefined ? trade?.outputAmount?.decimalScale : JSBI.BigInt(1)
+  // const inDecimal = trade?.inputAmount?.decimalScale !== undefined ? trade?.inputAmount?.decimalScale : JSBI.BigInt(1)
+  // const outDecimal =
+  //   trade?.outputAmount?.decimalScale !== undefined ? trade?.outputAmount?.decimalScale : JSBI.BigInt(1)
 
-  const inSymbol = trade?.inputAmount?.currency?.symbol !== undefined ? trade?.inputAmount?.currency?.symbol : ''
-  const outSymbol = trade?.outputAmount?.currency?.symbol !== undefined ? trade?.outputAmount?.currency?.symbol : ''
+  // const inSymbol = trade?.inputAmount?.currency?.symbol !== undefined ? trade?.inputAmount?.currency?.symbol : ''
+  // const outSymbol = trade?.outputAmount?.currency?.symbol !== undefined ? trade?.outputAmount?.currency?.symbol : ''
 
-  const inAmount = JSBIDivide(input, inDecimal, 6)
-  const outAmount = JSBIDivide(output, outDecimal, 6)
+  // const inAmount = JSBIDivide(input, inDecimal, 6)
+  // const outAmount = JSBIDivide(output, outDecimal, 6)
 
   const waitMsg = 'Confirm the transaction on your wallet'
   const hurryMsg = 'Please confirm the transaction now or the transaction will be canceled'
@@ -592,6 +592,7 @@ function WaitingForSwapConfirmation({
         <ThemedText.White textAlign={'center'} fontWeight={'600'} fontSize={'24px'}>
           Waiting for confirmation on your wallet...
         </ThemedText.White>
+        <ThemedText.Gray>{comment}</ThemedText.Gray>
       </Section>
     </Wrapper>
   )
