@@ -125,7 +125,7 @@ export default function useSendSwapTransaction(
     txNonce: number
     idPath: string
   }>
-  split2?: (signMessage: any) => Promise<{ sig: Signature }>
+  split2?: (signMessage: any) => Promise<{ sig: Signature } | null>
   split3?: (
     timeLockPuzzleParam: TimeLockPuzzleParam,
     timeLockPuzzleSnarkParam: string
@@ -200,7 +200,6 @@ export default function useSendSwapTransaction(
 
         const { deadline, availableFrom, amountIn, amountOut, path, idPath } = resolvedCalls[0]
 
-        // TODO: 1 need
         const contractNonce = await routerContract.nonces(account)
 
         const operatorPendingTxCnt = await fetch(
@@ -402,7 +401,6 @@ export default function useSendSwapTransaction(
         console.log('resolvedCalls', resolvedCalls)
         const { deadline, availableFrom, amountIn, amountOut, path, idPath } = resolvedCalls[0]
 
-        // TODO: 1 need
         const contractNonce = await routerContract.nonces(account)
 
         const operatorPendingTxCnt = await fetch(
@@ -430,7 +428,7 @@ export default function useSendSwapTransaction(
 
         return { signMessage, timeLockPuzzleParam, timeLockPuzzleSnarkParam, txNonce, idPath }
       },
-      split2: async function split2(signMessage: any): Promise<{ sig: Signature }> {
+      split2: async function split2(signMessage: any): Promise<{ sig: Signature } | null> {
         const typedData = JSON.stringify({
           types: {
             EIP712Domain: DOMAIN_TYPE,
@@ -445,14 +443,17 @@ export default function useSendSwapTransaction(
 
         const now = Date.now()
 
-        const sig = await signWithEIP712(library, signAddress, typedData)
+        const sig = await signWithEIP712(library, signAddress, typedData).catch((e) => {
+          console.log(e)
+          return null
+        })
 
         if (now + 10000 < Date.now()) {
           dispatch(setProgress({ newParam: 8 }))
           throw Error('error progress 8')
         }
 
-        return { sig }
+        return sig ? { sig } : null
       },
       split3: async function split3(
         timeLockPuzzleParam: TimeLockPuzzleParam,
@@ -634,7 +635,6 @@ export async function sendEIP712Tx(
   dispatch: any,
   setCancel: (cancel: number) => void
 ): Promise<RadiusSwapResponse> {
-  // TODO: 2 need
   const _currentRound = parseInt((await recorderContract.currentRound()).toString())
   const doneRound = _currentRound === 0 ? 0 : _currentRound - 1
   const readyTx = await db.readyTxs.where({ txHash: encryptedSwapTx.txHash }).first()
@@ -646,7 +646,6 @@ export async function sendEIP712Tx(
       headers,
       body: JSON.stringify({
         chainId,
-        // TODO: 3
         routerAddress: routerContract.address,
         encryptedSwapTx,
         signature,
@@ -662,7 +661,6 @@ export async function sendEIP712Tx(
       const msgHash = typedDataEncoder.hash(domain(chainId), { Claim: CLAIM_TYPE }, res.txOrderMsg)
 
       const verifySigner = recoverAddress(msgHash, res.signature)
-      // TODO: 4
       const operatorAddress = await routerContract.operator()
 
       if (

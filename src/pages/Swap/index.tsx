@@ -607,7 +607,11 @@ export default function Swap({ history }: RouteComponentProps) {
       const func2 = async () => {
         const res = await split2(myState.signMessage)
         console.log('res', res)
-        setMyState({ ...myState, process: 3, ...res })
+        if (res) {
+          setMyState({ ...myState, process: 3, ...res })
+        } else {
+          setMyState({ process: 0 })
+        }
       }
       const func3 = async () => {
         await sleep(300)
@@ -617,7 +621,6 @@ export default function Swap({ history }: RouteComponentProps) {
       }
       const func4 = async () => {
         const res = await split4(myState.timeLockPuzzleData, myState.txNonce, myState.signMessage, myState.idPath)
-        console.log('res', res)
         setMyState({ ...myState, process: 5, ...res })
       }
       const func5 = async () => {
@@ -658,7 +661,6 @@ export default function Swap({ history }: RouteComponentProps) {
       if (myState.process === 2) {
         console.log('2', myState)
         func2()
-        // TODO: sign 취소할때 에러 & 화면 안 꺼짐
       }
       if (myState.process === 3) {
         console.log('3', myState)
