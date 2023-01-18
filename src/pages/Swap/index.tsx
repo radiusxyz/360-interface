@@ -658,6 +658,7 @@ export default function Swap({ history }: RouteComponentProps) {
       if (myState.process === 2) {
         console.log('2', myState)
         func2()
+        // TODO: sign 취소할때 에러 & 화면 안 꺼짐
       }
       if (myState.process === 3) {
         console.log('3', myState)

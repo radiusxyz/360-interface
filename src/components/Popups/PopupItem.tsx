@@ -146,9 +146,6 @@ export default function PopupItem({
       ''
     )
 
-  // TODO: match content to reimbursement
-  // const claimReimbursement = Object.keys(values).includes('reimbursement') ? values.claimReimbursement : false
-
   console.log(values)
 
   return (

@@ -69,13 +69,21 @@ export function CancelSuggestModal({
   }, [readyTxId])
 
   const continueTx = async () => {
-    if (readyTx !== undefined) {
-      const currentRound = parseInt(await recorderContract.currentRound()) - 1
+    if (readyTx && pendingTx) {
+      // TODO: round order 확인해서 넣기
+      const doneRound = parseInt(await recorderContract.currentRound()) - 1
       await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
+      if (pendingTx.order === -1) {
+        await db.pushPendingTx(
+          { field: 'readyTxId', value: readyTx.id },
+          {
+            round: doneRound,
+          }
+        )
+      }
       const pendingTxId = await db.pushPendingTx(
         { field: 'readyTxId', value: readyTx.id },
         {
-          round: currentRound,
           readyTxId: readyTx.id as number,
           progressHere: 1,
         }
@@ -111,18 +119,27 @@ export function CancelSuggestModal({
   }
 
   const sendCancelTx = async () => {
-    if (readyTx !== undefined) {
+    if (readyTx && pendingTx) {
+      // TODO: round order 확인해서 넣기
       const canceled = await recorderContract.disableTxHash(readyTx.txHash)
       console.log(canceled)
       setCancelProgress(1)
       await sleep(3000)
 
-      const currentRound = parseInt(await recorderContract.currentRound()) - 1
+      const doneRound = parseInt(await recorderContract.currentRound()) - 1
       await db.readyTxs.where({ id: readyTx.id }).modify({ progressHere: 0 })
+      if (pendingTx.order === -1) {
+        await db.pushPendingTx(
+          { field: 'readyTxId', value: readyTx.id },
+          {
+            round: doneRound,
+          }
+        )
+      }
+
       const pendingTxId = await db.pushPendingTx(
         { field: 'readyTxId', value: readyTx.id },
         {
-          round: currentRound,
           readyTxId: readyTx.id as number,
           progressHere: 1,
         }
