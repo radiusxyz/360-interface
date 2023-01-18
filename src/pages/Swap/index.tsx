@@ -326,11 +326,13 @@ export default function Swap({ history }: RouteComponentProps) {
   const [disabled, setDisabled] = useState(true)
 
   useEffect(() => {
-    fetch(`${process.env.REACT_APP_360_OPERATOR}/whiteList?walletAddress=` + account).then(async (is) => {
-      const val = await is.text()
-      if (val === 'false') setDisabled(true)
-      else setDisabled(false)
-    })
+    if (account) {
+      fetch(`${process.env.REACT_APP_360_OPERATOR}/whiteList?walletAddress=` + account).then(async (is) => {
+        const val = await is.text()
+        if (val === 'false') setDisabled(true)
+        else setDisabled(false)
+      })
+    }
   }, [account])
 
   // token warning stuff
@@ -1171,13 +1173,7 @@ export default function Swap({ history }: RouteComponentProps) {
             ) : null}
           </div>
           <div style={{ border: 'none' }}>
-            {disabled ? (
-              <SwapButtonPrimary disabled={true}>
-                <ThemedText.Main mb="4px">
-                  <Trans>Your address is not whitelisted</Trans>
-                </ThemedText.Main>
-              </SwapButtonPrimary>
-            ) : swapIsUnsupported ? (
+            {swapIsUnsupported ? (
               <SwapButtonPrimary disabled={true}>
                 <ThemedText.Main mb="4px">
                   <Trans>Unsupported Asset</Trans>

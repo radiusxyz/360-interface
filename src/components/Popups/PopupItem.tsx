@@ -138,7 +138,9 @@ export default function PopupItem({
 
   return (
     <Popup>
-      {values?.status === 'pending' ? (
+      {'txn' in content ? (
+        popupContent
+      ) : values?.status === 'pending' ? (
         <>
           <div
             style={{
