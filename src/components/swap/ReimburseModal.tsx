@@ -1,5 +1,6 @@
 import { Contract } from '@ethersproject/contracts'
 import { Fraction } from '@uniswap/sdk-core'
+import ERC20_ABI from 'abis/erc20.json'
 import checkImage from 'assets/images/check.png'
 import { RowBetween, RowCenter } from 'components/Row'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
@@ -8,8 +9,9 @@ import { useEffect, useState } from 'react'
 import { ExternalLink as LinkIcon } from 'react-feather'
 import styled from 'styled-components/macro'
 import { ThemedText } from 'theme'
+import { getContract } from 'utils'
 
-import { useV2RouterContract } from '../../hooks/useContract'
+import { useV2RouterContract, useVaultContract } from '../../hooks/useContract'
 import { db, Status, TxHistoryWithPendingTx } from '../../utils/db'
 import { ExplorerDataType, getExplorerLink } from '../../utils/getExplorerLink'
 import { ButtonPrimary } from '../Button'
@@ -214,14 +216,22 @@ export function ClaimReimbursement({
   onDismiss: any
   tx: TxHistoryWithPendingTx
 }) {
-  const { chainId } = useActiveWeb3React()
+  const { chainId, library } = useActiveWeb3React()
   const routerContract = useV2RouterContract()
+  const vaultContract = useVaultContract()
 
   const [reimbursementAmount, setReimbursementAmount] = useState('0')
 
   const loadAmount = async () => {
     // TODO: decimal 찾아다가 적용해줘야 함
-    setReimbursementAmount(await routerContract?.reimbursementAmount())
+    if (library) {
+      const amount = await routerContract?.reimbursementAmount()
+      const tokenAddress = await vaultContract?.tokenAddress
+      const token = getContract(tokenAddress, ERC20_ABI, library)
+      const decimal = await token.decimals()
+      console.log(decimal)
+      setReimbursementAmount(amount)
+    }
   }
 
   useEffect(() => {

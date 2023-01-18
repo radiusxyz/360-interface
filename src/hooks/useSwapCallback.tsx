@@ -34,7 +34,7 @@ export function useSwapCallback(
     txNonce: number
     idPath: string
   }>
-  split2?: (signMessage: any) => Promise<{ sig: Signature }>
+  split2?: (signMessage: any) => Promise<{ sig: Signature } | null>
   split3?: (
     timeLockPuzzleParam: TimeLockPuzzleParam,
     timeLockPuzzleSnarkParam: string
