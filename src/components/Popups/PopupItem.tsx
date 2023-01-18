@@ -38,10 +38,25 @@ const RecentTxButton = styled(ButtonError)`
   }
 `
 
+// TODO: erase hover color
+const CancelButton = styled(ButtonError)`
+  color: #4b5466;
+  font-size: 10px;
+  padding: 0px;
+  margin: 0px;
+  border: none;
+  background: transparent;
+  &:hover &:active &:focus {
+    background: transparent;
+    background-color: transparent;
+    border: none;
+  }
+`
+
 const Popup = styled.div`
   /*background-color: ${({ theme }) => theme.bg0};*/
   position: relative;
-  background: rgba(44, 47, 63);
+  background: rgba(39, 43, 62);
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -171,20 +186,14 @@ export default function PopupItem({
               Go to Recent Transactions
             </RecentTxButton>
             {values?.title !== 'Validating cancel success' && (
-              <button
-                style={{
-                  color: '#4B5466',
-                  fontSize: '10px',
-                  border: 'none',
-                  background: 'transparent',
-                }}
+              <CancelButton
                 onClick={() => {
-                  console.log('values', values)
+                  console.log('values.data.readyTxId', values)
                   setShowCancel(values.data.readyTxId)
                 }}
               >
                 Cancel Transaction
-              </button>
+              </CancelButton>
             )}
           </div>
         </>
@@ -210,6 +219,7 @@ export default function PopupItem({
               {values?.title} {Status}
             </ThemedText.White>
           </div>
+          {/* TODO: click 안됨 */}
           <a
             href={getExplorerLink(chainId as number, values?.data.hash, ExplorerDataType.TRANSACTION)}
             style={{ textDecoration: 'none', color: '#8BB3FF', marginBottom: '8px' }}

@@ -2,6 +2,7 @@
 import { t, Trans } from '@lingui/macro'
 // import { Dialog } from '@reach/dialog'
 import { Percent } from '@uniswap/sdk-core'
+import settingImage from 'assets/images/BTN_Setting.png'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useContext, useRef, useState } from 'react'
 import { Settings, X } from 'react-feather'
@@ -178,13 +179,7 @@ export default function SettingsTab({ placeholderSlippage }: { placeholderSlippa
         </ModalContentWrapper>
       </Modal> */}
       <StyledMenuButton onClick={toggle} id="open-settings-dialog-button" aria-label={t`Transaction Settings`}>
-        <img
-          src={'/images/BTN_Setting.png'}
-          width={'24px'}
-          height={'24px'}
-          alt={'settings'}
-          style={{ marginRight: '20px' }}
-        />
+        <img src={settingImage} width={'24px'} height={'24px'} alt={'settings'} style={{ marginRight: '20px' }} />
         {expertMode ? (
           <EmojiWrapper>
             <span role="img" aria-label="wizard-icon">

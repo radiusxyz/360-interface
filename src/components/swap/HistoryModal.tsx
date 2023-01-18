@@ -1,4 +1,5 @@
 import { Fraction } from '@uniswap/sdk-core'
+import launchLinkImage from 'assets/images/launch-link-open-thin.png'
 import { useLiveQuery } from 'dexie-react-hooks'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import JSBI from 'jsbi'
@@ -21,15 +22,7 @@ const Wrapper = styled.div`
 `
 
 function LinkIconThin() {
-  return (
-    <img
-      src="images/launch-link-open-thin.png"
-      width="16px"
-      height="16px"
-      alt="link"
-      style={{ position: 'relative' }}
-    />
-  )
+  return <img src={launchLinkImage} width="16px" height="16px" alt="link" style={{ position: 'relative' }} />
 }
 
 export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss: () => void }) {

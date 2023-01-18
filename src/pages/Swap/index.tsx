@@ -616,13 +616,15 @@ export default function Swap({ history }: RouteComponentProps) {
         setMyState({ ...myState, process: 4, ...res })
       }
       const func4 = async () => {
-        const res = await split4(myState.timeLockPuzzleData, myState.txNonce, myState.signMessage)
+        const res = await split4(myState.timeLockPuzzleData, myState.txNonce, myState.signMessage, myState.idPath)
         console.log('res', res)
         setMyState({ ...myState, process: 5, ...res })
       }
       const func5 = async () => {
         split5(myState.txHash, myState.mimcHash, myState.signMessage, myState.encryptedSwapTx, myState.sig)
-          .then((res) => {
+          .then(async (res) => {
+            setMyState({ process: 6 })
+            await sleep(10000)
             setMyState({ process: 0 })
             setSwapState({
               attemptingTxn: false,
@@ -634,9 +636,9 @@ export default function Swap({ history }: RouteComponentProps) {
               showTimeLockPuzzle,
             })
           })
-          .catch((e) => {
+          .catch(async (e) => {
             console.error(e)
-            setMyState({ process: 6 })
+            setMyState({ process: 7 })
             setSwapState({
               attemptingTxn: false,
               tradeToConfirm,
@@ -1256,6 +1258,7 @@ export default function Swap({ history }: RouteComponentProps) {
             ) : (
               <SwapButtonError
                 onClick={() => {
+                  console.log('button click')
                   dispatch(setProgress({ newParam: 0 }))
                   if (isExpertMode) {
                     handleSwap()
