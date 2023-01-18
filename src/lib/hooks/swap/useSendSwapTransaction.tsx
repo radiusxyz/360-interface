@@ -123,6 +123,7 @@ export default function useSendSwapTransaction(
     timeLockPuzzleParam: TimeLockPuzzleParam
     timeLockPuzzleSnarkParam: string
     txNonce: number
+    idPath: string
   }>
   split2?: (signMessage: any) => Promise<{ sig: Signature }>
   split3?: (
@@ -132,7 +133,8 @@ export default function useSendSwapTransaction(
   split4?: (
     timeLockPuzzleData: TimeLockPuzzleResponse,
     txNonce: number,
-    signMessage: any
+    signMessage: any,
+    idPath: string
   ) => Promise<{ txHash: string; mimcHash: string; encryptedSwapTx: any }>
   split5?: (
     txHash: string,
@@ -375,6 +377,7 @@ export default function useSendSwapTransaction(
         timeLockPuzzleParam: TimeLockPuzzleParam
         timeLockPuzzleSnarkParam: string
         txNonce: number
+        idPath: string
       }> {
         let timeLockPuzzleParam: TimeLockPuzzleParam | null = await localForage.getItem('time_lock_puzzle_param')
         let timeLockPuzzleSnarkParam: string | null = await localForage.getItem('time_lock_puzzle_snark_param')
@@ -425,7 +428,7 @@ export default function useSendSwapTransaction(
 
         sigHandler()
 
-        return { signMessage, timeLockPuzzleParam, timeLockPuzzleSnarkParam, txNonce }
+        return { signMessage, timeLockPuzzleParam, timeLockPuzzleSnarkParam, txNonce, idPath }
       },
       split2: async function split2(signMessage: any): Promise<{ sig: Signature }> {
         const typedData = JSON.stringify({
@@ -461,29 +464,28 @@ export default function useSendSwapTransaction(
       split4: async function split4(
         timeLockPuzzleData: TimeLockPuzzleResponse,
         txNonce: number,
-        signMessage: any
+        signMessage: any,
+        idPath: string
       ): Promise<{ txHash: string; mimcHash: string; encryptedSwapTx: any }> {
-        const resolvedCalls = await swapCalls
-        const { deadline, availableFrom, amountIn, amountOut, path, idPath } = resolvedCalls[0]
-
+        console.log('signMessage', signMessage)
         const signer = library.getSigner()
         const signAddress = await signer.getAddress()
 
-        if (path.length > 3) {
+        if (signMessage.path.length > 3) {
           console.error('Cannot encrypt path which length is over 3')
         }
 
         const pathToHash: string[] = new Array(MAXIMUM_PATH_LENGTH)
 
         for (let i = 0; i < MAXIMUM_PATH_LENGTH; i++) {
-          pathToHash[i] = i < path.length ? path[i].split('x')[1] : '0'
+          pathToHash[i] = i < signMessage.path.length ? signMessage.path[i].split('x')[1] : '0'
         }
 
         const txInfoToHash: TxInfo = {
           tx_owner: signAddress.split('x')[1],
           function_selector: swapExactTokensForTokens.split('x')[1],
-          amount_in: `${amountIn}`,
-          amount_out: `${amountOut}`,
+          amount_in: `${signMessage.amountIn}`,
+          amount_out: `${signMessage.amountOut}`,
           to: signAddress.split('x')[1],
           deadline: `${deadline}`,
           nonce: `${txNonce}`,
@@ -520,13 +522,13 @@ export default function useSendSwapTransaction(
         const encryptedSwapTx: EncryptedSwapTx = {
           txOwner: signAddress,
           functionSelector: swapExactTokensForTokens,
-          amountIn: `${amountIn}`,
-          amountOut: `${amountOut}`,
+          amountIn: `${signMessage.amountIn}`,
+          amountOut: `${signMessage.amountOut}`,
           path: encryptedPath,
           to: signAddress,
           nonce: txNonce,
-          availableFrom,
-          deadline,
+          availableFrom: signMessage.availableFrom,
+          deadline: signMessage.deadline,
           txHash,
           mimcHash,
         }

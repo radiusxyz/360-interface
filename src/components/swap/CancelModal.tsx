@@ -1,5 +1,8 @@
 import { Contract } from '@ethersproject/contracts'
 import { Fraction } from '@uniswap/sdk-core'
+import errorImage from 'assets/images/gif_error_200.gif'
+import protectedImage from 'assets/images/gif_protected_200.gif'
+import respondingImage from 'assets/images/gif_responding_200.gif'
 import { RowBetween, RowCenter } from 'components/Row'
 import JSBI from 'jsbi'
 import { useEffect, useState } from 'react'
@@ -13,9 +16,10 @@ import { db, PendingTx, ReadyTx, Status, TokenAmount } from '../../utils/db'
 import { ButtonError, ButtonPrimary } from '../Button'
 import { AutoColumn } from '../Column'
 import Modal from '../Modal'
+
 const Wrapper = styled.div`
   width: 100%;
-  background: rgba(44, 47, 63);
+  background: rgba(39, 43, 62);
 `
 const Section = styled(AutoColumn)<{ inline?: boolean }>`
   padding: ${({ inline }) => (inline ? '0' : '0')};
@@ -66,9 +70,6 @@ export function CancelSuggestModal({
 
   const continueTx = async () => {
     if (readyTx !== undefined) {
-      setCancelProgress(2)
-      sleep(3000)
-
       const currentRound = parseInt(await recorderContract.currentRound()) - 1
       await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
       const pendingTxId = await db.pushPendingTx(
@@ -99,7 +100,7 @@ export function CancelSuggestModal({
           content: {
             title: 'Transaction Pending',
             status: 'pending',
-            data: { hash: readyTx.txHash },
+            data: { hash: readyTx.txHash, readyTxId: readyTx.id },
           },
           key: `${pendingTx?.round}-${pendingTx?.order}`,
           removeAfterMs: 31536000,
@@ -114,7 +115,7 @@ export function CancelSuggestModal({
       const canceled = await recorderContract.disableTxHash(readyTx.txHash)
       console.log(canceled)
       setCancelProgress(1)
-      sleep(3000)
+      await sleep(3000)
 
       const currentRound = parseInt(await recorderContract.currentRound()) - 1
       await db.readyTxs.where({ id: readyTx.id }).modify({ progressHere: 0 })
@@ -210,9 +211,9 @@ function TransactionCancelSuggest({
         >
           <RowCenter>
             {flag ? (
-              <img src={'./images/gif_error_200.gif'} width="220" height="220" alt="" />
+              <img src={errorImage} width="220" height="220" alt="" />
             ) : (
-              <img src={'./images/gif_responding_200.gif'} width="220" height="220" alt="" />
+              <img src={respondingImage} width="220" height="220" alt="" />
             )}
           </RowCenter>
           {/* <RowCenter style={{ marginTop: '20px' }}>
@@ -339,7 +340,7 @@ function TransactionCanceled({ onDismiss }: { onDismiss: any }) {
         }}
       >
         <RowCenter>
-          <img src={'./images/gif_protected_200.gif'} width="120" height="120" alt="" />
+          <img src={protectedImage} width="120" height="120" alt="" />
         </RowCenter>
         <RowCenter style={{ paddingTop: '16px' }}>
           <ThemedText.Label fontSize={'20px'} color={'#0DE08E'}>
@@ -404,7 +405,7 @@ function TransactionSubmitted({ onDismiss }: { onDismiss: any }) {
         }}
       >
         <RowCenter>
-          <img src={'./images/gif_protected_200.gif'} width="120" height="120" alt="" />
+          <img src={protectedImage} width="120" height="120" alt="" />
         </RowCenter>
         <RowCenter style={{ paddingTop: '16px' }}>
           <ThemedText.Label fontSize={'20px'} color={'#0DE08E'}>

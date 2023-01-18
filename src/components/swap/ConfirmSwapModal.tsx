@@ -1,13 +1,16 @@
 import { Trans } from '@lingui/macro'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, Fraction, Percent, TradeType } from '@uniswap/sdk-core'
-import block from 'assets/images/gif_block_200.gif'
+import blockImage from 'assets/images/gif_block_200.gif'
+import loadingImage from 'assets/images/gif_loading_300.gif'
+import protectedImage from 'assets/images/gif_protected_200.gif'
+import respondingImage from 'assets/images/gif_responding_200.gif'
+import signImage from 'assets/images/gif_sign_300.gif'
 import { RowBetween, RowCenter, RowFixed } from 'components/Row'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import JSBI from 'jsbi'
 import { RadiusSwapResponse } from 'lib/hooks/swap/useSendSwapTransaction'
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
-import { useAppDispatch } from 'state/hooks'
 import { InterfaceTrade } from 'state/routing/types'
 import styled from 'styled-components/macro'
 import { ThemedText } from 'theme'
@@ -196,15 +199,19 @@ export default function ConfirmSwapModal({
     <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={700}>
       <PreparingForSwap1 onDismiss={onDismiss} />
     </Modal>
-  ) : progress === 4 ? (
+  ) : progress === 4 || progress === 5 ? (
     <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={700}>
       <PreparingForSwap2 onDismiss={onDismiss} />
     </Modal>
-  ) : progress === 5 ? (
+  ) : // ) : progress === 5 ? (
+  //   <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={700}>
+  //     <PreparingForSwap3 onDismiss={onDismiss} />
+  //   </Modal>
+  progress === 6 ? (
     <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={700}>
       <TransactionSubmitted onDismiss={onDismiss} />
     </Modal>
-  ) : progress === 6 ? (
+  ) : progress === 7 ? (
     <div onLoad={() => onDismiss()} />
   ) : (
     <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={480}>
@@ -218,57 +225,7 @@ export default function ConfirmSwapModal({
   )
 }
 
-interface ModalTestProps {
-  isOpen: boolean
-  swapResponse?: RadiusSwapResponse | undefined
-  onDismiss: () => void
-}
-
-export function ModalTest({ isOpen, onDismiss, swapResponse }: ModalTestProps) {
-  let progress = 1
-
-  progress = 3
-
-  return (
-    <>
-      {progress === 1 ? (
-        <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={500}>
-          <Wrapper>
-            <PreparingForSwap1 onDismiss={onDismiss} />
-          </Wrapper>
-        </Modal>
-      ) : progress === 2 ? (
-        <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={500}>
-          <Wrapper>
-            <PreparingForSwap2 onDismiss={onDismiss} />
-          </Wrapper>
-        </Modal>
-      ) : progress === 3 ? (
-        <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={500}>
-          <Wrapper>
-            <WaitingForSwapConfirmation onDismiss={onDismiss} progress={progress} />
-          </Wrapper>
-        </Modal>
-      ) : progress === 4 ? (
-        <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={500}>
-          <Wrapper>
-            <TransactionSubmitted onDismiss={onDismiss} />
-          </Wrapper>
-        </Modal>
-      ) : (
-        'default'
-      )}
-    </>
-  )
-}
-
-/*
-function WaitingForSwapConfirmation(onDismiss: any, progress: number) {
-function TransactionSubmitted(onDismiss: any, progress: number) {
-*/
-
 function PreparingForSwap1({ onDismiss }: { onDismiss: any }) {
-  const dispatch = useAppDispatch()
   return (
     <Wrapper>
       <Section
@@ -284,7 +241,7 @@ function PreparingForSwap1({ onDismiss }: { onDismiss: any }) {
           </ThemedText.Black>
         </RowCenter>
         <RowCenter style={{ marginTop: '83px', marginBottom: '30px' }}>
-          <img src={block} width="180px" height="180px" alt="" />
+          <img src={blockImage} width="180px" height="180px" alt="" />
         </RowCenter>
       </Section>
       <Section
@@ -358,7 +315,6 @@ function PreparingForSwap1({ onDismiss }: { onDismiss: any }) {
 }
 
 function PreparingForSwap2({ onDismiss }: { onDismiss: any }) {
-  const dispatch = useAppDispatch()
   return (
     <Wrapper>
       <Section
@@ -374,7 +330,7 @@ function PreparingForSwap2({ onDismiss }: { onDismiss: any }) {
           </ThemedText.Black>
         </RowCenter>
         <RowCenter style={{ marginTop: '83px', marginBottom: '30px' }}>
-          <img src="/images/gif_loading_300.gif" width="180px" height="180px" alt="" />
+          <img src={loadingImage} width="180px" height="180px" alt="" />
         </RowCenter>
       </Section>
       <Section
@@ -420,6 +376,95 @@ function PreparingForSwap2({ onDismiss }: { onDismiss: any }) {
               }}
             >
               Generating proofs for your transaction...
+            </ThemedText.Black>
+          </div>
+        </RowCenter>
+        {/* <RowCenter style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
+          <button
+            style={{
+              width: '99%',
+              height: '70px',
+              border: 'none',
+              color: '#ffffff',
+              background: '#1f2232',
+              margin: '40px 10px 0px 10px',
+              fontSize: '18px',
+            }}
+            onClick={() => {
+              dispatch(setProgress({ newParam: 8 }))
+              onDismiss()
+            }}
+          >
+            Cancel
+          </button>
+        </RowCenter> */}
+      </Section>
+    </Wrapper>
+  )
+}
+
+function PreparingForSwap3({ onDismiss }: { onDismiss: any }) {
+  return (
+    <Wrapper>
+      <Section
+        style={{
+          position: 'relative',
+          background: '#1F2232',
+          padding: '30px',
+        }}
+      >
+        <RowCenter>
+          <ThemedText.Black fontSize={20} fontWeight={600} color={'#ffffff'}>
+            Preparing for swap
+          </ThemedText.Black>
+        </RowCenter>
+        <RowCenter style={{ marginTop: '83px', marginBottom: '30px' }}>
+          <img src={respondingImage} width="180px" height="180px" alt="" />
+        </RowCenter>
+      </Section>
+      <Section
+        style={{
+          position: 'relative',
+          padding: '50px',
+        }}
+      >
+        <RowCenter>
+          <ThemedText.Black fontSize={26} fontWeight={600} color={'#ffffff'} textAlign={'center'}>
+            {"We're waiting for Operator response"}
+          </ThemedText.Black>
+          {/* <ThemedText.Black
+            fontSize={20}
+            fontWeight={600}
+            color={'#0000aa'}
+            style={{
+              background: 'linear-gradient(90.2deg, #0085FF 15.73%, #00FFD1 46.33%, #42FF00 101.67%)',
+              WebkitBackgroundClip: 'text',
+              color: 'transparent',
+            }}
+          >
+            {rogress === 2 ? (
+              <>Generating proofs for your transaction...</>
+            ) : (
+              <div style={{ width: '100%', textAlign: 'center' }}>
+                Almost done!
+                <br />
+                Encrypting transaction before processing swap...
+              </div>
+            )}
+          </ThemedText.Black> */}
+        </RowCenter>
+        <RowCenter style={{ textAlign: 'center', justifyContent: 'center', alignItems: 'center' }}>
+          <div style={{ width: '90%', marginTop: '20px' }}>
+            <ThemedText.Black
+              fontSize={18}
+              fontWeight={500}
+              style={{
+                background: 'linear-gradient(90.2deg, #0085FF 15.73%, #00FFD1 46.33%, #42FF00 101.67%)',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent',
+              }}
+            >
+              Waiting operator response for your transaction...
             </ThemedText.Black>
           </div>
         </RowCenter>
@@ -499,7 +544,7 @@ function WaitingForSwapConfirmation({
             padding: '45px 0px 35px 0px',
           }}
         >
-          <img src={'./images/gif_sign_300.gif'} width="300" height="300" alt="" />
+          <img src={signImage} width="300" height="300" alt="" />
         </RowCenter>
         {/* <RowCenter>
           <ThemedText.Black fontSize={24} fontWeight={600}>
@@ -553,7 +598,6 @@ function WaitingForSwapConfirmation({
 }
 
 function TransactionSubmitted({ onDismiss }: { onDismiss: any }) {
-  const dispatch = useAppDispatch()
   return (
     <Wrapper>
       <Section
@@ -564,7 +608,7 @@ function TransactionSubmitted({ onDismiss }: { onDismiss: any }) {
         }}
       >
         <RowCenter>
-          <img src={'./images/gif_protected_200.gif'} width="120" height="120" alt="" />
+          <img src={protectedImage} width="120" height="120" alt="" />
         </RowCenter>
         <RowCenter style={{ paddingTop: '16px' }}>
           <ThemedText.Label fontSize={'20px'} color={'#0DE08E'}>

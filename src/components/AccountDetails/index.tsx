@@ -1,6 +1,7 @@
 import { Trans } from '@lingui/macro'
 import { Fraction } from '@uniswap/sdk-core'
 import { Connector } from '@web3-react/types'
+import launchLinkImage from 'assets/images/launch-link-open-thin.png'
 import { useLiveQuery } from 'dexie-react-hooks'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import JSBI from 'jsbi'
@@ -140,7 +141,7 @@ const CloseIcon = styled.div`
   position: absolute;
   right: 30px;
   top: 31px;
-  &:hover {
+  :hover {
     cursor: pointer;
     opacity: 0.6;
   }
@@ -172,19 +173,11 @@ const IconWrapper = styled.div<{ size?: number }>`
 `
 
 function LinkIcon() {
-  return <img src="images/launch-link-open.png" width="16px" height="16px" alt="link" />
+  return <img src={launchLinkImage} width="16px" height="16px" alt="link" />
 }
 
 function LinkIconThin() {
-  return (
-    <img
-      src="images/launch-link-open-thin.png"
-      width="16px"
-      height="16px"
-      alt="link"
-      style={{ position: 'relative' }}
-    />
-  )
+  return <img src={launchLinkImage} width="16px" height="16px" alt="link" style={{ position: 'relative' }} />
 }
 
 function WrappedStatusIcon({ connector }: { connector: AbstractConnector | Connector }) {

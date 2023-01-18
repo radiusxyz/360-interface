@@ -1,5 +1,6 @@
 import { Contract } from '@ethersproject/contracts'
 import { Fraction } from '@uniswap/sdk-core'
+import checkImage from 'assets/images/check.png'
 import { RowBetween, RowCenter } from 'components/Row'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import JSBI from 'jsbi'
@@ -135,7 +136,7 @@ export function ProceedReimbursement({
                   justifyContent: 'center',
                 }}
               >
-                <img src="/images/check.png" width="32" height="19" alt="" />
+                <img src={checkImage} width="32" height="19" alt="" />
               </div>
             ) : (
               <GradientSpinner background={'rgba(48, 50, 65)'} />

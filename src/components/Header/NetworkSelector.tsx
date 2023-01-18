@@ -115,9 +115,8 @@ const SelectorLabel = styled(NetworkLabel)`
 `
 const SelectorControls = styled.div<{ interactive: boolean }>`
   align-items: center;
-  background-color: ${({ theme }) => theme.bg0};
-  border: 2px solid ${({ theme }) => theme.bg0};
-  border-radius: 16px;
+  background-color: transparent;
+  border: 0px solid ${({ theme }) => theme.bg0};
   color: ${({ theme }) => theme.text1};
   cursor: ${({ interactive }) => (interactive ? 'pointer' : 'auto')};
   display: flex;

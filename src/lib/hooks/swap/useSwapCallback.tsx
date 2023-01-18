@@ -30,6 +30,7 @@ interface UseSwapCallbackReturns {
     timeLockPuzzleParam: TimeLockPuzzleParam
     timeLockPuzzleSnarkParam: string
     txNonce: number
+    idPath: string
   }>
   split2?: (signMessage: any) => Promise<{ sig: Signature }>
   split3?: (
@@ -39,7 +40,8 @@ interface UseSwapCallbackReturns {
   split4?: (
     timeLockPuzzleData: TimeLockPuzzleResponse,
     txNonce: number,
-    signMessage: any
+    signMessage: any,
+    idPath: string
   ) => Promise<{ txHash: string; mimcHash: string; encryptedSwapTx: any }>
   split5?: (
     txHash: string,
@@ -127,7 +129,7 @@ export function useSwapCallback({
       split1: async () => split1(),
       split2: async (a: any) => split2(a),
       split3: async (a: any, b: any) => split3(a, b),
-      split4: async (a: any, b: any, c: any) => split4(a, b, c),
+      split4: async (a: any, b: any, c: any, d: any) => split4(a, b, c, d),
       split5: async (a: any, b: any, c: any, d: any, e: any) => split5(a, b, c, d, e),
     }
   }, [trade, library, account, chainId, callback, recipient, recipientAddressOrName])

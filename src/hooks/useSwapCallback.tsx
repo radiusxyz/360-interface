@@ -32,6 +32,7 @@ export function useSwapCallback(
     timeLockPuzzleParam: TimeLockPuzzleParam
     timeLockPuzzleSnarkParam: string
     txNonce: number
+    idPath: string
   }>
   split2?: (signMessage: any) => Promise<{ sig: Signature }>
   split3?: (
@@ -41,7 +42,8 @@ export function useSwapCallback(
   split4?: (
     timeLockPuzzleData: TimeLockPuzzleResponse,
     txNonce: number,
-    signMessage: any
+    signMessage: any,
+    idPath: string
   ) => Promise<{ txHash: string; mimcHash: string; encryptedSwapTx: any }>
   split5?: (
     txHash: string,

@@ -1,4 +1,5 @@
 import { Trans } from '@lingui/macro'
+import copyDuplicateImage from 'assets/images/copy-duplicate.png'
 import useCopyClipboard from 'hooks/useCopyClipboard'
 import React, { useCallback } from 'react'
 import { CheckCircle } from 'react-feather'
@@ -32,7 +33,7 @@ interface BaseProps {
 export type CopyHelperProps = BaseProps & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseProps>
 
 function Copy() {
-  return <img src="images/copy-duplicate.png" width="16px" height="16px" alt="copy" />
+  return <img src={copyDuplicateImage} width="16px" height="16px" alt="copy" />
 }
 
 export default function CopyHelper({ color, toCopy, children }: CopyHelperProps) {

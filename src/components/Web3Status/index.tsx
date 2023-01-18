@@ -1,7 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
 import { Trans } from '@lingui/macro'
 import { Connector } from '@web3-react/types'
-import { darken } from 'polished'
 import { useMemo } from 'react'
 import { Activity } from 'react-feather'
 import styled, { css } from 'styled-components/macro'
@@ -20,9 +19,6 @@ import StatusIcon from '../Identicon/StatusIcon'
 import Loader from '../Loader'
 import { RowBetween } from '../Row'
 import WalletModal from '../WalletModal'
-
-const EventLogHashTransfer = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
-const EventLogHashSwap = '0xcbdaf2fdec4361aa4e9cafe49671d841695df07b12b53d1ce10464489a98dd49'
 
 const IconWrapper = styled.div<{ size?: number }>`
   ${({ theme }) => theme.flexColumnNoWrap};
@@ -43,8 +39,15 @@ const Web3StatusGeneric = styled(ButtonSecondary)`
   cursor: pointer;
   user-select: none;
   height: 36px;
-  :focus {
-    outline: none;
+
+  &:focus {
+    border: 0px solid ${({ theme }) => theme.primary3};
+  }
+  &:hover {
+    border: 0px solid ${({ theme }) => theme.primary3};
+  }
+  &:active {
+    border: 0px solid ${({ theme }) => theme.primary3};
   }
 `
 const Web3StatusError = styled(Web3StatusGeneric)`
@@ -53,10 +56,6 @@ const Web3StatusError = styled(Web3StatusGeneric)`
   border: none;
   color: ${({ theme }) => theme.white};
   font-weight: 500;
-  :hover,
-  :focus {
-    background-color: ${({ theme }) => darken(0.1, theme.red1)};
-  }
 `
 
 const Web3StatusConnect = styled(Web3StatusGeneric)<{ faded?: boolean }>`
@@ -66,13 +65,6 @@ const Web3StatusConnect = styled(Web3StatusGeneric)<{ faded?: boolean }>`
   color: ${({ theme }) => theme.primaryText1};
   font-weight: 500;
 
-  :hover,
-  :focus {
-    border: none;
-    // border: 1px solid ${({ theme }) => darken(0.05, theme.primary4)};
-    color: ${({ theme }) => theme.primaryText1};
-  }
-
   ${({ faded }) =>
     faded &&
     css`
@@ -80,29 +72,17 @@ const Web3StatusConnect = styled(Web3StatusGeneric)<{ faded?: boolean }>`
       border: none;
       // border: 1px solid ${({ theme }) => theme.primary5};
       color: ${({ theme }) => theme.primaryText1};
-
-      :hover,
-      :focus {
-        border: none;
-        // border: 1px solid ${({ theme }) => darken(0.05, theme.primary4)};
-        color: ${({ theme }) => darken(0.05, theme.primaryText1)};
-      }
     `}
 `
 
 const Web3StatusConnected = styled(Web3StatusGeneric)<{ pending?: boolean }>`
   background-color: ${({ pending, theme }) => (pending ? theme.primary1 : theme.bg1)};
-  border: none;
   // border: 1px solid ${({ pending, theme }) => (pending ? theme.primary1 : theme.bg1)};
   color: ${({ pending, theme }) => (pending ? theme.white : theme.text1)};
   font-weight: 500;
-  :hover,
-  :focus {
-    border: 1px solid ${({ theme }) => darken(0.05, theme.bg3)};
-
-    :focus {
-      border: 1px solid ${({ pending, theme }) => (pending ? darken(0.1, theme.primary1) : darken(0.1, theme.bg2))};
-    }
+  border: none;
+  &hover: {
+    border: none;
   }
 `
 
