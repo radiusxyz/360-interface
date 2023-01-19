@@ -449,8 +449,7 @@ export default function useSendSwapTransaction(
         })
 
         if (now + 10000 < Date.now()) {
-          dispatch(setProgress({ newParam: 8 }))
-          throw Error('error progress 8')
+          return null
         }
 
         return sig ? { sig } : null

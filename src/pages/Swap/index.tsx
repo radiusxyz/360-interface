@@ -642,6 +642,8 @@ export default function Swap({ history }: RouteComponentProps) {
           .catch(async (e) => {
             console.error(e)
             setMyState({ process: 7 })
+            await sleep(1000)
+            setMyState({ process: 0 })
             setSwapState({
               attemptingTxn: false,
               tradeToConfirm,
@@ -1261,7 +1263,7 @@ export default function Swap({ history }: RouteComponentProps) {
             ) : (
               <SwapButtonError
                 onClick={() => {
-                  console.log('button click')
+                  console.log('button click', isExpertMode, showConfirm, myState)
                   dispatch(setProgress({ newParam: 0 }))
                   if (isExpertMode) {
                     handleSwap()
