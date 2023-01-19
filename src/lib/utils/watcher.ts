@@ -26,6 +26,7 @@ async function getTxId(
   } else {
     console.log('not in responseList')
     const isSaved = await recorder?.isSaved(round)
+    console.log(`isSaved(${round}) ${isSaved}`)
 
     if (isSaved) {
       await fetch(
@@ -61,17 +62,14 @@ export async function CheckPendingTx({
   router: Contract | null
   recorder: Contract | null
 }) {
-  console.log('watcher', responseList)
-  if (!account) {
-    return
-  }
+  console.log('watcher', account, router?.address, recorder?.address)
   const pendingTxs = await db.pendingTxs.where('progressHere').equals(1).toArray()
 
   for (const pendingTx of pendingTxs) {
     // 1. round에 해당하는 txId 받아오기
     const readyTx = await db.readyTxs.get(pendingTx.readyTxId)
 
-    console.log('get', pendingTx.round)
+    console.log('get', pendingTx.round, pendingTx)
     const txHash = await getTxId(recorder, chainId, router?.address, pendingTx.round)
     console.log('TxId', txHash)
     if (txHash === null) return
@@ -80,6 +78,7 @@ export async function CheckPendingTx({
     // 2. txId 실행되었는지 확인
     const txReceipt = await library?.getTransactionReceipt(txHash)
 
+    // TODO: user가 tx 보냈는데 operator가 못 받은 경우. 계속 pending으로 남아있음 최근 tx에 없으면 void로 넘겨야 함
     if (txReceipt) {
       console.log('has receipt', txReceipt)
 
@@ -153,7 +152,10 @@ export async function CheckPendingTx({
                       round,
                       order,
                     })
+
+                    console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
                     dispatch(removePopup({ key: `${pendingTx.round}-${pendingTx.order}` }))
+                    console.log(`popup add ${round}-${order}`)
                     dispatch(
                       addPopup({
                         content: {
@@ -189,7 +191,9 @@ export async function CheckPendingTx({
                           round,
                           order,
                         })
+                        console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
                         dispatch(removePopup({ key: `${pendingTx.round}-${pendingTx.order}` }))
+                        console.log(`popup add ${round}-${order}`)
                         dispatch(
                           addPopup({
                             content: {
@@ -215,7 +219,10 @@ export async function CheckPendingTx({
                       }
                     ).then(() => {
                       db.pendingTxs.update(pendingTx.id as number, { progressHere: 0, round, order })
+
+                      console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
                       dispatch(removePopup({ key: `${pendingTx.round}-${pendingTx.order}` }))
+                      console.log(`popup add ${round}-${order}`)
                       dispatch(
                         addPopup({
                           content: {
@@ -241,7 +248,9 @@ export async function CheckPendingTx({
           }
         }
         console.log(`check next round: ${pendingTx.round + 1}`)
+        console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
         dispatch(removePopup({ key: `${pendingTx.round}-${pendingTx.order}` }))
+        console.log(`popup add ${pendingTx.round}-${pendingTx.order}`)
         dispatch(
           addPopup({
             content: {
@@ -329,7 +338,10 @@ export async function CheckPendingTx({
               }
             ).then(() => {
               db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
+
+              console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
               dispatch(removePopup({ key: `${pendingTx.round}-${pendingTx.order}` }))
+              console.log(`popup add ${pendingTx.round}-${pendingTx.order}`)
               dispatch(
                 addPopup({
                   content: {
@@ -362,7 +374,9 @@ export async function CheckPendingTx({
                 )
                 .then(async () => {
                   await db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
+                  console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
                   dispatch(removePopup({ key: `${pendingTx.round}-${pendingTx.order}` }))
+                  console.log(`popup add ${pendingTx.round}-${pendingTx.order}`)
                   dispatch(
                     addPopup({
                       content: {
@@ -389,7 +403,9 @@ export async function CheckPendingTx({
                 }
               ).then(() => {
                 db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
+                console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
                 dispatch(removePopup({ key: `${pendingTx.round}-${pendingTx.order}` }))
+                console.log(`popup add ${pendingTx.round}-${pendingTx.order}`)
                 dispatch(
                   addPopup({
                     content: {
@@ -420,7 +436,9 @@ export async function CheckPendingTx({
             }
           ).then((txHistoryId) => {
             db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
+            console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
             dispatch(removePopup({ key: `${pendingTx.round}-${pendingTx.order}` }))
+            console.log(`popup add ${pendingTx.round}-${pendingTx.order}`)
             dispatch(
               addPopup({
                 content: {

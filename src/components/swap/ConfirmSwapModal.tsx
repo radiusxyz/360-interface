@@ -196,12 +196,12 @@ export default function ConfirmSwapModal({
       <WaitingForSwapConfirmation onDismiss={onDismiss} progress={progress} trade={trade} />
     </Modal>
   ) : progress === 3 ? (
-    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={700}>
-      <PreparingForSwap1 onDismiss={onDismiss} />
+    <Modal isOpen={isOpen} onDismiss={() => null} maxHeight={90} width={700}>
+      <PreparingForSwap1 onDismiss={() => null} />
     </Modal>
   ) : progress === 4 || progress === 5 ? (
-    <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={700}>
-      <PreparingForSwap2 onDismiss={onDismiss} />
+    <Modal isOpen={isOpen} onDismiss={() => null} maxHeight={90} width={700}>
+      <PreparingForSwap2 onDismiss={() => null} />
     </Modal>
   ) : // ) : progress === 5 ? (
   //   <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={700}>

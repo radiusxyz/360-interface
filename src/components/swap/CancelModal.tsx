@@ -96,12 +96,14 @@ export function CancelSuggestModal({
           status: Status.PENDING,
         }
       )
+      console.log(`popup remove ${pendingTx?.round}-${pendingTx?.order}`)
       dispatch(
         removePopup({
           key: `${pendingTx?.round}-${pendingTx?.order}`,
         })
       )
 
+      console.log(`popup add ${pendingTx?.round}-${pendingTx?.order}`)
       dispatch(
         addPopup({
           content: {
@@ -151,15 +153,19 @@ export function CancelSuggestModal({
           status: Status.PENDING,
         }
       )
+
+      console.log(`popup remove ${pendingTx?.round}-${pendingTx?.order}`)
       dispatch(
         removePopup({
           key: `${pendingTx?.round}-${pendingTx?.order}`,
         })
       )
+
+      console.log(`popup add ${pendingTx?.round}-${pendingTx?.order}`)
       dispatch(
         addPopup({
           content: {
-            title: 'Validating cancel success',
+            title: 'Cancel pending',
             status: 'pending',
             data: { hash: readyTx.txHash, readyTxId: readyTx.id },
           },
@@ -269,7 +275,7 @@ function TransactionCancelSuggest({
               </ThemedText.Black>
             </div> */}
             <ThemedText.White fontSize={24} fontWeight={500}>
-              {flag ? 'Oops! Swap is not responding' : 'Do you want to cancel transaction?'}
+              {flag ? 'Oops! Swap is not responding' : 'Are you sure you want to cancel'}
             </ThemedText.White>
             <br />
             {flag && (
@@ -283,7 +289,7 @@ function TransactionCancelSuggest({
             <ThemedText.Gray fontSize={16} fontWeight={500} color={'#bbbbbb'}>
               {flag
                 ? 'You may cancel for a transaction timeout as the operator is not responding. Cancellation must be made within the remaining time or it may be processed on the blockchain.'
-                : 'Transaction is successfully submitted. but you can cancel if you want.'}
+                : 'If you cancel now, your transactions will not be submitted to blockchain.'}
             </ThemedText.Gray>
             {flag && (
               <>
