@@ -355,6 +355,7 @@ export default function useSendSwapTransaction(
           setCancel
         )
 
+        console.log(`popup add ${sendResponse.data.txOrderMsg.round}-${sendResponse.data.txOrderMsg.order}`)
         dispatch(
           addPopup({
             content: {
@@ -575,6 +576,7 @@ export default function useSendSwapTransaction(
           setCancel
         )
 
+        console.log(`popup add ${sendResponse.data.txOrderMsg.round}-${sendResponse.data.txOrderMsg.order}`)
         dispatch(
           addPopup({
             content: {

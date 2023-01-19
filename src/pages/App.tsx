@@ -65,7 +65,7 @@ export default function App() {
       await CheckPendingTx({ chainId, account, library, dispatch, router, recorder })
     }, 10000)
     return () => clearInterval(interval)
-  }, [])
+  }, [chainId, account, library, router, recorder])
 
   return (
     <ErrorBoundary>

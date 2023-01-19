@@ -1,5 +1,3 @@
-import { Contract } from '@ethersproject/contracts'
-import { Web3Provider } from '@ethersproject/providers'
 import { Trans } from '@lingui/macro'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, CurrencyAmount, Token, TradeType } from '@uniswap/sdk-core'
@@ -14,14 +12,12 @@ import { useSwapCallback } from 'hooks/useSwapCallback'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import JSBI from 'jsbi'
 import { RadiusSwapResponse } from 'lib/hooks/swap/useSendSwapTransaction'
-import { watcher_test } from 'lib/utils/watcher'
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { ArrowDown, CheckCircle, HelpCircle, Info } from 'react-feather'
 import ReactGA from 'react-ga4'
 import { BsArrowDown } from 'react-icons/bs'
 import { RouteComponentProps } from 'react-router-dom'
 import { Text } from 'rebass'
-import { addPopup, removePopup } from 'state/application/reducer'
 import { useAppDispatch } from 'state/hooks'
 import { useCancelManager, useReimbursementManager, useShowHistoryManager } from 'state/modal/hooks'
 import { setProgress } from 'state/modal/reducer'
@@ -52,7 +48,6 @@ import TokenWarningModal from '../../components/TokenWarningModal'
 import { TOKEN_SHORTHANDS } from '../../constants/tokens'
 import { useAllTokens, useCurrency } from '../../hooks/Tokens'
 import { ApprovalState, useApprovalOptimizedTrade, useApproveCallbackFromTrade } from '../../hooks/useApproveCallback'
-import { useRecorderContract } from '../../hooks/useContract'
 import useENSAddress from '../../hooks/useENSAddress'
 import { useERC20PermitFromTrade, UseERC20PermitState } from '../../hooks/useERC20Permit'
 import useIsArgentWallet from '../../hooks/useIsArgentWallet'
@@ -69,7 +64,6 @@ import {
 } from '../../state/swap/hooks'
 import { useExpertModeManager } from '../../state/user/hooks'
 import { LinkStyledButton, ThemedText } from '../../theme'
-import { db, Status } from '../../utils/db'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { warningSeverity } from '../../utils/prices'
 import { supportedChainId } from '../../utils/supportedChainId'
@@ -175,125 +169,10 @@ export default function Swap({ history }: RouteComponentProps) {
     }
   }
 
-  const recorderContract = useRecorderContract() as Contract
-  const { library } = useActiveWeb3React()
-  function watcher(recorderContract: Contract, library: Web3Provider) {
-    watcher_test(
-      recorderContract,
-      library,
-      input.txId,
-      input.account,
-      { round: input.round, order: input.order, proofHash: input.proofHash, txHash: input.txHash, nonce: input.nonce },
-      input.doneRound
-    )
-    /**
-     * recorder: Contract,
-     * library: Web3Provider,
-     * txHash: string,
-     * account: string,
-     * given: { round: number; order: number; proofHash: string; txHash: string; nonce: number },
-     * doneRound: number
-     */
-  }
-
   const [myState, setMyState] = useState<any>({ process: 0 })
 
   function sleep(ms: number) {
     return new Promise((r) => setTimeout(r, ms))
-  }
-
-  const resetPendingTx = async () => {
-    await db.pendingTxs.update(11, { round: 0 })
-  }
-
-  const fixHistory = async () => {
-    await db.txHistory.update(2, { status: Status.REIMBURSE_AVAILABLE })
-  }
-
-  const addReady = async () => {
-    await db.readyTxs.add({
-      tx: {
-        txOwner: '',
-        functionSelector: '',
-        amountIn: '',
-        amountOut: '',
-        path: [],
-        to: '',
-        nonce: 0,
-        availableFrom: 0,
-        deadline: 0,
-      },
-      mimcHash: 'mimcHash',
-      txHash: 'txHash',
-      progressHere: 0,
-      from: {
-        token: '',
-        amount: '0',
-        decimal: '1000000000000000000',
-      },
-      to: {
-        token: '',
-        amount: '0',
-        decimal: '1000000000000000000',
-      },
-    })
-  }
-
-  const addPending = async () => {
-    await db.pendingTxs.add({
-      readyTxId: 1,
-      sendDate: Math.floor(Date.now() / 1000),
-      round: 3,
-      order: 4,
-      proofHash: 'proofHash',
-      operatorSignature: { r: 'r', s: 's', v: 27 },
-      progressHere: 1,
-    })
-  }
-
-  const addTxHistory = async () => {
-    await db.txHistory.add({
-      pendingTxId: 1,
-      txId: 'txId',
-      txDate: Math.floor(Date.now() / 1000),
-      status: Status.COMPLETED,
-      from: { token: 'fromToken', amount: '123345222222000000000', decimal: '1000000000000000000' },
-      to: { token: 'toToken', amount: '321333388888000000000', decimal: '1000000000000000000' },
-    })
-  }
-
-  const showDB = async () => {
-    const keys = await db.pendingTxs.toCollection().keys()
-    const got = await db.pendingTxs.get(keys[0])
-    console.log(got)
-  }
-
-  const showPopUp = () => {
-    dispatch(
-      addPopup({
-        content: {
-          title: 'Transaction pending',
-          status: 'pending',
-          data: { hash: '0x1111111111111111111111111111111111111111' },
-        },
-        key: `popup-test`,
-        removeAfterMs: 31536000000,
-      })
-    )
-  }
-
-  const removePopUp = () => {
-    dispatch(
-      removePopup({
-        key: `popup-test`,
-      })
-    )
-  }
-
-  const showCancel = () => {
-    console.log(cancel)
-    setCancel(1)
-    console.log(cancel)
   }
 
   const dispatch = useAppDispatch()
@@ -308,13 +187,6 @@ export default function Swap({ history }: RouteComponentProps) {
 
   const [showTest, setShowTest] = useState(false)
   const [showReimbursement, setShowReimbursement] = useState(false)
-
-  const showModal = () => {
-    setShowTest(!showTest)
-  }
-  const showReimbursementModal = () => {
-    setShowReimbursement(!showReimbursement)
-  }
 
   const { account, chainId } = useActiveWeb3React()
   const loadedUrlParams = useDefaultsFromURLSearch()
@@ -626,6 +498,7 @@ export default function Swap({ history }: RouteComponentProps) {
       const func5 = async () => {
         split5(myState.txHash, myState.mimcHash, myState.signMessage, myState.encryptedSwapTx, myState.sig)
           .then(async (res) => {
+            onUserInput(Field.INPUT, '')
             setMyState({ process: 6 })
             await sleep(10000)
             setMyState({ process: 0 })
@@ -638,13 +511,10 @@ export default function Swap({ history }: RouteComponentProps) {
               swapResponse: res,
               showTimeLockPuzzle,
             })
-            onUserInput(Field.INPUT, '')
           })
           .catch(async (e) => {
             console.error(e)
-            setMyState({ process: 7 })
-            await sleep(1000)
-            setMyState({ process: 0 })
+            onUserInput(Field.INPUT, '')
             setSwapState({
               attemptingTxn: false,
               tradeToConfirm,
@@ -654,7 +524,7 @@ export default function Swap({ history }: RouteComponentProps) {
               swapResponse: undefined,
               showTimeLockPuzzle,
             })
-            onUserInput(Field.INPUT, '')
+            setMyState({ process: 0 })
           })
       }
 
@@ -801,6 +671,7 @@ export default function Swap({ history }: RouteComponentProps) {
     !(priceImpactSeverity > 3 && !isExpertMode)
 
   const handleConfirmDismiss = useCallback(() => {
+    console.log('on dismiss')
     setMyState({ process: 0 })
     setSwapState({
       showConfirm: false,
@@ -922,37 +793,6 @@ export default function Swap({ history }: RouteComponentProps) {
     })
   }
 
-  const [input, setInput] = useState<{
-    txId: string
-    account: string
-    round: number
-    order: number
-    nonce: number
-    proofHash: string
-    txHash: string
-    doneRound: number
-  }>({
-    txId: '',
-    account: '',
-    round: 0,
-    order: 0,
-    nonce: 0,
-    proofHash: '',
-    txHash: '',
-    doneRound: 0,
-  })
-
-  /**
-    const txId = ''
-    const account = ''
-    const round = 0
-    const order = 0
-    const nonce = 0
-    const proofHash = ''
-    const txHash = ''
-    const doneRound = 0
-   */
-
   // TODO: CLEAR CACHE 자동로딩
   return (
     <>
@@ -962,103 +802,7 @@ export default function Swap({ history }: RouteComponentProps) {
         onConfirm={handleConfirmTokenWarning}
         onDismiss={handleDismissTokenWarning}
       />
-      {/* <button onClick={() => showPopUp()}>add popup</button>
-      <button onClick={() => removePopUp()}>remove popup</button>
-      <div>
-        <div>
-          txId:
-          <input
-            onChange={(e) => {
-              setInput({ ...input, txId: e.target.value })
-            }}
-            value={input.txId}
-            type={'text'}
-          />
-        </div>
-        <div>
-          account:
-          <input
-            onChange={(e) => {
-              setInput({ ...input, account: e.target.value })
-            }}
-            value={input.account}
-            type={'text'}
-          />
-        </div>
-        <div>
-          round:
-          <input
-            onChange={(e) => {
-              setInput({ ...input, round: parseInt(e.target.value) })
-            }}
-            value={input.round}
-            type={'number'}
-          />
-        </div>
-        <div>
-          order:
-          <input
-            onChange={(e) => {
-              setInput({ ...input, order: parseInt(e.target.value) })
-            }}
-            value={input.order}
-            type={'number'}
-          />
-        </div>
-        <div>
-          nonce:
-          <input
-            onChange={(e) => {
-              setInput({ ...input, nonce: parseInt(e.target.value) })
-            }}
-            value={input.nonce}
-            type={'number'}
-          />
-        </div>
-
-        <div>
-          proofHash:
-          <input
-            onChange={(e) => {
-              setInput({ ...input, proofHash: e.target.value })
-            }}
-            value={input.proofHash}
-            type={'text'}
-          />
-        </div>
-        <div>
-          txHash:
-          <input
-            onChange={(e) => {
-              setInput({ ...input, txHash: e.target.value })
-            }}
-            value={input.txHash}
-            type={'text'}
-          />
-        </div>
-        <div>
-          doneRound:
-          <input
-            onChange={(e) => {
-              setInput({ ...input, doneRound: parseInt(e.target.value) })
-            }}
-            value={input.doneRound}
-            type={'number'}
-          />
-        </div>
-        <button onClick={() => watcher(recorderContract, library as Web3Provider)}>watcher test</button>
-      </div> */}
       <AppBody>
-        {/* <button onClick={() => addPending()}>inputPending</button>
-        <div>{myState.process}</div>
-        <button onClick={() => waitAndChange()}>waitAndChange</button>
-        <button onClick={() => fixHistory()}>fixHistory</button>
-        <button onClick={() => addTxHistory()}>inputTx</button>
-        <button onClick={() => showDB()}>log</button>
-        <button onClick={() => showModal()}>modal</button>
-        <button onClick={() => showReimbursementModal()}>reimbursement</button>
-        <button onClick={() => openProgress()}>Open Progress</button>
-        <button onClick={() => showCancel()}>cancel</button> */}
         <div
           style={{
             background: '#000000',

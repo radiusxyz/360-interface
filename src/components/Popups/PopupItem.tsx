@@ -147,7 +147,7 @@ export default function PopupItem({
 
   return (
     <Popup>
-      {'txn' in content ? (
+      {'txn' in content || 'failedSwitchNetwork' in content ? (
         popupContent
       ) : values?.status === 'pending' ? (
         <>
@@ -179,7 +179,7 @@ export default function PopupItem({
             >
               Go to Recent Transactions
             </RecentTxButton>
-            {values?.title !== 'Validating cancel success' && (
+            {values?.title !== 'Cancel pending' && (
               <CancelButton
                 onClick={() => {
                   console.log('values.data.readyTxId', values)
