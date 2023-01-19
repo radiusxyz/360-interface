@@ -638,6 +638,7 @@ export default function Swap({ history }: RouteComponentProps) {
               swapResponse: res,
               showTimeLockPuzzle,
             })
+            onUserInput(Field.INPUT, '')
           })
           .catch(async (e) => {
             console.error(e)
@@ -653,6 +654,7 @@ export default function Swap({ history }: RouteComponentProps) {
               swapResponse: undefined,
               showTimeLockPuzzle,
             })
+            onUserInput(Field.INPUT, '')
           })
       }
 

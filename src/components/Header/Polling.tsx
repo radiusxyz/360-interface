@@ -138,45 +138,43 @@ export default function Polling() {
   //todo - chainlink gas oracle is really slow. Can we get a better data source?
 
   return (
-    <>
-      <RowFixed>
-        <StyledPolling onMouseEnter={() => setIsHover(true)} onMouseLeave={() => setIsHover(false)} warning={warning}>
-          <StyledPollingDot warning={warning}>{isMounting && <Spinner warning={warning} />} </StyledPollingDot>
-          <ExternalLink href={'https://etherscan.io/gastracker'}>
-            {priceGwei ? (
-              <RowFixed style={{ marginRight: '8px' }}>
-                <ThemedText.Main fontSize="11px" mr="8px" color={theme.text3}>
-                  <MouseoverTooltip
-                    text={
-                      <Trans>
-                        The current fast gas amount for sending a transaction on L1. Gas fees are paid in
-                        Ethereum&apos;s native currency Ether (ETH) and denominated in GWEI.
-                      </Trans>
-                    }
-                  >
-                    {priceGwei.toString()} <Trans>gwei</Trans>
-                  </MouseoverTooltip>
-                </ThemedText.Main>
-                <StyledGasDot />
-              </RowFixed>
-            ) : null}
-          </ExternalLink>
-          <StyledPollingNumber breathe={isMounting} hovering={isHover}>
-            <ExternalLink
-              href={
-                chainId && blockNumber ? getExplorerLink(chainId, blockNumber.toString(), ExplorerDataType.BLOCK) : ''
-              }
+    <RowFixed>
+      <StyledPolling onMouseEnter={() => setIsHover(true)} onMouseLeave={() => setIsHover(false)} warning={warning}>
+        <StyledPollingDot warning={warning}>{isMounting && <Spinner warning={warning} />} </StyledPollingDot>
+        <ExternalLink href={'https://etherscan.io/gastracker'}>
+          {priceGwei ? (
+            <RowFixed style={{ marginRight: '8px' }}>
+              <ThemedText.Main fontSize="11px" mr="8px" color={theme.text3}>
+                <MouseoverTooltip
+                  text={
+                    <Trans>
+                      The current fast gas amount for sending a transaction on L1. Gas fees are paid in Ethereum&apos;s
+                      native currency Ether (ETH) and denominated in GWEI.
+                    </Trans>
+                  }
+                >
+                  {priceGwei.toString()} <Trans>gwei</Trans>
+                </MouseoverTooltip>
+              </ThemedText.Main>
+              <StyledGasDot />
+            </RowFixed>
+          ) : null}
+        </ExternalLink>
+        <StyledPollingNumber breathe={isMounting} hovering={isHover}>
+          <ExternalLink
+            href={
+              chainId && blockNumber ? getExplorerLink(chainId, blockNumber.toString(), ExplorerDataType.BLOCK) : ''
+            }
+          >
+            <MouseoverTooltip
+              text={<Trans>The most recent block number on this network. Prices update on every block.</Trans>}
             >
-              <MouseoverTooltip
-                text={<Trans>The most recent block number on this network. Prices update on every block.</Trans>}
-              >
-                {blockNumber}&ensp;
-              </MouseoverTooltip>
-            </ExternalLink>
-          </StyledPollingNumber>
-        </StyledPolling>
-        {warning && <ChainConnectivityWarning />}
-      </RowFixed>
-    </>
+              {blockNumber}&ensp;
+            </MouseoverTooltip>
+          </ExternalLink>
+        </StyledPollingNumber>
+      </StyledPolling>
+      {warning && <ChainConnectivityWarning />}
+    </RowFixed>
   )
 }

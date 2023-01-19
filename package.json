@@ -175,7 +175,7 @@
     "@fontsource/inter": "^4.5.1",
     "@popperjs/core": "^2.4.4",
     "@radiusxyz/threesixty-contracts": "^0.1.16",
-    "@radiusxyz/threesixty-contracts-mumbai": "0.0.4",
+    "@radiusxyz/threesixty-contracts-mumbai": "0.0.5",
     "@radiusxyz/threesixty-contracts-polygon": "0.0.3",
     "@ramonak/react-progress-bar": "^4.4.0",
     "@reduxjs/toolkit": "^1.6.1",
