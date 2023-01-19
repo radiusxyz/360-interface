@@ -592,7 +592,11 @@ function WaitingForSwapConfirmation({
         <ThemedText.White textAlign={'center'} fontWeight={'600'} fontSize={'24px'}>
           Waiting for confirmation on your wallet...
         </ThemedText.White>
-        <ThemedText.Gray>{comment}</ThemedText.Gray>
+        <RowCenter style={{ marginTop: '20px' }}>
+          <ThemedText.Black fontSize={16} fontWeight={500} color={comment === retryMsg ? '#ff0000' : '#a8a8a8'}>
+            {comment}
+          </ThemedText.Black>
+        </RowCenter>
       </Section>
     </Wrapper>
   )
