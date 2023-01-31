@@ -215,6 +215,7 @@ interface CurrencyInputPanelProps {
   showCurrencyAmount?: boolean
   disableNonToken?: boolean
   renderBalance?: (amount: CurrencyAmount<Currency>) => ReactNode
+  isA?: boolean
   locked?: boolean
   loading?: boolean
 }
@@ -233,6 +234,7 @@ export default function CurrencyInputPanel({
   showCurrencyAmount,
   disableNonToken,
   renderBalance,
+  isA,
   fiatValue,
   priceImpact,
   hideBalance = false,
@@ -376,18 +378,40 @@ export default function CurrencyInputPanel({
           </RowBetween>
         </FiatRow>
       </Container>
-      {onCurrencySelect && (
-        <CurrencySearchModal
-          isOpen={modalOpen}
-          onDismiss={handleDismissSearch}
-          onCurrencySelect={onCurrencySelect}
-          selectedCurrency={currency}
-          otherSelectedCurrency={otherCurrency}
-          showCommonBases={showCommonBases}
-          showCurrencyAmount={showCurrencyAmount}
-          disableNonToken={disableNonToken}
-        />
-      )}
+      {onCurrencySelect &&
+        (isA === false || isA === true ? (
+          <CurrencySearchModal
+            isOpen={modalOpen}
+            onDismiss={handleDismissSearch}
+            onCurrencySelect={onCurrencySelect}
+            selectedCurrency={currency}
+            otherSelectedCurrency={otherCurrency}
+            aTokenAddress={
+              isA ? null : otherCurrency ? otherCurrency?.wrapped.address : '0x0000000000000000000000000000000000000000'
+            }
+            bTokenAddress={
+              isA
+                ? otherCurrency
+                  ? otherCurrency?.wrapped.address
+                  : '0x0000000000000000000000000000000000000000'
+                : null
+            }
+            showCommonBases={showCommonBases}
+            showCurrencyAmount={showCurrencyAmount}
+            disableNonToken={disableNonToken}
+          />
+        ) : (
+          <CurrencySearchModal
+            isOpen={modalOpen}
+            onDismiss={handleDismissSearch}
+            onCurrencySelect={onCurrencySelect}
+            selectedCurrency={currency}
+            otherSelectedCurrency={otherCurrency}
+            showCommonBases={showCommonBases}
+            showCurrencyAmount={showCurrencyAmount}
+            disableNonToken={disableNonToken}
+          />
+        ))}
     </InputPanel>
   )
 }

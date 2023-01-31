@@ -3,6 +3,8 @@ import { Trade } from '@uniswap/router-sdk'
 import { Currency, CurrencyAmount, Token, TradeType } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'
 import { Trade as V3Trade } from '@uniswap/v3-sdk'
+import Off from 'assets/images/off.png'
+import On from 'assets/images/on.png'
 import SwapDetailsDropdown from 'components/swap/SwapDetailsDropdown'
 import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter'
 import { MouseoverTooltip } from 'components/Tooltip'
@@ -45,6 +47,7 @@ import { ReimbursementModal } from '../../components/swap/ReimburseModal'
 import { ArrowWrapper, SwapCallbackError, Wrapper } from '../../components/swap/styleds'
 import SwapHeader from '../../components/swap/SwapHeader'
 import TokenWarningModal from '../../components/TokenWarningModal'
+import { SupportedChainId as SupportedChainIds } from '../../constants/chains'
 import { TOKEN_SHORTHANDS } from '../../constants/tokens'
 import { useAllTokens, useCurrency } from '../../hooks/Tokens'
 import { ApprovalState, useApprovalOptimizedTrade, useApproveCallbackFromTrade } from '../../hooks/useApproveCallback'
@@ -170,6 +173,8 @@ export default function Swap({ history }: RouteComponentProps) {
   }
 
   const [myState, setMyState] = useState<any>({ process: 0 })
+  const [backerIntegrity, setBackerIntegrity] = useState(false)
+  const [optionHover, setOptionHover] = useState(false)
 
   function sleep(ms: number) {
     return new Promise((r) => setTimeout(r, ms))
@@ -199,11 +204,13 @@ export default function Swap({ history }: RouteComponentProps) {
 
   useEffect(() => {
     if (account) {
-      fetch(`${process.env.REACT_APP_360_OPERATOR}/whiteList?walletAddress=` + account).then(async (is) => {
-        const val = await is.text()
-        if (val === 'false') setDisabled(true)
-        else setDisabled(false)
-      })
+      fetch(`${process.env.REACT_APP_360_OPERATOR}/whiteList?walletAddress=` + account)
+        .then(async (is) => {
+          const val = await is.text()
+          if (val === 'false') setDisabled(true)
+          else setDisabled(false)
+        })
+        .catch((e) => console.error(e))
     }
   }, [account])
 
@@ -457,9 +464,20 @@ export default function Swap({ history }: RouteComponentProps) {
     split3,
     split4,
     split5,
-  } = useSwapCallback(approvalOptimizedTrade, allowedSlippage, recipient, signatureData, sigHandler, parameters)
+  } = useSwapCallback(
+    approvalOptimizedTrade,
+    allowedSlippage,
+    backerIntegrity,
+    recipient,
+    signatureData,
+    sigHandler,
+    parameters
+  )
+
+  // console.log('myState a', myState)
 
   useEffect(() => {
+    // console.log('myState b', myState)
     if (split1 && split2 && split3 && split4 && split5) {
       const func1 = async () => {
         setSwapState({
@@ -472,15 +490,17 @@ export default function Swap({ history }: RouteComponentProps) {
           showTimeLockPuzzle: false,
         })
 
-        const res = await split1()
-        console.log('res', res)
-        setMyState({ ...myState, process: 2, ...res })
+        const res = await split1(backerIntegrity)
+        console.log('res1', res)
+        const tempState = { ...myState, process: 2, ...res }
+        setMyState(tempState)
       }
       const func2 = async () => {
         const res = await split2(myState.signMessage)
-        console.log('res', res)
+        console.log('res2', res)
         if (res) {
-          setMyState({ ...myState, process: 3, ...res })
+          const tempState = { ...myState, process: 3, ...res }
+          setMyState(tempState)
         } else {
           setMyState({ process: 0 })
         }
@@ -488,17 +508,21 @@ export default function Swap({ history }: RouteComponentProps) {
       const func3 = async () => {
         await sleep(300)
         const res = await split3(myState.timeLockPuzzleParam, myState.timeLockPuzzleSnarkParam)
-        console.log('res', res)
-        setMyState({ ...myState, process: 4, ...res })
+        console.log('res3', res)
+        const tempState = { ...myState, process: 4, ...res }
+        setMyState(tempState)
       }
       const func4 = async () => {
         const res = await split4(myState.timeLockPuzzleData, myState.txNonce, myState.signMessage, myState.idPath)
-        setMyState({ ...myState, process: 5, ...res })
+        console.log('res4', res)
+        const tempState = { ...myState, process: 5, ...res }
+        setMyState(tempState)
       }
       const func5 = async () => {
         split5(myState.txHash, myState.mimcHash, myState.signMessage, myState.encryptedSwapTx, myState.sig)
           .then(async (res) => {
             onUserInput(Field.INPUT, '')
+            console.log('res5', res)
             setMyState({ process: 6 })
             await sleep(10000)
             setMyState({ process: 0 })
@@ -802,6 +826,7 @@ export default function Swap({ history }: RouteComponentProps) {
         onConfirm={handleConfirmTokenWarning}
         onDismiss={handleDismissTokenWarning}
       />
+
       <AppBody>
         <div
           style={{
@@ -854,6 +879,7 @@ export default function Swap({ history }: RouteComponentProps) {
                   fiatValue={fiatValueInput ?? undefined}
                   onCurrencySelect={handleInputSelect}
                   otherCurrency={currencies[Field.OUTPUT]}
+                  isA={true}
                   showCommonBases={false}
                   id="swap-currency-input"
                   loading={independentField === Field.OUTPUT && routeIsSyncing}
@@ -890,12 +916,55 @@ export default function Swap({ history }: RouteComponentProps) {
                   currency={currencies[Field.OUTPUT]}
                   onCurrencySelect={handleOutputSelect}
                   otherCurrency={currencies[Field.INPUT]}
+                  isA={false}
                   showCommonBases={false}
                   id="swap-currency-output"
                   loading={independentField === Field.INPUT && routeIsSyncing}
                 />
               </div>
             </AutoColumn>
+            <div
+              style={{
+                display: 'flex',
+                width: '100%',
+                justifyContent: 'right',
+                textAlign: 'right',
+                height: '20px',
+                marginTop: '14px',
+                marginBottom: '2px',
+                alignItems: 'center',
+                color: '#b3b3b3',
+                fontSize: '13px',
+              }}
+            >
+              <div style={{ display: 'flex', verticalAlign: 'bottom' }}>
+                <MouseoverTooltip
+                  text={
+                    <Trans>
+                      Protect Your Swap: Turn ON for full protection against malicious MEV activity. Your transaction
+                      may revert if at risk to an attack. Turn OFF to proceed the swap with potential exposure to MEV
+                      and lower-price swaps.
+                    </Trans>
+                  }
+                >
+                  <Info
+                    style={{
+                      stroke: '1px',
+                      width: '18px',
+                      height: '18px',
+                    }}
+                  />
+                </MouseoverTooltip>
+              </div>
+              <div style={{ marginLeft: '6px', marginRight: '10px' }}>MEV Protection Guarantee</div>
+              <div style={{ marginRight: '4px', height: '100%' }} onClick={() => setBackerIntegrity(!backerIntegrity)}>
+                {backerIntegrity ? (
+                  <img src={On} width="49px" height="22px" alt={'checked'} />
+                ) : (
+                  <img src={Off} width="49px" height="22px" alt={'unchecked'} />
+                )}
+              </div>
+            </div>
           </Wrapper>
         </div>
 
@@ -936,6 +1005,12 @@ export default function Swap({ history }: RouteComponentProps) {
               <SwapButtonLight onClick={toggleWalletModal}>
                 <Trans>Connect Wallet</Trans>
               </SwapButtonLight>
+            ) : chainId !== SupportedChainIds.POLYGON && chainId !== SupportedChainIds.POLYGON_MUMBAI ? (
+              <SwapButtonPrimary disabled={true}>
+                <ThemedText.Main mb="4px">
+                  <Trans>Unsupported Network</Trans>
+                </ThemedText.Main>
+              </SwapButtonPrimary>
             ) : disabled ? (
               <SwapButtonPrimary disabled={true}>
                 <ThemedText.Main mb="4px">

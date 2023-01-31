@@ -6,7 +6,13 @@ import { useCurrencyFromMap, useTokenFromMapOrNetwork } from 'lib/hooks/useCurre
 import { getTokenFilter } from 'lib/hooks/useTokenList/filtering'
 import { useMemo } from 'react'
 
-import { useAllLists, useCombinedActiveList, useInactiveListUrls } from '../state/lists/hooks'
+import {
+  useAllLists,
+  useCombinedActiveAList,
+  useCombinedActiveBList,
+  useCombinedActiveList,
+  useInactiveListUrls,
+} from '../state/lists/hooks'
 import { WrappedTokenInfo } from '../state/lists/wrappedTokenInfo'
 import { useUserAddedTokens } from '../state/user/hooks'
 import { TokenAddressMap, useUnsupportedTokenList } from './../state/lists/hooks'
@@ -50,6 +56,16 @@ function useTokensFromMap(tokenMap: TokenAddressMap, includeUserAdded: boolean):
 
 export function useAllTokens(): { [address: string]: Token } {
   const allTokens = useCombinedActiveList()
+  return useTokensFromMap(allTokens, true)
+}
+
+export function useATokens(bTokenAddress: string | null | undefined): { [address: string]: Token } {
+  const allTokens = useCombinedActiveAList(bTokenAddress)
+  return useTokensFromMap(allTokens, true)
+}
+
+export function useBTokens(aTokenAddress: string | null | undefined): { [address: string]: Token } {
+  const allTokens = useCombinedActiveBList(aTokenAddress)
   return useTokensFromMap(allTokens, true)
 }
 

@@ -58,6 +58,7 @@ interface EncryptedSwapTx {
   path: Path
   to: string
   nonce: number
+  backerIntegrity: boolean
   availableFrom: number
   deadline: number
   txHash: string
@@ -103,7 +104,7 @@ export interface RadiusSwapResponse {
 
 const headers = new Headers({ 'content-type': 'application/json', accept: 'application/json' })
 
-const swapExactTokensForTokens = '0x375734d9'
+const swapExactTokensForTokens = '0x73a2cff1'
 
 // returns a function that will execute a swap, if the parameters are all valid
 export default function useSendSwapTransaction(
@@ -118,7 +119,7 @@ export default function useSendSwapTransaction(
   sigHandler: () => void
 ): {
   callback: null | (() => Promise<RadiusSwapResponse>)
-  split1?: () => Promise<{
+  split1?: (backerIntegrity: boolean) => Promise<{
     signMessage: any
     timeLockPuzzleParam: TimeLockPuzzleParam
     timeLockPuzzleSnarkParam: string
@@ -190,6 +191,7 @@ export default function useSendSwapTransaction(
             dispatch(setTimeLockPuzzleSnarkParam({ newParam }))
           })
         }
+        const backerIntegrity = true
 
         const resolvedCalls = await swapCalls
 
@@ -219,6 +221,7 @@ export default function useSendSwapTransaction(
           path,
           to: signAddress,
           nonce: txNonce,
+          backerIntegrity,
           deadline,
           availableFrom,
         }
@@ -316,6 +319,7 @@ export default function useSendSwapTransaction(
           path: encryptedPath,
           to: signAddress,
           nonce: txNonce,
+          backerIntegrity,
           availableFrom,
           deadline,
           txHash,
@@ -372,7 +376,7 @@ export default function useSendSwapTransaction(
 
         return sendResponse
       },
-      split1: async function split1(): Promise<{
+      split1: async function split1(backerIntegrity: boolean): Promise<{
         signMessage: any
         timeLockPuzzleParam: TimeLockPuzzleParam
         timeLockPuzzleSnarkParam: string
@@ -421,6 +425,7 @@ export default function useSendSwapTransaction(
           path,
           to: signAddress,
           nonce: txNonce,
+          backerIntegrity,
           deadline,
           availableFrom,
         }
@@ -528,6 +533,7 @@ export default function useSendSwapTransaction(
           path: encryptedPath,
           to: signAddress,
           nonce: txNonce,
+          backerIntegrity: signMessage.backerIntegrity,
           availableFrom: signMessage.availableFrom,
           deadline: signMessage.deadline,
           txHash,
@@ -543,19 +549,23 @@ export default function useSendSwapTransaction(
         encryptedSwapTx: any,
         sig: Signature
       ): Promise<RadiusSwapResponse> {
+        console.log('split5')
         let input = trade?.inputAmount?.numerator
         let output = trade?.outputAmount?.numerator
         input = !input ? JSBI.BigInt(0) : input
         output = !output ? JSBI.BigInt(0) : output
+        console.log('split5-1')
 
         const inDecimal =
           trade?.inputAmount?.decimalScale !== undefined ? trade?.inputAmount?.decimalScale : JSBI.BigInt(1)
         const outDecimal =
           trade?.outputAmount?.decimalScale !== undefined ? trade?.outputAmount?.decimalScale : JSBI.BigInt(1)
+        console.log('split5-2')
 
         const inSymbol = trade?.inputAmount?.currency?.symbol !== undefined ? trade?.inputAmount?.currency?.symbol : ''
         const outSymbol =
           trade?.outputAmount?.currency?.symbol !== undefined ? trade?.outputAmount?.currency?.symbol : ''
+        console.log('split5-3')
 
         const readyTxId = await db.readyTxs.add({
           txHash,
@@ -565,6 +575,7 @@ export default function useSendSwapTransaction(
           from: { token: inSymbol, amount: input.toString(), decimal: inDecimal.toString() },
           to: { token: outSymbol, amount: output.toString(), decimal: outDecimal.toString() },
         })
+        console.log('split5-4')
 
         const sendResponse = await sendEIP712Tx(
           chainId,

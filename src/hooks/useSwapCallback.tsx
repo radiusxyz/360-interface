@@ -20,6 +20,7 @@ import useTransactionDeadline from './useTransactionDeadline'
 export function useSwapCallback(
   trade: AnyTrade | undefined, // trade to execute, required
   allowedSlippage: Percent, // in bips
+  backerIntegrity: boolean,
   recipientAddressOrName: string | null, // the ENS name or address of the recipient of the trade, or null if swap should be returned to sender
   signatureData: SignatureData | undefined | null,
   sigHandler: () => void,
@@ -27,7 +28,7 @@ export function useSwapCallback(
 ): {
   state: SwapCallbackState
   callback: null | (() => Promise<RadiusSwapResponse>)
-  split1?: () => Promise<{
+  split1?: (backerIntegrity: boolean) => Promise<{
     signMessage: any
     timeLockPuzzleParam: TimeLockPuzzleParam
     timeLockPuzzleSnarkParam: string
@@ -75,6 +76,7 @@ export function useSwapCallback(
     allowedSlippage,
     recipientAddressOrName: recipient,
     signatureData,
+    backerIntegrity,
     deadline,
     sigHandler,
     parameters,

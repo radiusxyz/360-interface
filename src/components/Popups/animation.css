@@ -1,0 +1,8 @@
+.item-enter-active {
+  opacity: 1;
+  transition: opacity 700ms ease-in;
+}
+.item-exit-active {
+  opacity: 0;
+  transition: opacity 700ms ease-out;
+}

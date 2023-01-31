@@ -26,9 +26,11 @@ async function getTxId(
   } else {
     console.log('not in responseList')
     const isSaved = await recorder?.isSaved(round)
-    console.log(`isSaved(${round}) ${isSaved}`)
+    // TODO: round 넘어가면 isSaved 아니어도 살펴보도록 변경
+    const currentRound = await recorder?.currentRound()
+    console.log(`isSaved(${round}) ${isSaved}, currentRound: ${currentRound}`)
 
-    if (isSaved) {
+    if (isSaved || currentRound > round) {
       await fetch(
         `${process.env.REACT_APP_360_OPERATOR}/tx?chainId=${chainId}&routerAddress=${routerAddress}&round=${round}`
       ).then((roundResponse) => {
@@ -64,6 +66,11 @@ export async function CheckPendingTx({
 }) {
   console.log('watcher', account, router?.address, recorder?.address)
   const pendingTxs = await db.pendingTxs.where('progressHere').equals(1).toArray()
+
+  const test = await library?.getTransactionReceipt(
+    '0x300e90e9a3c77e4f93fdd18b61b3ca4ac810b68405c6e40936c0745ec9e80a46'
+  )
+  console.log('test', test)
 
   for (const pendingTx of pendingTxs) {
     // 1. round에 해당하는 txId 받아오기
@@ -109,6 +116,7 @@ export async function CheckPendingTx({
             success = Number(dataList[4]) === 1
             // 확실한건 nonce / walletAddress / txHash
             // 불확실한건 round / order / proofHash / txId는 불확
+            // TODO: pendingTx.round === round 왜 있는지 모르겠습니다. operator가 틀린 round를 주는 경우를 고려해봐야 할까 싶습니다.
             if (pendingTx.round === round && address.toLowerCase() === readyTx?.tx.txOwner.toLowerCase()) {
               if (readyTx?.tx.nonce === nonce) {
                 if (success === true) {
@@ -199,7 +207,7 @@ export async function CheckPendingTx({
                             content: {
                               title: 'Canceled',
                               status: 'canceled',
-                              data: { hash: '' },
+                              data: { hash: txHash },
                             },
                             key: `${round}-${order}`,
                             removeAfterMs: 31536000,
@@ -246,6 +254,50 @@ export async function CheckPendingTx({
             }
             currentOrderLogs = []
           }
+        }
+
+        const currentRound = await recorder?.currentRound()
+        console.log(`currentRound: ${currentRound} ${pendingTx.round}`)
+        // doneRound까지 봤으면
+        if (parseInt(currentRound) === pendingTx.round + 1) {
+          const isCanceled = await recorder?.useOfVeto(readyTx?.txHash, readyTx?.tx.txOwner)
+          if (isCanceled === true) {
+            console.log('Canceled')
+            await db
+              .pushTxHistory(
+                { field: 'pendingTxId', value: pendingTx.id as number },
+                {
+                  pendingTxId: pendingTx.id as number,
+                  txId: txHash,
+                  txDate: txTime,
+                  from: readyTx?.from as TokenAmount,
+                  to: readyTx?.to as TokenAmount,
+                  status: Status.CANCELED,
+                }
+              )
+              .then(async () => {
+                await db.pendingTxs.update(pendingTx.id as number, {
+                  progressHere: 0,
+                  round: pendingTx.round,
+                  order: pendingTx.order,
+                })
+                console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
+                dispatch(removePopup({ key: `${pendingTx.round}-${pendingTx.order}` }))
+                console.log(`popup add ${pendingTx.round}-${pendingTx.order}`)
+                dispatch(
+                  addPopup({
+                    content: {
+                      title: 'Canceled',
+                      status: 'canceled',
+                      data: { hash: txHash },
+                    },
+                    key: `${pendingTx.round}-${pendingTx.order}`,
+                    removeAfterMs: 31536000,
+                  })
+                )
+              })
+          }
+          return
         }
         console.log(`check next round: ${pendingTx.round + 1}`)
         console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
@@ -382,7 +434,7 @@ export async function CheckPendingTx({
                       content: {
                         title: 'Canceled',
                         status: 'canceled',
-                        data: { hash: '' },
+                        data: { hash: txHash },
                       },
                       key: `${pendingTx.round}-${pendingTx.order}`,
                       removeAfterMs: 31536000,

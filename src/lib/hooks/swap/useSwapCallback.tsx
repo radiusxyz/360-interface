@@ -25,7 +25,7 @@ export enum SwapCallbackState {
 interface UseSwapCallbackReturns {
   state: SwapCallbackState
   callback?: () => Promise<RadiusSwapResponse>
-  split1?: () => Promise<{
+  split1?: (backerIntegrity: boolean) => Promise<{
     signMessage: any
     timeLockPuzzleParam: TimeLockPuzzleParam
     timeLockPuzzleSnarkParam: string
@@ -57,6 +57,7 @@ interface UseSwapCallbackArgs {
   allowedSlippage: Percent // in bips
   recipientAddressOrName: string | null | undefined // the ENS name or address of the recipient of the trade, or null if swap should be returned to sender
   signatureData: SignatureData | null | undefined
+  backerIntegrity: boolean
   deadline: BigNumber | undefined
   feeOptions?: FeeOptions
   sigHandler: () => void
@@ -70,6 +71,7 @@ export function useSwapCallback({
   allowedSlippage,
   recipientAddressOrName,
   signatureData,
+  backerIntegrity,
   deadline,
   feeOptions,
   sigHandler,
@@ -82,6 +84,7 @@ export function useSwapCallback({
     allowedSlippage,
     recipientAddressOrName,
     signatureData,
+    backerIntegrity,
     deadline,
     feeOptions
   )
@@ -126,7 +129,7 @@ export function useSwapCallback({
     return {
       state: SwapCallbackState.VALID,
       callback: async () => callback(),
-      split1: async () => split1(),
+      split1: async (a: any) => split1(a),
       split2: async (a: any) => split2(a),
       split3: async (a: any, b: any) => split3(a, b),
       split4: async (a: any, b: any, c: any, d: any) => split4(a, b, c, d),

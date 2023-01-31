@@ -43,6 +43,7 @@ export function useSwapCallArguments(
   _allowedSlippage: Percent,
   recipientAddressOrName: string | null | undefined,
   _signatureData: SignatureData | null | undefined,
+  backerIntegrity: boolean,
   deadline: BigNumber | undefined,
   _feeOptions: FeeOptions | undefined
 ): Promise<SwapCall[]> {
@@ -86,7 +87,8 @@ export function useSwapCallArguments(
       `${amountOut}`,
       path,
       account,
-      deadlineNumber
+      deadlineNumber,
+      backerIntegrity
     )
 
     return [

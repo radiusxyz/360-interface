@@ -17,7 +17,14 @@ import { Text } from 'rebass'
 import { useAllTokenBalances } from 'state/wallet/hooks'
 import styled from 'styled-components/macro'
 
-import { useAllTokens, useIsUserAddedToken, useSearchInactiveTokenLists, useToken } from '../../hooks/Tokens'
+import {
+  useAllTokens,
+  useATokens,
+  useBTokens,
+  useIsUserAddedToken,
+  useSearchInactiveTokenLists,
+  useToken,
+} from '../../hooks/Tokens'
 import { CloseIcon, ThemedText } from '../../theme'
 import { isAddress } from '../../utils'
 import Column from '../Column'
@@ -50,6 +57,8 @@ interface CurrencySearchProps {
   selectedCurrency?: Currency | null
   onCurrencySelect: (currency: Currency) => void
   otherSelectedCurrency?: Currency | null
+  aTokenAddress?: string | null
+  bTokenAddress?: string | null
   showCommonBases?: boolean
   showCurrencyAmount?: boolean
   disableNonToken?: boolean
@@ -65,6 +74,8 @@ export function CurrencySearch({
   showCommonBases,
   showCurrencyAmount,
   disableNonToken,
+  aTokenAddress,
+  bTokenAddress,
   onDismiss,
   isOpen,
   showManageView,
@@ -80,7 +91,17 @@ export function CurrencySearch({
   const [searchQuery, setSearchQuery] = useState<string>('')
   const debouncedQuery = useDebounce(searchQuery, 200)
 
+  const bTokens = useBTokens(aTokenAddress)
+  const aTokens = useATokens(bTokenAddress)
   const allTokens = useAllTokens()
+  let allToken: { [address: string]: Token }
+  if (aTokenAddress) {
+    allToken = bTokens
+  } else if (bTokenAddress) {
+    allToken = aTokens
+  } else {
+    allToken = allTokens
+  }
 
   // if they input an address, use it
   const isAddressSearch = isAddress(debouncedQuery)
@@ -100,8 +121,8 @@ export function CurrencySearch({
   }, [isAddressSearch])
 
   const filteredTokens: Token[] = useMemo(() => {
-    return Object.values(allTokens).filter(getTokenFilter(debouncedQuery))
-  }, [allTokens, debouncedQuery])
+    return Object.values(allToken).filter(getTokenFilter(debouncedQuery))
+  }, [allToken, debouncedQuery])
 
   const balances = useAllTokenBalances()
   const sortedTokens: Token[] = useMemo(() => {

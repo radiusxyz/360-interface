@@ -44,7 +44,7 @@ export function MouseoverTooltip({ text, disableHover, children, ...rest }: Omit
   const close = useCallback(() => setShow(false), [setShow])
   return (
     <Tooltip {...rest} show={show} text={disableHover ? null : text}>
-      <div onMouseEnter={open} onMouseLeave={close}>
+      <div style={{ display: 'flex', height: '100%', alignItems: 'end' }} onMouseEnter={open} onMouseLeave={close}>
         {children}
       </div>
     </Tooltip>
