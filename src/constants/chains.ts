@@ -42,7 +42,7 @@ export const ALL_SUPPORTED_CHAIN_IDS: SupportedChainId[] = Object.values(Support
   (id) => typeof id === 'number'
 ) as SupportedChainId[]
 
-// TODO: remove polygon
+// TODO: polygon removed
 export const SUPPORTED_GAS_ESTIMATE_CHAIN_IDS = [
   SupportedChainId.MAINNET,
   SupportedChainId.OPTIMISM,

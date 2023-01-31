@@ -15,6 +15,7 @@ export const SWAP_TYPE = [
   { name: 'path', type: 'address[]' },
   { name: 'to', type: 'address' },
   { name: 'nonce', type: 'uint256' },
+  { name: 'backerIntegrity', type: 'bool' },
   { name: 'availableFrom', type: 'uint256' },
   { name: 'deadline', type: 'uint256' },
 ]

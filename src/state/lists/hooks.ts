@@ -1,5 +1,5 @@
 import { ChainTokenMap, tokensToChainTokenMap } from 'lib/hooks/useTokenList/utils'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAppSelector } from 'state/hooks'
 import sortByListPriority from 'utils/listSort'
 
@@ -115,6 +115,54 @@ export function useInactiveListUrls(): string[] {
 export function useCombinedActiveList(): TokenAddressMap {
   const activeListUrls = useActiveListUrls()
   const activeTokens = useCombinedTokenMapFromUrls(activeListUrls)
+  // debugger
+  return activeTokens
+}
+
+// TODO: get a, b token list from operator
+export function useCombinedActiveAList(bTokenAddress: string | null | undefined): TokenAddressMap {
+  const [aList, setAList] = useState([])
+  useEffect(() => {
+    if (bTokenAddress)
+      fetch(`${process.env.REACT_APP_360_OPERATOR}/token/availableSwapTokens?bTokenAddress=${bTokenAddress}`)
+        .then((res) => {
+          res.json().then((json) => {
+            setAList(json)
+          })
+        })
+        .catch((e) => console.error(e))
+  }, [])
+  const activeListUrls = useActiveListUrls()
+  const allTokens = useCombinedTokenMapFromUrls(activeListUrls)
+  const activeTokens: any = { 137: {} }
+  if (allTokens)
+    for (const token of aList) {
+      if (token in allTokens[137]) activeTokens[137][token] = allTokens[137][token]
+    }
+  // debugger
+  return activeTokens
+}
+
+// TODO: get a, b token list from operator
+export function useCombinedActiveBList(aTokenAddress: string | null | undefined): TokenAddressMap {
+  const [bList, setBList] = useState([])
+  useEffect(() => {
+    if (aTokenAddress)
+      fetch(`${process.env.REACT_APP_360_OPERATOR}/token/availableSwapTokens?aTokenAddress=${aTokenAddress}`)
+        .then((res) => {
+          res.json().then((json) => {
+            setBList(json)
+          })
+        })
+        .catch((e) => console.error(e))
+  }, [])
+  const activeListUrls = useActiveListUrls()
+  const allTokens = useCombinedTokenMapFromUrls(activeListUrls)
+  const activeTokens: any = { 137: {} }
+  if (allTokens)
+    for (const token of bList) {
+      if (token in allTokens[137]) activeTokens[137][token] = allTokens[137][token]
+    }
   // debugger
   return activeTokens
 }

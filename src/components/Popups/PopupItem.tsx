@@ -40,7 +40,6 @@ const RecentTxButton = styled(ButtonError)`
   }
 `
 
-// TODO: erase hover color
 const CancelButton = styled(BaseButton)`
   color: #4b5466;
   font-size: 10px;
@@ -199,7 +198,6 @@ export default function PopupItem({
             </ThemedText.White>
             <X color={theme.text2} onClick={removeThisPopup} />
           </RowBetween>
-          {/* TODO: click 안됨 */}
           <ExternalLink
             href={getExplorerLink(chainId as number, values?.data.hash, ExplorerDataType.TRANSACTION)}
             style={{ textDecoration: 'none', color: '#8BB3FF' }}

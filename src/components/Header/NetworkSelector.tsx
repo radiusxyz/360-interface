@@ -52,12 +52,12 @@ const FlyoutHeader = styled.div`
 `
 const FlyoutMenu = styled.div`
   position: absolute;
-  top: 54px;
+  top: 20px;
   width: 272px;
   z-index: 99;
   padding-top: 10px;
   @media screen and (min-width: ${MEDIA_WIDTHS.upToSmall}px) {
-    top: 40px;
+    top: 20px;
   }
 `
 const FlyoutMenuContents = styled.div`
