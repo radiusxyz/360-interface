@@ -180,11 +180,13 @@ function TransactionSubmittedContent({
 export function ConfirmationModalContent({
   title,
   bottomContent,
+  errorMessage,
   onDismiss,
   topContent,
 }: {
   title: ReactNode
   onDismiss: () => void
+  errorMessage: string | undefined | null
   topContent: () => ReactNode
   bottomContent?: () => ReactNode | undefined
 }) {
@@ -199,6 +201,13 @@ export function ConfirmationModalContent({
         </RowBetween>
         {topContent()}
       </Section>
+      {errorMessage && (
+        <div style={{ marginBottom: '25px' }}>
+          <Text fontWeight={600} fontSize={20} color={'#00AA00'}>
+            {errorMessage}
+          </Text>
+        </div>
+      )}
       {bottomContent && <BottomSection gap="12px">{bottomContent()}</BottomSection>}
     </Wrapper>
   )
