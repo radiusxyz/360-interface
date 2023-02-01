@@ -506,12 +506,12 @@ export default function Swap({ history }: RouteComponentProps) {
               })
               .catch(() => {
                 console.log('failed to load operator')
-                setMyState({ process: 0, errorMessage: 'RPC server is not responding, please try a minute later' })
+                setMyState({ process: 0, errorMessage: 'RPC server is not responding, please try again' })
               })
           })
           .catch(() => {
             console.log('failed to load nonce')
-            setMyState({ process: 0, errorMessage: 'RPC server is not responding, please try a minute later' })
+            setMyState({ process: 0, errorMessage: 'RPC server is not responding, please try again' })
           })
       }
       const func2 = async () => {
