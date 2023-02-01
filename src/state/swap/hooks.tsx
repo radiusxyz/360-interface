@@ -32,13 +32,22 @@ export function useSwapActionHandlers(): {
 } {
   const dispatch = useAppDispatch()
   const onCurrencySelection = useCallback(
-    (field: Field, currency: Currency) => {
-      dispatch(
-        selectCurrency({
-          field,
-          currencyId: currency.isToken ? currency.address : currency.isNative ? 'ETH' : '',
-        })
-      )
+    (field: Field, currency: Currency | null) => {
+      if (currency !== null) {
+        dispatch(
+          selectCurrency({
+            field,
+            currencyId: currency.isToken ? currency.address : currency.isNative ? 'ETH' : '',
+          })
+        )
+      } else {
+        dispatch(
+          selectCurrency({
+            field,
+            currencyId: '',
+          })
+        )
+      }
     },
     [dispatch]
   )

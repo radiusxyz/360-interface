@@ -120,7 +120,7 @@ export function ClaimReimbursement({
   const loadAmount = async () => {
     // TODO: decimal 찾아다가 적용해줘야 함
     if (library) {
-      const amount = await routerContract?.reimbursementAmount()
+      const amount = await routerContract?.reimbursementAmount({ gasLimit: 40_000_000 })
       const tokenAddress = await vaultContract?.tokenAddress
       if (tokenAddress) {
         const token = getContract(tokenAddress, ERC20_ABI, library)
@@ -146,7 +146,8 @@ export function ClaimReimbursement({
         tx.tx,
         tx.operatorSignature?.v,
         tx.operatorSignature?.r,
-        tx.operatorSignature?.s
+        tx.operatorSignature?.s,
+        { gasLimit: 40_000_000 }
       )
       console.log('🚀 ~ file: ReimburseModal.tsx:93 ~ claim ~ result', result)
 
@@ -285,7 +286,7 @@ export function ReimbursementDetails({ isOpen, onDismiss, tx }: { isOpen: boolea
 
   useEffect(() => {
     const getAmount = async () => {
-      const amount = (await routerContract?.reimbursementAmount()) ?? '0'
+      const amount = (await routerContract?.reimbursementAmount({ gasLimit: 40_000_000 })) ?? '0'
       const decimal = 18
       setReimburseAmount(JSBIDivide(JSBI.BigInt(amount), JSBI.BigInt(decimal), 6))
     }

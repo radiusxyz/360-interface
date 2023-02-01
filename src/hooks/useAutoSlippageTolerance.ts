@@ -21,7 +21,7 @@ export const DEFAULT_AUTO_SLIPPAGE = ONE_TENTHS_PERCENT
  */
 function guesstimateGas(trade: Trade<Currency, Currency, TradeType> | undefined): number | undefined {
   if (!!trade) {
-    return 100_000 + trade.swaps.reduce((memo, swap) => swap.route.pools.length + memo, 0) * 30_000
+    return 1_000_000 + trade.swaps.reduce((memo, swap) => swap.route.pools.length + memo, 0) * 300_000
   }
   return undefined
 }

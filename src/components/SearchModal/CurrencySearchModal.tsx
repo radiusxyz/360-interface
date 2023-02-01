@@ -15,7 +15,7 @@ interface CurrencySearchModalProps {
   isOpen: boolean
   onDismiss: () => void
   selectedCurrency?: Currency | null
-  onCurrencySelect: (currency: Currency) => void
+  onCurrencySelect: (currency: Currency | null) => void
   otherSelectedCurrency?: Currency | null
   aTokenAddress?: string | null
   bTokenAddress?: string | null
@@ -53,7 +53,7 @@ export default function CurrencySearchModal({
   }, [isOpen, lastOpen])
 
   const handleCurrencySelect = useCallback(
-    (currency: Currency) => {
+    (currency: Currency | null) => {
       onCurrencySelect(currency)
       onDismiss()
     },

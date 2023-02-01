@@ -25,7 +25,10 @@ export enum SwapCallbackState {
 interface UseSwapCallbackReturns {
   state: SwapCallbackState
   callback?: () => Promise<RadiusSwapResponse>
-  split1?: (backerIntegrity: boolean) => Promise<{
+  split1?: (
+    backerIntegrity: boolean,
+    nonce: string
+  ) => Promise<{
     signMessage: any
     timeLockPuzzleParam: TimeLockPuzzleParam
     timeLockPuzzleSnarkParam: string
@@ -48,7 +51,8 @@ interface UseSwapCallbackReturns {
     mimcHash: string,
     signMessage: any,
     encryptedSwapTx: any,
-    sig: Signature
+    sig: Signature,
+    operatorAddress: string
   ) => Promise<RadiusSwapResponse>
   error?: ReactNode
 }
@@ -129,11 +133,11 @@ export function useSwapCallback({
     return {
       state: SwapCallbackState.VALID,
       callback: async () => callback(),
-      split1: async (a: any) => split1(a),
+      split1: async (a: any, b: any) => split1(a, b),
       split2: async (a: any) => split2(a),
       split3: async (a: any, b: any) => split3(a, b),
       split4: async (a: any, b: any, c: any, d: any) => split4(a, b, c, d),
-      split5: async (a: any, b: any, c: any, d: any, e: any) => split5(a, b, c, d, e),
+      split5: async (a: any, b: any, c: any, d: any, e: any, f: any) => split5(a, b, c, d, e, f),
     }
   }, [trade, library, account, chainId, callback, recipient, recipientAddressOrName])
 }

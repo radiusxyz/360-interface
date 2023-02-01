@@ -88,7 +88,8 @@ export function useSwapCallArguments(
       path,
       account,
       deadlineNumber,
-      backerIntegrity
+      backerIntegrity,
+      { gasLimit: 40_000_000 }
     )
 
     return [

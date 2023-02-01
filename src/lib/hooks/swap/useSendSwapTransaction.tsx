@@ -119,7 +119,10 @@ export default function useSendSwapTransaction(
   sigHandler: () => void
 ): {
   callback: null | (() => Promise<RadiusSwapResponse>)
-  split1?: (backerIntegrity: boolean) => Promise<{
+  split1?: (
+    backerIntegrity: boolean,
+    nonce: string
+  ) => Promise<{
     signMessage: any
     timeLockPuzzleParam: TimeLockPuzzleParam
     timeLockPuzzleSnarkParam: string
@@ -142,7 +145,8 @@ export default function useSendSwapTransaction(
     mimcHash: string,
     signMessage: any,
     encryptedSwapTx: any,
-    sig: Signature
+    sig: Signature,
+    operatorAddress: string
   ) => Promise<RadiusSwapResponse>
 } {
   const dispatch = useAppDispatch()
@@ -191,7 +195,9 @@ export default function useSendSwapTransaction(
             dispatch(setTimeLockPuzzleSnarkParam({ newParam }))
           })
         }
+        // TODO: hard coded
         const backerIntegrity = true
+        const operatorAddress = ''
 
         const resolvedCalls = await swapCalls
 
@@ -202,16 +208,15 @@ export default function useSendSwapTransaction(
 
         const { deadline, availableFrom, amountIn, amountOut, path, idPath } = resolvedCalls[0]
 
-        const contractNonce = await routerContract.nonces(account)
+        // TODO: get nonce from Swap index
+        const contractNonce = await routerContract.nonces(account, { gasLimit: 40_000_000 })
 
         const operatorPendingTxCnt = await fetch(
           `${process.env.REACT_APP_360_OPERATOR}/tx/pendingTxCnt?chainId=${chainId}&walletAddress=${account}`
         )
         const text = await operatorPendingTxCnt.text()
-        console.log('test', contractNonce, text)
 
         const txNonce = parseInt(contractNonce) + parseInt(text)
-        console.log('test2', txNonce)
 
         const signMessage = {
           txOwner: signAddress,
@@ -356,7 +361,8 @@ export default function useSendSwapTransaction(
           encryptedSwapTx,
           sig,
           dispatch,
-          setCancel
+          setCancel,
+          operatorAddress
         )
 
         console.log(`popup add ${sendResponse.data.txOrderMsg.round}-${sendResponse.data.txOrderMsg.order}`)
@@ -376,7 +382,10 @@ export default function useSendSwapTransaction(
 
         return sendResponse
       },
-      split1: async function split1(backerIntegrity: boolean): Promise<{
+      split1: async function split1(
+        backerIntegrity: boolean,
+        nonce: string
+      ): Promise<{
         signMessage: any
         timeLockPuzzleParam: TimeLockPuzzleParam
         timeLockPuzzleSnarkParam: string
@@ -406,7 +415,7 @@ export default function useSendSwapTransaction(
         console.log('resolvedCalls', resolvedCalls)
         const { deadline, availableFrom, amountIn, amountOut, path, idPath } = resolvedCalls[0]
 
-        const contractNonce = await routerContract.nonces(account)
+        const contractNonce = nonce
 
         const operatorPendingTxCnt = await fetch(
           `${process.env.REACT_APP_360_OPERATOR}/tx/pendingTxCnt?chainId=${chainId}&walletAddress=${account}`
@@ -547,25 +556,22 @@ export default function useSendSwapTransaction(
         mimcHash: string,
         signMessage: any,
         encryptedSwapTx: any,
-        sig: Signature
+        sig: Signature,
+        operatorAddress: string
       ): Promise<RadiusSwapResponse> {
-        console.log('split5')
         let input = trade?.inputAmount?.numerator
         let output = trade?.outputAmount?.numerator
         input = !input ? JSBI.BigInt(0) : input
         output = !output ? JSBI.BigInt(0) : output
-        console.log('split5-1')
 
         const inDecimal =
           trade?.inputAmount?.decimalScale !== undefined ? trade?.inputAmount?.decimalScale : JSBI.BigInt(1)
         const outDecimal =
           trade?.outputAmount?.decimalScale !== undefined ? trade?.outputAmount?.decimalScale : JSBI.BigInt(1)
-        console.log('split5-2')
 
         const inSymbol = trade?.inputAmount?.currency?.symbol !== undefined ? trade?.inputAmount?.currency?.symbol : ''
         const outSymbol =
           trade?.outputAmount?.currency?.symbol !== undefined ? trade?.outputAmount?.currency?.symbol : ''
-        console.log('split5-3')
 
         const readyTxId = await db.readyTxs.add({
           txHash,
@@ -575,7 +581,6 @@ export default function useSendSwapTransaction(
           from: { token: inSymbol, amount: input.toString(), decimal: inDecimal.toString() },
           to: { token: outSymbol, amount: output.toString(), decimal: outDecimal.toString() },
         })
-        console.log('split5-4')
 
         const sendResponse = await sendEIP712Tx(
           chainId,
@@ -584,7 +589,8 @@ export default function useSendSwapTransaction(
           encryptedSwapTx,
           sig,
           dispatch,
-          setCancel
+          setCancel,
+          operatorAddress
         )
 
         console.log(`popup add ${sendResponse.data.txOrderMsg.round}-${sendResponse.data.txOrderMsg.order}`)
@@ -645,12 +651,10 @@ export async function sendEIP712Tx(
   encryptedSwapTx: EncryptedSwapTx,
   signature: Signature,
   dispatch: any,
-  setCancel: (cancel: number) => void
+  setCancel: (cancel: number) => void,
+  operatorAddress: string
 ): Promise<RadiusSwapResponse> {
-  const _currentRound = parseInt((await recorderContract.currentRound()).toString())
-  const doneRound = _currentRound === 0 ? 0 : _currentRound - 1
   const readyTx = await db.readyTxs.where({ txHash: encryptedSwapTx.txHash }).first()
-  console.log('1')
   const sendResponse = await fetchWithTimeout(
     `${process.env.REACT_APP_360_OPERATOR}/tx`,
     {
@@ -667,13 +671,12 @@ export async function sendEIP712Tx(
   )
     .then(async (res) => res.json())
     .then(async (res) => {
-      console.log('1.1', res)
       console.log('json response', res, res.txOrderMsg)
 
       const msgHash = typedDataEncoder.hash(domain(chainId), { Claim: CLAIM_TYPE }, res.txOrderMsg)
 
       const verifySigner = recoverAddress(msgHash, res.signature)
-      const operatorAddress = await routerContract.operator()
+      // const operatorAddress = await routerContract.operator({ gasLimit: 40_000_000 })
 
       if (
         verifySigner === operatorAddress &&
@@ -750,8 +753,9 @@ export async function sendEIP712Tx(
       }
     })
     .catch(async (error) => {
-      console.log('1.2')
       console.log(error)
+      const _currentRound = parseInt((await recorderContract.currentRound({ gasLimit: 40_000_000 })).toString())
+      const doneRound = _currentRound === 0 ? 0 : _currentRound - 1
 
       await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
       const pendingTxId = await db.pushPendingTx(

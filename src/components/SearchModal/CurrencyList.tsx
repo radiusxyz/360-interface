@@ -203,7 +203,7 @@ export default function CurrencyList({
   currencies: Currency[]
   otherListTokens?: WrappedTokenInfo[]
   selectedCurrency?: Currency | null
-  onCurrencySelect: (currency: Currency) => void
+  onCurrencySelect: (currency: Currency | null) => void
   otherCurrency?: Currency | null
   fixedListRef?: MutableRefObject<FixedSizeList | undefined>
   showImportView: () => void
@@ -279,8 +279,26 @@ export default function CurrencyList({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        flexDirection: 'column',
       }}
     >
+      <MenuItem
+        className={`token-item-empty`}
+        onClick={() => onCurrencySelect(null)}
+        disabled={false}
+        selected={false}
+        maxWidth="560px"
+      >
+        <CurrencyLogo currency={null} size={'40px'} style={{ marginLeft: '20px' }} />
+        <Column>
+          <Text title={'empty'} fontWeight={600} fontSize={20}>
+            {'None'}
+          </Text>
+          <ThemedText.DarkGray ml="0px" fontSize={'14px'} fontWeight={300}>
+            {''}
+          </ThemedText.DarkGray>
+        </Column>
+      </MenuItem>
       <FixedSizeList
         height={height}
         ref={fixedListRef as any}
