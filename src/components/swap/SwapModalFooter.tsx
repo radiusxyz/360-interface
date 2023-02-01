@@ -1,7 +1,7 @@
 import { Trans } from '@lingui/macro'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, TradeType } from '@uniswap/sdk-core'
-import { ReactNode, useState } from 'react'
+import { ReactNode } from 'react'
 import { Text } from 'rebass'
 import styled from 'styled-components/macro'
 
@@ -29,22 +29,11 @@ export default function SwapModalFooter({
   swapErrorMessage: ReactNode | undefined
   disabledConfirm: boolean
 }) {
-  const [enable, setEnable] = useState(true)
-
   return (
     <>
       <AutoRow>
         <SwapButtonError
-          onClick={
-            enable
-              ? () => {
-                  setEnable(false)
-                  onConfirm()
-                }
-              : () => {
-                  return
-                }
-          }
+          onClick={() => onConfirm()}
           disabled={disabledConfirm}
           style={{ margin: '10px 0 0 0' }}
           id="confirm-swap-or-send"

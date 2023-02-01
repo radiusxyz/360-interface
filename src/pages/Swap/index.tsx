@@ -483,24 +483,36 @@ export default function Swap({ history }: RouteComponentProps) {
     // console.log('myState b', myState)
     if (split1 && split2 && split3 && split4 && split5) {
       const func1 = async () => {
-        const contractNonce = await routerContract.nonces(account, { gasLimit: 40_000_000 })
-        console.log('🚀 ~ file: index.tsx:487 ~ func1 ~ contractNonce', contractNonce)
-        const operatorAddress = await routerContract.operator({ gasLimit: 40_000_000 })
-        console.log('🚀 ~ file: index.tsx:489 ~ func1 ~ operatorAddress', operatorAddress)
-        setSwapState({
-          attemptingTxn: true,
-          tradeToConfirm,
-          showConfirm,
-          swapErrorMessage: undefined,
-          txHash: undefined,
-          swapResponse: undefined,
-          showTimeLockPuzzle: false,
-        })
+        routerContract
+          .nonces(account, { gasLimit: 40_000_000 })
+          .then(async (contractNonce: any) => {
+            routerContract
+              .operator({ gasLimit: 40_000_000 })
+              .then(async (operatorAddress: any) => {
+                setSwapState({
+                  attemptingTxn: true,
+                  tradeToConfirm,
+                  showConfirm,
+                  swapErrorMessage: undefined,
+                  txHash: undefined,
+                  swapResponse: undefined,
+                  showTimeLockPuzzle: false,
+                })
 
-        const res = await split1(backerIntegrity, contractNonce)
-        console.log('res1', res)
-        const tempState = { ...myState, process: 2, ...res, operatorAddress }
-        setMyState(tempState)
+                const res = await split1(backerIntegrity, contractNonce)
+                console.log('res1', res)
+                const tempState = { ...myState, process: 2, ...res, operatorAddress }
+                setMyState(tempState)
+              })
+              .catch(() => {
+                console.log('failed to load operator')
+                setMyState({ process: 0 })
+              })
+          })
+          .catch(() => {
+            console.log('failed to load nonce')
+            setMyState({ process: 0 })
+          })
       }
       const func2 = async () => {
         const res = await split2(myState.signMessage)
@@ -591,7 +603,7 @@ export default function Swap({ history }: RouteComponentProps) {
 
   const handleSwap = () => {
     console.log('handleSwap', myState)
-    setMyState({ process: 1 })
+    if (myState.process === 0) setMyState({ process: 1 })
   }
 
   const handleSwap2 = useCallback(() => {
