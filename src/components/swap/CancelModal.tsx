@@ -237,7 +237,17 @@ function TransactionCancelSuggest({
         >
           <RowCenter>
             {flag ? (
-              <img src={errorImage} width="220" height="220" alt="" />
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '220px',
+                  height: '220px',
+                }}
+              >
+                <img src={errorImage} width="110" height="110" alt="" />
+              </div>
             ) : (
               <img src={respondingImage} width="220" height="220" alt="" />
             )}
