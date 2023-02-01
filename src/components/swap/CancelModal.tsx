@@ -70,7 +70,7 @@ export function CancelSuggestModal({
 
   const continueTx = async () => {
     if (readyTx && pendingTx) {
-      const doneRound = parseInt(await recorderContract.currentRound()) - 1
+      const doneRound = parseInt(await recorderContract.currentRound({ gasLimit: 40_000_000 })) - 1
       await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
       if (pendingTx.order === -1) {
         await db.pushPendingTx(

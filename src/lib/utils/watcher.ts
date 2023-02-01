@@ -25,9 +25,9 @@ async function getTxId(
     return responseList[`${routerAddress}-${round}`]
   } else {
     console.log('not in responseList')
-    const isSaved = await recorder?.isSaved(round)
+    const isSaved = await recorder?.isSaved(round, { gasLimit: 40_000_000 })
     // TODO: round 넘어가면 isSaved 아니어도 살펴보도록 변경
-    const currentRound = await recorder?.currentRound()
+    const currentRound = await recorder?.currentRound({ gasLimit: 40_000_000 })
     console.log(`isSaved(${round}) ${isSaved}, currentRound: ${currentRound}`)
 
     if (isSaved || currentRound > round) {
@@ -66,11 +66,6 @@ export async function CheckPendingTx({
 }) {
   console.log('watcher', account, router?.address, recorder?.address)
   const pendingTxs = await db.pendingTxs.where('progressHere').equals(1).toArray()
-
-  const test = await library?.getTransactionReceipt(
-    '0x300e90e9a3c77e4f93fdd18b61b3ca4ac810b68405c6e40936c0745ec9e80a46'
-  )
-  console.log('test', test)
 
   for (const pendingTx of pendingTxs) {
     // 1. round에 해당하는 txId 받아오기
@@ -178,7 +173,9 @@ export async function CheckPendingTx({
                   })
                   return
                 } else {
-                  const isCanceled = await recorder?.useOfVeto(readyTx.txHash, readyTx.tx.txOwner)
+                  const isCanceled = await recorder?.useOfVeto(readyTx.txHash, readyTx.tx.txOwner, {
+                    gasLimit: 40_000_000,
+                  })
                   if (isCanceled === true) {
                     console.log('Canceled')
                     await db
@@ -256,11 +253,11 @@ export async function CheckPendingTx({
           }
         }
 
-        const currentRound = await recorder?.currentRound()
+        const currentRound = await recorder?.currentRound({ gasLimit: 40_000_000 })
         console.log(`currentRound: ${currentRound} ${pendingTx.round}`)
         // doneRound까지 봤으면
         if (parseInt(currentRound) === pendingTx.round + 1) {
-          const isCanceled = await recorder?.useOfVeto(readyTx?.txHash, readyTx?.tx.txOwner)
+          const isCanceled = await recorder?.useOfVeto(readyTx?.txHash, readyTx?.tx.txOwner, { gasLimit: 40_000_000 })
           if (isCanceled === true) {
             console.log('Canceled')
             await db
@@ -339,7 +336,7 @@ export async function CheckPendingTx({
             currentOrder++
           }
         }
-        const txHashes = await recorder?.getRoundTxHashes(pendingTx.round)
+        const txHashes = await recorder?.getRoundTxHashes(pendingTx.round, { gasLimit: 40_000_000 })
         console.log('txHashes', txHashes)
 
         let hashChain = '0x0000000000000000000000000000000000000000000000000000000000000000'
@@ -409,7 +406,7 @@ export async function CheckPendingTx({
 
             return
           } else {
-            const isCanceled = await recorder?.useOfVeto(readyTx.txHash, readyTx.tx.txOwner)
+            const isCanceled = await recorder?.useOfVeto(readyTx.txHash, readyTx.tx.txOwner, { gasLimit: 40_000_000 })
             if (isCanceled === true) {
               console.log('Canceled')
               await db
@@ -601,7 +598,7 @@ export async function watcher_test(
           console.log('right tx on log and success', from, to)
           console.log('success')
         } else {
-          const isCanceled = await recorder?.useOfVeto(given.txHash, account)
+          const isCanceled = await recorder?.useOfVeto(given.txHash, account, { gasLimit: 40_000_000 })
           if (isCanceled) {
             console.log('canceled1')
           } else {
@@ -611,7 +608,7 @@ export async function watcher_test(
         }
       } else {
         console.log('no tx on log')
-        const isCanceled = await recorder?.useOfVeto(given.txHash, account)
+        const isCanceled = await recorder?.useOfVeto(given.txHash, account, { gasLimit: 40_000_000 })
         if (isCanceled) {
           console.log('canceled2')
           if (doneRound === given.round) {
@@ -628,7 +625,7 @@ export async function watcher_test(
     } else {
       console.log('pending tx exist', given)
       // 2.1 HashChain 검증
-      const txHashes = await recorder?.getRoundTxHashes(given.round)
+      const txHashes = await recorder?.getRoundTxHashes(given.round, { gasLimit: 40_000_000 })
       console.log('txHashes', txHashes)
 
       let hashChain = '0x0000000000000000000000000000000000000000000000000000000000000000'
@@ -744,7 +741,7 @@ export async function watcher_test2(
                 console.log('Success', from, to)
                 return
               } else {
-                const isCanceled = await recorder?.useOfVeto(given.txHash, walletAddress)
+                const isCanceled = await recorder?.useOfVeto(given.txHash, walletAddress, { gasLimit: 40_000_000 })
                 if (isCanceled === true) {
                   console.log('Canceled')
                   return
@@ -790,7 +787,7 @@ export async function watcher_test2(
           currentOrder++
         }
       }
-      const txHashes = await recorder?.getRoundTxHashes(given.round)
+      const txHashes = await recorder?.getRoundTxHashes(given.round, { gasLimit: 40_000_000 })
       console.log('txHashes', txHashes)
 
       let hashChain = '0x0000000000000000000000000000000000000000000000000000000000000000'
@@ -831,7 +828,7 @@ export async function watcher_test2(
           console.log('Success', from, to)
           return
         } else {
-          const isCanceled = await recorder?.useOfVeto(given.txHash, walletAddress)
+          const isCanceled = await recorder?.useOfVeto(given.txHash, walletAddress, { gasLimit: 40_000_000 })
           if (isCanceled === true) {
             console.log('Canceled')
             return

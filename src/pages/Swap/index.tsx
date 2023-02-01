@@ -1,3 +1,4 @@
+import { Contract } from '@ethersproject/contracts'
 import { Trans } from '@lingui/macro'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, CurrencyAmount, Token, TradeType } from '@uniswap/sdk-core'
@@ -51,6 +52,7 @@ import { SupportedChainId as SupportedChainIds } from '../../constants/chains'
 import { TOKEN_SHORTHANDS } from '../../constants/tokens'
 import { useAllTokens, useCurrency } from '../../hooks/Tokens'
 import { ApprovalState, useApprovalOptimizedTrade, useApproveCallbackFromTrade } from '../../hooks/useApproveCallback'
+import { useV2RouterContract } from '../../hooks/useContract'
 import useENSAddress from '../../hooks/useENSAddress'
 import { useERC20PermitFromTrade, UseERC20PermitState } from '../../hooks/useERC20Permit'
 import useIsArgentWallet from '../../hooks/useIsArgentWallet'
@@ -475,11 +477,16 @@ export default function Swap({ history }: RouteComponentProps) {
   )
 
   // console.log('myState a', myState)
+  const routerContract = useV2RouterContract() as Contract
 
   useEffect(() => {
     // console.log('myState b', myState)
     if (split1 && split2 && split3 && split4 && split5) {
       const func1 = async () => {
+        const contractNonce = await routerContract.nonces(account, { gasLimit: 40_000_000 })
+        console.log('🚀 ~ file: index.tsx:487 ~ func1 ~ contractNonce', contractNonce)
+        const operatorAddress = await routerContract.operator({ gasLimit: 40_000_000 })
+        console.log('🚀 ~ file: index.tsx:489 ~ func1 ~ operatorAddress', operatorAddress)
         setSwapState({
           attemptingTxn: true,
           tradeToConfirm,
@@ -490,9 +497,9 @@ export default function Swap({ history }: RouteComponentProps) {
           showTimeLockPuzzle: false,
         })
 
-        const res = await split1(backerIntegrity)
+        const res = await split1(backerIntegrity, contractNonce)
         console.log('res1', res)
-        const tempState = { ...myState, process: 2, ...res }
+        const tempState = { ...myState, process: 2, ...res, operatorAddress }
         setMyState(tempState)
       }
       const func2 = async () => {
@@ -519,7 +526,14 @@ export default function Swap({ history }: RouteComponentProps) {
         setMyState(tempState)
       }
       const func5 = async () => {
-        split5(myState.txHash, myState.mimcHash, myState.signMessage, myState.encryptedSwapTx, myState.sig)
+        split5(
+          myState.txHash,
+          myState.mimcHash,
+          myState.signMessage,
+          myState.encryptedSwapTx,
+          myState.sig,
+          myState.operatorAddress
+        )
           .then(async (res) => {
             onUserInput(Field.INPUT, '')
             console.log('res5', res)

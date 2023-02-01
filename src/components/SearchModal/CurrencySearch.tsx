@@ -55,7 +55,7 @@ interface CurrencySearchProps {
   isOpen: boolean
   onDismiss: () => void
   selectedCurrency?: Currency | null
-  onCurrencySelect: (currency: Currency) => void
+  onCurrencySelect: (currency: Currency | null) => void
   otherSelectedCurrency?: Currency | null
   aTokenAddress?: string | null
   bTokenAddress?: string | null
@@ -144,7 +144,7 @@ export function CurrencySearch({
   }, [debouncedQuery, native, filteredSortedTokens])
 
   const handleCurrencySelect = useCallback(
-    (currency: Currency) => {
+    (currency: Currency | null) => {
       onCurrencySelect(currency)
       onDismiss()
     },

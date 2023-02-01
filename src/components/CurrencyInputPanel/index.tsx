@@ -202,7 +202,7 @@ interface CurrencyInputPanelProps {
   onHalf?: () => void
   showMaxButton: boolean
   label?: ReactNode
-  onCurrencySelect?: (currency: Currency) => void
+  onCurrencySelect?: (currency: Currency | null) => void
   currency?: Currency | null
   hideBalance?: boolean
   pair?: Pair | null
@@ -290,7 +290,7 @@ export default function CurrencyInputPanel({
           selected={!onCurrencySelect}
         >
           <CurrencySelect
-            visible={currency !== undefined}
+            visible={currency !== undefined || currency !== null}
             selected={!!currency}
             hideInput={hideInput}
             className="open-currency-select-button"

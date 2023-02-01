@@ -28,7 +28,10 @@ export function useSwapCallback(
 ): {
   state: SwapCallbackState
   callback: null | (() => Promise<RadiusSwapResponse>)
-  split1?: (backerIntegrity: boolean) => Promise<{
+  split1?: (
+    backerIntegrity: boolean,
+    nonce: string
+  ) => Promise<{
     signMessage: any
     timeLockPuzzleParam: TimeLockPuzzleParam
     timeLockPuzzleSnarkParam: string
@@ -51,7 +54,8 @@ export function useSwapCallback(
     mimcHash: string,
     signMessage: any,
     encryptedSwapTx: any,
-    sig: Signature
+    sig: Signature,
+    operatorAddress: string
   ) => Promise<RadiusSwapResponse>
   error: ReactNode | null
 } {

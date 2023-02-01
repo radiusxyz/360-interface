@@ -36,7 +36,7 @@ export function usePositionTokenURI(tokenId: TokenId | undefined): UsePositionTo
   )
   const { result, error, loading, valid } = useSingleCallResult(contract, 'tokenURI', inputs, {
     ...NEVER_RELOAD,
-    gasRequired: 3_000_000,
+    gasRequired: 8_000_000,
   })
 
   return useMemo(() => {
