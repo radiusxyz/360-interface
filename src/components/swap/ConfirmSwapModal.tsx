@@ -112,6 +112,7 @@ export default function ConfirmSwapModal({
   allowedSlippage,
   onConfirm,
   onDismiss,
+  errorMessage,
   progress,
   recipient,
   swapErrorMessage,
@@ -133,6 +134,7 @@ export default function ConfirmSwapModal({
   onAcceptChanges: () => void
   onConfirm: () => void
   onDismiss: () => void
+  errorMessage: string | undefined | null
   progress: number
   swapErrorMessage: ReactNode | undefined
   swapResponse?: RadiusSwapResponse | undefined
@@ -218,6 +220,7 @@ export default function ConfirmSwapModal({
       <ConfirmationModalContent
         title={<Trans>You are swapping</Trans>}
         onDismiss={onDismiss}
+        errorMessage={errorMessage}
         topContent={modalHeader}
         bottomContent={modalBottom}
       />

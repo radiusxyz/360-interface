@@ -506,12 +506,12 @@ export default function Swap({ history }: RouteComponentProps) {
               })
               .catch(() => {
                 console.log('failed to load operator')
-                setMyState({ process: 0 })
+                setMyState({ process: 0, errorMessage: 'RPC server is not responding, please try a minute later' })
               })
           })
           .catch(() => {
             console.log('failed to load nonce')
-            setMyState({ process: 0 })
+            setMyState({ process: 0, errorMessage: 'RPC server is not responding, please try a minute later' })
           })
       }
       const func2 = async () => {
@@ -873,6 +873,7 @@ export default function Swap({ history }: RouteComponentProps) {
               inputCurrency={currencies[Field.INPUT]}
               outputCurrency={currencies[Field.OUTPUT]}
               onAcceptChanges={handleAcceptChanges}
+              errorMessage={myState?.errorMessage}
               attemptingTxn={attemptingTxn}
               txHash={txHash}
               recipient={recipient}
