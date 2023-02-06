@@ -121,28 +121,41 @@ export function useCombinedActiveList(): TokenAddressMap {
 
 // TODO: get a, b token list from operator
 export function useCombinedActiveAList(bTokenAddress: string | null | undefined): TokenAddressMap {
-  const [aList, setAList] = useState([])
+  const activeListUrls = useActiveListUrls()
+  const allTokens = useCombinedTokenMapFromUrls(activeListUrls)
+  const [activeTokens, setActiveTokens] = useState({ 80001: {} })
+  // TODO: package
   useEffect(() => {
     if (bTokenAddress)
       fetch(`${process.env.REACT_APP_360_OPERATOR}/token/availableSwapTokens?bTokenAddress=${bTokenAddress}`)
         .then((res) => {
           res.json().then((json) => {
-            console.log(json)
-            setAList(json)
+            const tmpTokens: any = { 80001: {} }
+            for (const token of json) {
+              if (isInListNoCase(token, Object.keys(allTokens[80001])))
+                for (const findToken of Object.keys(allTokens[80001])) {
+                  if (token.toLowerCase() === findToken.toLowerCase())
+                    tmpTokens[80001][token] = allTokens[80001][findToken]
+                }
+            }
+            setActiveTokens(tmpTokens)
           })
         })
         .catch((e) => console.error(e))
-  }, [bTokenAddress])
-  const activeListUrls = useActiveListUrls()
-  const allTokens = useCombinedTokenMapFromUrls(activeListUrls)
-  const activeTokens: any = { 80001: {} }
-  useEffect(() => {
-    for (const token of aList) {
-      if (token in allTokens[80001]) activeTokens[80001][token] = allTokens[80001][token]
-    }
-  }, [aList.length, activeListUrls, allTokens])
+  }, [bTokenAddress, activeListUrls, allTokens])
+
+  console.log(bTokenAddress, activeListUrls, allTokens)
   // debugger
   return activeTokens
+}
+
+function isInListNoCase(val: string, list: string[]) {
+  for (const a of list) {
+    if (a.toLowerCase() === val.toLowerCase()) {
+      return true
+    }
+  }
+  return false
 }
 
 // TODO: get a, b token list from operator
@@ -151,17 +164,21 @@ export function useCombinedActiveBList(aTokenAddress: string | null | undefined)
   const allTokens = useCombinedTokenMapFromUrls(activeListUrls)
   const [activeTokens, setActiveTokens] = useState({ 80001: {} })
 
-  console.log(aTokenAddress, activeListUrls, allTokens)
   useEffect(() => {
     if (aTokenAddress)
       fetch(`${process.env.REACT_APP_360_OPERATOR}/token/availableSwapTokens?aTokenAddress=${aTokenAddress}`)
         .then((res) => {
           res.json().then((json) => {
-            console.log(json)
+            console.log('raynear', json)
             const tmpTokens: any = { 80001: {} }
             for (const token of json) {
-              if (token in allTokens[80001]) tmpTokens[80001][token] = allTokens[80001][token]
+              if (isInListNoCase(token, Object.keys(allTokens[80001])))
+                for (const findToken of Object.keys(allTokens[80001])) {
+                  if (token.toLowerCase() === findToken.toLowerCase())
+                    tmpTokens[80001][token] = allTokens[80001][findToken]
+                }
             }
+            console.log('raynear', tmpTokens)
             setActiveTokens(tmpTokens)
           })
         })
