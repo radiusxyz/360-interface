@@ -135,10 +135,10 @@ export function useCombinedActiveAList(bTokenAddress: string | null | undefined)
   }, [bTokenAddress])
   const activeListUrls = useActiveListUrls()
   const allTokens = useCombinedTokenMapFromUrls(activeListUrls)
-  const activeTokens: any = { 137: {} }
+  const activeTokens: any = { 80001: {} }
   useEffect(() => {
     for (const token of aList) {
-      if (token in allTokens[137]) activeTokens[137][token] = allTokens[137][token]
+      if (token in allTokens[80001]) activeTokens[80001][token] = allTokens[80001][token]
     }
   }, [aList.length, activeListUrls, allTokens])
   // debugger
@@ -149,7 +149,7 @@ export function useCombinedActiveAList(bTokenAddress: string | null | undefined)
 export function useCombinedActiveBList(aTokenAddress: string | null | undefined): TokenAddressMap {
   const activeListUrls = useActiveListUrls()
   const allTokens = useCombinedTokenMapFromUrls(activeListUrls)
-  const [activeTokens, setActiveTokens] = useState({ 137: {} })
+  const [activeTokens, setActiveTokens] = useState({ 80001: {} })
 
   console.log(aTokenAddress, activeListUrls, allTokens)
   useEffect(() => {
@@ -158,9 +158,9 @@ export function useCombinedActiveBList(aTokenAddress: string | null | undefined)
         .then((res) => {
           res.json().then((json) => {
             console.log(json)
-            const tmpTokens: any = { 137: {} }
+            const tmpTokens: any = { 80001: {} }
             for (const token of json) {
-              if (token in allTokens[137]) tmpTokens[137][token] = allTokens[137][token]
+              if (token in allTokens[80001]) tmpTokens[80001][token] = allTokens[80001][token]
             }
             setActiveTokens(tmpTokens)
           })
