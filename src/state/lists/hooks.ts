@@ -127,42 +127,46 @@ export function useCombinedActiveAList(bTokenAddress: string | null | undefined)
       fetch(`${process.env.REACT_APP_360_OPERATOR}/token/availableSwapTokens?bTokenAddress=${bTokenAddress}`)
         .then((res) => {
           res.json().then((json) => {
+            console.log(json)
             setAList(json)
           })
         })
         .catch((e) => console.error(e))
-  }, [])
+  }, [bTokenAddress])
   const activeListUrls = useActiveListUrls()
   const allTokens = useCombinedTokenMapFromUrls(activeListUrls)
   const activeTokens: any = { 137: {} }
-  if (allTokens)
+  useEffect(() => {
     for (const token of aList) {
       if (token in allTokens[137]) activeTokens[137][token] = allTokens[137][token]
     }
+  }, [aList.length, activeListUrls, allTokens])
   // debugger
   return activeTokens
 }
 
 // TODO: get a, b token list from operator
 export function useCombinedActiveBList(aTokenAddress: string | null | undefined): TokenAddressMap {
-  const [bList, setBList] = useState([])
+  const activeListUrls = useActiveListUrls()
+  const allTokens = useCombinedTokenMapFromUrls(activeListUrls)
+  const [activeTokens, setActiveTokens] = useState({ 137: {} })
+
+  console.log(aTokenAddress, activeListUrls, allTokens)
   useEffect(() => {
     if (aTokenAddress)
       fetch(`${process.env.REACT_APP_360_OPERATOR}/token/availableSwapTokens?aTokenAddress=${aTokenAddress}`)
         .then((res) => {
           res.json().then((json) => {
-            setBList(json)
+            console.log(json)
+            const tmpTokens: any = { 137: {} }
+            for (const token of json) {
+              if (token in allTokens[137]) tmpTokens[137][token] = allTokens[137][token]
+            }
+            setActiveTokens(tmpTokens)
           })
         })
         .catch((e) => console.error(e))
-  }, [])
-  const activeListUrls = useActiveListUrls()
-  const allTokens = useCombinedTokenMapFromUrls(activeListUrls)
-  const activeTokens: any = { 137: {} }
-  if (allTokens)
-    for (const token of bList) {
-      if (token in allTokens[137]) activeTokens[137][token] = allTokens[137][token]
-    }
+  }, [aTokenAddress, activeListUrls, allTokens])
   // debugger
   return activeTokens
 }

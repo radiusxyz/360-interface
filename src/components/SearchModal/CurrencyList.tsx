@@ -219,6 +219,7 @@ export default function CurrencyList({
 
   const Row = useCallback(
     function TokenRow({ data, index, style }) {
+      console.log(index)
       const row: Currency | BreakLine = data[index]
 
       if (isBreakLine(row)) {

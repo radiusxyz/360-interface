@@ -262,6 +262,7 @@ export default function WalletModal({
               <Option
                 id={`connect-${key}`}
                 key={key}
+                size={46}
                 color={'#E8831D'}
                 header={<Trans>Install Metamask</Trans>}
                 subheader={null}
