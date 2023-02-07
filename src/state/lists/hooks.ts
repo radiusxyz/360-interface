@@ -1,3 +1,4 @@
+import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { ChainTokenMap, tokensToChainTokenMap } from 'lib/hooks/useTokenList/utils'
 import { useEffect, useMemo, useState } from 'react'
 import { useAppSelector } from 'state/hooks'
@@ -7,7 +8,6 @@ import BROKEN_LIST from '../../constants/tokenLists/broken.tokenlist.json'
 import UNSUPPORTED_TOKEN_LIST from '../../constants/tokenLists/unsupported.tokenlist.json'
 import { AppState } from '../index'
 import { UNSUPPORTED_LIST_URLS } from './../../constants/lists'
-
 export type TokenAddressMap = ChainTokenMap
 
 type Mutable<T> = {
@@ -121,28 +121,32 @@ export function useCombinedActiveList(): TokenAddressMap {
 
 // TODO: get a, b token list from operator
 export function useCombinedActiveAList(bTokenAddress: string | null | undefined): TokenAddressMap {
+  const { chainId } = useActiveWeb3React()
   const activeListUrls = useActiveListUrls()
   const allTokens = useCombinedTokenMapFromUrls(activeListUrls)
-  const [activeTokens, setActiveTokens] = useState({ 80001: {} })
+  const [activeTokens, setActiveTokens] = useState({ chainId: {} })
+  console.log(allTokens)
   // TODO: package
   useEffect(() => {
-    if (bTokenAddress)
+    if (chainId && bTokenAddress)
       fetch(`${process.env.REACT_APP_360_OPERATOR}/token/availableSwapTokens?bTokenAddress=${bTokenAddress}`)
         .then((res) => {
           res.json().then((json) => {
-            const tmpTokens: any = { 80001: {} }
+            const tmpTokens: any = {}
+            tmpTokens[chainId] = {}
             for (const token of json) {
-              if (isInListNoCase(token, Object.keys(allTokens[80001])))
-                for (const findToken of Object.keys(allTokens[80001])) {
+              if (isInListNoCase(token, Object.keys(allTokens[chainId])))
+                for (const findToken of Object.keys(allTokens[chainId])) {
+                  console.log(token, findToken)
                   if (token.toLowerCase() === findToken.toLowerCase())
-                    tmpTokens[80001][token] = allTokens[80001][findToken]
+                    tmpTokens[chainId][token] = allTokens[chainId][findToken]
                 }
             }
             setActiveTokens(tmpTokens)
           })
         })
         .catch((e) => console.error(e))
-  }, [bTokenAddress, activeListUrls, allTokens])
+  }, [chainId, bTokenAddress, activeListUrls, allTokens])
 
   console.log(bTokenAddress, activeListUrls, allTokens)
   // debugger
@@ -160,22 +164,24 @@ function isInListNoCase(val: string, list: string[]) {
 
 // TODO: get a, b token list from operator
 export function useCombinedActiveBList(aTokenAddress: string | null | undefined): TokenAddressMap {
+  const { chainId } = useActiveWeb3React()
   const activeListUrls = useActiveListUrls()
   const allTokens = useCombinedTokenMapFromUrls(activeListUrls)
-  const [activeTokens, setActiveTokens] = useState({ 80001: {} })
+  const [activeTokens, setActiveTokens] = useState({ chainId: {} })
 
   useEffect(() => {
-    if (aTokenAddress)
+    if (chainId && aTokenAddress)
       fetch(`${process.env.REACT_APP_360_OPERATOR}/token/availableSwapTokens?aTokenAddress=${aTokenAddress}`)
         .then((res) => {
           res.json().then((json) => {
             console.log('raynear', json)
-            const tmpTokens: any = { 80001: {} }
+            const tmpTokens: any = {}
+            tmpTokens[chainId] = {}
             for (const token of json) {
-              if (isInListNoCase(token, Object.keys(allTokens[80001])))
-                for (const findToken of Object.keys(allTokens[80001])) {
+              if (isInListNoCase(token, Object.keys(allTokens[chainId])))
+                for (const findToken of Object.keys(allTokens[chainId])) {
                   if (token.toLowerCase() === findToken.toLowerCase())
-                    tmpTokens[80001][token] = allTokens[80001][findToken]
+                    tmpTokens[chainId][token] = allTokens[chainId][findToken]
                 }
             }
             console.log('raynear', tmpTokens)
@@ -183,7 +189,7 @@ export function useCombinedActiveBList(aTokenAddress: string | null | undefined)
           })
         })
         .catch((e) => console.error(e))
-  }, [aTokenAddress, activeListUrls, allTokens])
+  }, [chainId, aTokenAddress, activeListUrls, allTokens])
   // debugger
   return activeTokens
 }
