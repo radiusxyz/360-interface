@@ -125,10 +125,10 @@ export function useCombinedActiveAList(bTokenAddress: string | null | undefined)
   const activeListUrls = useActiveListUrls()
   const allTokens = useCombinedTokenMapFromUrls(activeListUrls)
   const [activeTokens, setActiveTokens] = useState({ chainId: {} })
-  console.log(allTokens)
+
   // TODO: package
   useEffect(() => {
-    if (chainId && bTokenAddress)
+    if (chainId && allTokens[chainId] && bTokenAddress)
       fetch(`${process.env.REACT_APP_360_OPERATOR}/token/availableSwapTokens?bTokenAddress=${bTokenAddress}`)
         .then((res) => {
           res.json().then((json) => {
@@ -137,7 +137,6 @@ export function useCombinedActiveAList(bTokenAddress: string | null | undefined)
             for (const token of json) {
               if (isInListNoCase(token, Object.keys(allTokens[chainId])))
                 for (const findToken of Object.keys(allTokens[chainId])) {
-                  console.log(token, findToken)
                   if (token.toLowerCase() === findToken.toLowerCase())
                     tmpTokens[chainId][token] = allTokens[chainId][findToken]
                 }
@@ -148,7 +147,6 @@ export function useCombinedActiveAList(bTokenAddress: string | null | undefined)
         .catch((e) => console.error(e))
   }, [chainId, bTokenAddress, activeListUrls, allTokens])
 
-  console.log(bTokenAddress, activeListUrls, allTokens)
   // debugger
   return activeTokens
 }
@@ -170,11 +168,10 @@ export function useCombinedActiveBList(aTokenAddress: string | null | undefined)
   const [activeTokens, setActiveTokens] = useState({ chainId: {} })
 
   useEffect(() => {
-    if (chainId && aTokenAddress)
+    if (chainId && allTokens[chainId] && aTokenAddress)
       fetch(`${process.env.REACT_APP_360_OPERATOR}/token/availableSwapTokens?aTokenAddress=${aTokenAddress}`)
         .then((res) => {
           res.json().then((json) => {
-            console.log('raynear', json)
             const tmpTokens: any = {}
             tmpTokens[chainId] = {}
             for (const token of json) {
@@ -184,7 +181,6 @@ export function useCombinedActiveBList(aTokenAddress: string | null | undefined)
                     tmpTokens[chainId][token] = allTokens[chainId][findToken]
                 }
             }
-            console.log('raynear', tmpTokens)
             setActiveTokens(tmpTokens)
           })
         })
