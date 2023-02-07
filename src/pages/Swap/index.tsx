@@ -484,10 +484,10 @@ export default function Swap({ history }: RouteComponentProps) {
     if (split1 && split2 && split3 && split4 && split5) {
       const func1 = async () => {
         routerContract
-          .nonces(account, { gasLimit: 40_000_000 })
+          .nonces(account, { gasLimit: 1_000_000 })
           .then(async (contractNonce: any) => {
             routerContract
-              .operator({ gasLimit: 40_000_000 })
+              .operator({ gasLimit: 1_000_000 })
               .then(async (operatorAddress: any) => {
                 setSwapState({
                   attemptingTxn: true,

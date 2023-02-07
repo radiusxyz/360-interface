@@ -1,3 +1,4 @@
+import { BigNumber } from '@ethersproject/bignumber'
 import { Contract } from '@ethersproject/contracts'
 import { Fraction } from '@uniswap/sdk-core'
 import ERC20_ABI from 'abis/erc20.json'
@@ -9,7 +10,7 @@ import { ExternalLink as LinkIcon } from 'react-feather'
 import styled from 'styled-components/macro'
 import { ThemedText } from 'theme'
 import { ExternalLink } from 'theme'
-import { getContract } from 'utils'
+import { getContract, shortenAddress, shortenTxId } from 'utils'
 
 import { useV2RouterContract, useVaultContract } from '../../hooks/useContract'
 import { db, Status, TxHistoryWithPendingTx } from '../../utils/db'
@@ -114,19 +115,22 @@ export function ClaimReimbursement({
   const { chainId, library } = useActiveWeb3React()
   const routerContract = useV2RouterContract()
   const vaultContract = useVaultContract()
-
   const [reimbursementAmount, setReimbursementAmount] = useState('0')
+  const [reimbursementToken, setReimbursementToken] = useState('USDC')
 
   const loadAmount = async () => {
-    // TODO: decimal 찾아다가 적용해줘야 함
     if (library) {
-      const amount = await routerContract?.reimbursementAmount({ gasLimit: 40_000_000 })
+      const amount = await routerContract?.reimbursementAmount({ gasLimit: 1_000_000 })
       const tokenAddress = await vaultContract?.tokenAddress
+      console.log(amount, tokenAddress)
       if (tokenAddress) {
         const token = getContract(tokenAddress, ERC20_ABI, library)
         const decimal = await token.decimals()
-        console.log(decimal)
-        setReimbursementAmount(amount)
+        const reward = BigNumber.from(amount).div(BigNumber.from('1' + '0'.repeat(decimal as number)))
+        console.log(amount, decimal, reward)
+        setReimbursementAmount(reward.toString())
+        const symbol = await token.symbol()
+        setReimbursementToken(symbol)
       }
     }
   }
@@ -135,7 +139,7 @@ export function ClaimReimbursement({
     if (routerContract && vaultContract && library) {
       loadAmount()
     }
-  }, [])
+  }, [routerContract, vaultContract, library])
 
   const claim = async () => {
     if (tx) {
@@ -147,11 +151,10 @@ export function ClaimReimbursement({
         tx.operatorSignature?.v,
         tx.operatorSignature?.r,
         tx.operatorSignature?.s,
-        { gasLimit: 40_000_000 }
+        { gasLimit: 1_000_000 }
       )
       console.log('🚀 ~ file: ReimburseModal.tsx:93 ~ claim ~ result', result)
 
-      // TODO: reimbursement 성공, 실패 확인해야 하는지 고민해봐야 함
       await db.txHistory.update(tx.id as number, { status: Status.REIMBURSED })
     }
   }
@@ -210,7 +213,7 @@ export function ClaimReimbursement({
                     {'Total Reimbursement'}
                   </ThemedText.Black>
                   <ThemedText.Black fontSize={14} fontWeight={600} color={'#ffffFF'}>
-                    {reimbursementAmount + ' USDC'}
+                    {reimbursementAmount + ' ' + reimbursementToken}
                   </ThemedText.Black>
                 </div>
               </div>
@@ -228,7 +231,7 @@ export function ClaimReimbursement({
                 Transaction Hash
               </ThemedText.Black>
               <ThemedText.Black fontSize={14} fontWeight={400} color={'#ffffFF'}>
-                {tx.txId.length > 60 ? tx.txId.substring(0, 10) + '...' + tx.txId.substring(59) : tx.txId}
+                {shortenTxId(tx.txId)}
                 <ExternalLink href={getExplorerLink(chainId ?? 137, tx.txId, ExplorerDataType.TRANSACTION)}>
                   <LinkIcon size="12px" />
                 </ExternalLink>
@@ -239,9 +242,7 @@ export function ClaimReimbursement({
                 Reimburse To
               </ThemedText.Black>
               <ThemedText.Black fontSize={14} fontWeight={400} color={'#ffffFF'}>
-                {tx.tx.txOwner.length > 40
-                  ? tx.tx.txOwner.substring(0, 8) + '...' + tx.tx.txOwner.substring(39)
-                  : tx.tx.txOwner}
+                {shortenAddress(tx.tx.txOwner)}
               </ThemedText.Black>
             </RowBetween>
             <RowBetween style={{ marginTop: '40px' }}>
@@ -280,18 +281,35 @@ export function ClaimReimbursement({
 }
 
 export function ReimbursementDetails({ isOpen, onDismiss, tx }: { isOpen: boolean; onDismiss: () => void; tx: any }) {
-  const { chainId } = useActiveWeb3React()
+  const { chainId, library } = useActiveWeb3React()
   const routerContract = useV2RouterContract() as Contract
-  const [reimburseAmount, setReimburseAmount] = useState('0')
+  const vaultContract = useVaultContract() as Contract
+  const [reimbursementAmount, setReimbursementAmount] = useState('0')
+  const [reimbursementToken, setReimbursementToken] = useState('USDC')
+
+  const loadAmount = async () => {
+    // TODO: decimal 찾아다가 적용해줘야 함
+    if (library) {
+      const amount = await routerContract?.reimbursementAmount({ gasLimit: 1_000_000 })
+      const tokenAddress = await vaultContract?.tokenAddress
+      console.log(amount, tokenAddress)
+      if (tokenAddress) {
+        const token = getContract(tokenAddress, ERC20_ABI, library)
+        const decimal = await token.decimals()
+        const reward = BigNumber.from(amount).div(BigNumber.from('1' + '0'.repeat(decimal as number)))
+        console.log(amount, decimal, reward)
+        setReimbursementAmount(reward.toString())
+        const symbol = await token.symbol()
+        setReimbursementToken(symbol)
+      }
+    }
+  }
 
   useEffect(() => {
-    const getAmount = async () => {
-      const amount = (await routerContract?.reimbursementAmount({ gasLimit: 40_000_000 })) ?? '0'
-      const decimal = 18
-      setReimburseAmount(JSBIDivide(JSBI.BigInt(amount), JSBI.BigInt(decimal), 6))
+    if (routerContract && vaultContract && library) {
+      loadAmount()
     }
-    getAmount()
-  }, [routerContract])
+  }, [routerContract, vaultContract, library])
 
   return (
     <Modal isOpen={isOpen} onDismiss={onDismiss} maxHeight={90} width={600}>
@@ -314,7 +332,7 @@ export function ReimbursementDetails({ isOpen, onDismiss, tx }: { isOpen: boolea
                   Date
                 </ThemedText.Black>
                 <ThemedText.Black fontSize={16} fontWeight={400} color={'#dddddd'}>
-                  {new Date(tx.sendDate).toLocaleDateString()}
+                  {new Date(tx.sendDate * 1000).toLocaleDateString()}
                 </ThemedText.Black>
               </div>
               <div style={{ padding: '8px 0px' }}>
@@ -322,7 +340,7 @@ export function ReimbursementDetails({ isOpen, onDismiss, tx }: { isOpen: boolea
                   Amount
                 </ThemedText.Black>
                 <ThemedText.Black fontSize={16} fontWeight={400} color={'#dddddd'}>
-                  {reimburseAmount + 'MATIC'}
+                  {reimbursementAmount + ' ' + reimbursementToken}
                 </ThemedText.Black>
               </div>
               <div style={{ padding: '8px 0px' }}>
@@ -338,7 +356,7 @@ export function ReimbursementDetails({ isOpen, onDismiss, tx }: { isOpen: boolea
                   Transaction Hash
                 </ThemedText.Black>
                 <ThemedText.Black fontSize={16} fontWeight={400} color={'#dddddd'}>
-                  {tx.txId.length > 60 ? tx.txId.substring(0, 10) + '...' + tx.txId.substring(58) : tx.txId}
+                  {shortenTxId(tx.txId)}
                   <ExternalLink href={getExplorerLink(chainId ?? 137, tx.txId, ExplorerDataType.TRANSACTION)}>
                     <LinkIcon size="12px" />
                   </ExternalLink>

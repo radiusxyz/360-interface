@@ -209,7 +209,7 @@ export default function useSendSwapTransaction(
         const { deadline, availableFrom, amountIn, amountOut, path, idPath } = resolvedCalls[0]
 
         // TODO: get nonce from Swap index
-        const contractNonce = await routerContract.nonces(account, { gasLimit: 40_000_000 })
+        const contractNonce = await routerContract.nonces(account, { gasLimit: 1_000_000 })
 
         const operatorPendingTxCnt = await fetch(
           `${process.env.REACT_APP_360_OPERATOR}/tx/pendingTxCnt?chainId=${chainId}&walletAddress=${account}`
@@ -676,7 +676,7 @@ export async function sendEIP712Tx(
       const msgHash = typedDataEncoder.hash(domain(chainId), { Claim: CLAIM_TYPE }, res.txOrderMsg)
 
       const verifySigner = recoverAddress(msgHash, res.signature)
-      // const operatorAddress = await routerContract.operator({ gasLimit: 40_000_000 })
+      // const operatorAddress = await routerContract.operator({ gasLimit: 1_000_000 })
 
       if (
         verifySigner === operatorAddress &&
@@ -754,7 +754,7 @@ export async function sendEIP712Tx(
     })
     .catch(async (error) => {
       console.log(error)
-      const _currentRound = parseInt((await recorderContract.currentRound({ gasLimit: 40_000_000 })).toString())
+      const _currentRound = parseInt((await recorderContract.currentRound({ gasLimit: 1_000_000 })).toString())
       const doneRound = _currentRound === 0 ? 0 : _currentRound - 1
 
       await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })

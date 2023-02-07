@@ -2,6 +2,7 @@ import { getAddress } from '@ethersproject/address'
 import { AddressZero } from '@ethersproject/constants'
 import { Contract } from '@ethersproject/contracts'
 import { JsonRpcProvider, JsonRpcSigner } from '@ethersproject/providers'
+import {} from '@ethersproject/transactions'
 import { Token } from '@uniswap/sdk-core'
 import { FeeAmount } from '@uniswap/v3-sdk'
 import { ChainTokenMap } from 'lib/hooks/useTokenList/utils'
@@ -22,6 +23,23 @@ export function shortenAddress(address: string, chars = 4): string {
     throw Error(`Invalid 'address' parameter '${address}'.`)
   }
   return `${parsed.substring(0, chars + 2)}...${parsed.substring(42 - chars)}`
+}
+
+export function isTxId(value: any): boolean {
+  const regex = /^(0[xX])?[0-9A-Fa-f]{64}/g
+
+  if (value.match(regex)) {
+    return true
+  } else {
+    return false
+  }
+}
+
+export function shortenTxId(txId: string, chars = 6): string {
+  if (isTxId(txId)) {
+    return `${txId.substring(0, chars + 2)}...${txId.substring(66 - chars)}`
+  }
+  return txId
 }
 
 // account is not optional

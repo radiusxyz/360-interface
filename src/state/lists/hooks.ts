@@ -119,14 +119,12 @@ export function useCombinedActiveList(): TokenAddressMap {
   return activeTokens
 }
 
-// TODO: get a, b token list from operator
 export function useCombinedActiveAList(bTokenAddress: string | null | undefined): TokenAddressMap {
   const { chainId } = useActiveWeb3React()
   const activeListUrls = useActiveListUrls()
   const allTokens = useCombinedTokenMapFromUrls(activeListUrls)
   const [activeTokens, setActiveTokens] = useState({ chainId: {} })
 
-  // TODO: package
   useEffect(() => {
     if (chainId && allTokens[chainId] && bTokenAddress)
       fetch(`${process.env.REACT_APP_360_OPERATOR}/token/availableSwapTokens?bTokenAddress=${bTokenAddress}`)
@@ -160,7 +158,6 @@ function isInListNoCase(val: string, list: string[]) {
   return false
 }
 
-// TODO: get a, b token list from operator
 export function useCombinedActiveBList(aTokenAddress: string | null | undefined): TokenAddressMap {
   const { chainId } = useActiveWeb3React()
   const activeListUrls = useActiveListUrls()

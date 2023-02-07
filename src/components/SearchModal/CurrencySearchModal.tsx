@@ -77,8 +77,6 @@ export default function CurrencySearchModal({
     [setModalView, prevView]
   )
 
-  console.log('searchModal')
-
   // change min height if not searching
   const minHeight = modalView === CurrencyModalView.importToken || modalView === CurrencyModalView.importList ? 40 : 80
   let content = null
