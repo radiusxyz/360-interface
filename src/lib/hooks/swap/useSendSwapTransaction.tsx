@@ -483,6 +483,8 @@ export default function useSendSwapTransaction(
         idPath: string
       ): Promise<{ txHash: string; mimcHash: string; encryptedSwapTx: any }> {
         console.log('signMessage', signMessage)
+        console.log('timeLockPuzzleData', timeLockPuzzleData)
+        console.log('idPath', idPath)
         const signer = library.getSigner()
         const signAddress = await signer.getAddress()
 
@@ -497,15 +499,16 @@ export default function useSendSwapTransaction(
         }
 
         const txInfoToHash: TxInfo = {
-          tx_owner: signAddress.split('x')[1],
-          function_selector: swapExactTokensForTokens.split('x')[1],
+          tx_owner: signMessage.txOwner.split('x')[1],
+          function_selector: signMessage.functionSelector.split('x')[1],
           amount_in: `${signMessage.amountIn}`,
           amount_out: `${signMessage.amountOut}`,
-          to: signAddress.split('x')[1],
-          deadline: `${deadline}`,
-          nonce: `${txNonce}`,
+          to: signMessage.to.split('x')[1],
+          deadline: `${signMessage.deadline}`,
+          nonce: `${signMessage.nonce}`,
           path: pathToHash,
         }
+        console.log('🚀 ~ file: useSendSwapTransaction.tsx:511 ~ returnuseMemo ~ txInfoToHash', txInfoToHash)
 
         const encryptData = await poseidonEncryptWithTxHash(
           txInfoToHash,
@@ -514,6 +517,7 @@ export default function useSendSwapTransaction(
           timeLockPuzzleData.commitment_hex,
           idPath
         )
+        console.log('🚀 ~ file: useSendSwapTransaction.tsx:520 ~ returnuseMemo ~ encryptData', encryptData)
 
         const encryptedPath = {
           message_length: encryptData.message_length,

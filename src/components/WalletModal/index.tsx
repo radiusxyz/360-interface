@@ -155,7 +155,7 @@ export default function WalletModal({
     console.log('accountsChanged')
   })
 
-  console.log('walletStatus', active, account, connector, activate, error)
+  // console.log('walletStatus', active, account, connector, activate, error)
 
   const [walletView, setWalletView] = useState(WALLET_VIEWS.ACCOUNT)
   const previousWalletView = usePrevious(walletView)
