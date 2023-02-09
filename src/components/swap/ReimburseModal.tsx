@@ -120,7 +120,7 @@ export function ClaimReimbursement({
 
   const loadAmount = async () => {
     if (library) {
-      const amount = await routerContract?.reimbursementAmount({ gasLimit: 1_000_000 })
+      const amount = await routerContract?.reimbursementAmount()
       const tokenAddress = await vaultContract?.tokenAddress
       console.log(amount, tokenAddress)
       if (tokenAddress) {
@@ -290,7 +290,7 @@ export function ReimbursementDetails({ isOpen, onDismiss, tx }: { isOpen: boolea
   const loadAmount = async () => {
     // TODO: decimal 찾아다가 적용해줘야 함
     if (library) {
-      const amount = await routerContract?.reimbursementAmount({ gasLimit: 1_000_000 })
+      const amount = await routerContract?.reimbursementAmount()
       const tokenAddress = await vaultContract?.tokenAddress
       console.log(amount, tokenAddress)
       if (tokenAddress) {

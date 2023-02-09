@@ -174,7 +174,7 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
       format: (i: string, subAccessor: string) => {
         return (
           <>
-            <span style={{ color: '#cccccc', marginRight: '5px' }}>{shortenTxId(i)}</span>
+            <span style={{ color: '#cccccc', marginRight: '5px' }}>{shortenTxId(i, 5)}</span>
             <ExternalLink href={getExplorerLink(chainId ?? 137, i, ExplorerDataType.TRANSACTION)}>
               <LinkIconThin />
             </ExternalLink>
