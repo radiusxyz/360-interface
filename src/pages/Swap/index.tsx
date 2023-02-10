@@ -300,7 +300,7 @@ export default function Swap({ history }: RouteComponentProps) {
   const priceImpact = trade?.priceImpact
   // console.log(trade?.inputAmount, trade?.outputAmount, fiatValueInput, fiatValueOutput, priceImpact)
 
-  const { onSwitchTokens, onCurrencySelection, onUserInput, onChangeRecipient } = useSwapActionHandlers()
+  const { onCurrencySelection, onUserInput, onChangeRecipient } = useSwapActionHandlers()
   const isValid = !swapInputError
   const dependentField: Field = independentField === Field.INPUT ? Field.OUTPUT : Field.INPUT
 
@@ -819,7 +819,9 @@ export default function Swap({ history }: RouteComponentProps) {
   }, [maxInputAmount, onUserInput])
 
   const handleOutputSelect = useCallback(
-    (outputCurrency) => onCurrencySelection(Field.OUTPUT, outputCurrency),
+    (outputCurrency) => {
+      onCurrencySelection(Field.OUTPUT, outputCurrency)
+    },
     [onCurrencySelection]
   )
 
