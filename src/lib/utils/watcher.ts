@@ -69,7 +69,7 @@ export async function CheckPendingTx({
 
     console.log('get', pendingTx.round, pendingTx)
     const txHash = await getTxId(recorder, chainId, router?.address, pendingTx.round)
-    if (txHash === null) return
+    if (txHash === null) continue
 
     console.log('has txHash', txHash)
     // 2. txId 실행되었는지 확인
@@ -165,7 +165,7 @@ export async function CheckPendingTx({
                       })
                     )
                   })
-                  return
+                  continue
                 } else {
                   const isCanceled = await recorder?.useOfVeto(readyTx.txHash, readyTx.tx.txOwner)
                   if (isCanceled === true) {
@@ -203,7 +203,7 @@ export async function CheckPendingTx({
                           })
                         )
                       })
-                    return
+                    continue
                   } else {
                     console.log('Rejected')
                     db.pushTxHistory(
@@ -232,7 +232,7 @@ export async function CheckPendingTx({
                         })
                       )
                     })
-                    return
+                    continue
                   }
                 }
               } else if (readyTx.tx.nonce < nonce) {
@@ -286,7 +286,7 @@ export async function CheckPendingTx({
                 )
               })
           }
-          return
+          continue
         }
         console.log(`check next round: ${pendingTx.round + 1}`)
         console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
@@ -305,7 +305,7 @@ export async function CheckPendingTx({
         )
         db.pendingTxs.update(pendingTx.id as number, { round: pendingTx.round + 1 })
 
-        return
+        continue
       } else {
         // 라운드에 해당하는 오더를 알고 있을때
         for (const log of Logs) {
@@ -316,7 +316,7 @@ export async function CheckPendingTx({
               round = BigNumber.from(`0x${dataList[0]}`).toNumber()
               if (pendingTx.round !== round) {
                 console.log('Invalid round')
-                return
+                break
               }
               order = BigNumber.from(`0x${dataList[1]}`).toNumber()
               address = BigNumber.from(`0x${dataList[2]}`).toHexString()
@@ -400,7 +400,7 @@ export async function CheckPendingTx({
               )
             })
 
-            return
+            continue
           } else {
             const isCanceled = await recorder?.useOfVeto(readyTx.txHash, readyTx.tx.txOwner)
             if (isCanceled === true) {
@@ -435,7 +435,7 @@ export async function CheckPendingTx({
                   )
                 })
 
-              return
+              continue
             } else {
               console.log('Rejected')
               db.pushTxHistory(
@@ -464,7 +464,7 @@ export async function CheckPendingTx({
                 )
               })
 
-              return
+              continue
             }
           }
         } else {
@@ -501,7 +501,7 @@ export async function CheckPendingTx({
             `expected: walletAddress: ${readyTx?.tx.txOwner} / round - ${pendingTx.round} / order - ${pendingTx.order} / nonce - ${readyTx?.tx.nonce}`
           )
           console.log(`real: address: ${address} / round - ${round} / order - ${order} / nonce - ${nonce}`)
-          return
+          continue
         }
       }
     }
