@@ -921,7 +921,7 @@ export default function Swap({ history }: RouteComponentProps) {
               historyId={reimbursement}
               onDismiss={() => setReimbursement(0)}
             />
-            <CancelSuggestModal isOpen={cancel !== 0} readyTxId={cancel} onDismiss={() => setCancel(0)} />
+            <CancelSuggestModal isOpen={cancel !== 0} txHistoryId={cancel} onDismiss={() => setCancel(0)} />
             <AutoColumn gap={'sm'}>
               <div style={{ display: 'relative' }}>
                 <CurrencyInputPanel

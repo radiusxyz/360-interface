@@ -774,7 +774,7 @@ export async function sendEIP712Tx(
           progressHere: 1,
         }
       )
-      await db.pushTxHistory(
+      const txHistoryId = await db.pushTxHistory(
         { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
         {
           pendingTxId: parseInt(pendingTxId.toString()),
@@ -784,7 +784,7 @@ export async function sendEIP712Tx(
         }
       )
 
-      setCancel(readyTx?.id as number)
+      setCancel(txHistoryId as number)
 
       if (error.name === 'AbortError') {
         throw new Error(

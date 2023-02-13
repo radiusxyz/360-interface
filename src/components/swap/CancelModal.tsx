@@ -34,11 +34,11 @@ const ProceedButton = styled(ButtonError)`
 
 export function CancelSuggestModal({
   isOpen,
-  readyTxId,
+  txHistoryId,
   onDismiss,
 }: {
   isOpen: boolean
-  readyTxId: number
+  txHistoryId: number
   onDismiss: () => void
 }) {
   const dispatch = useAppDispatch()
@@ -59,14 +59,18 @@ export function CancelSuggestModal({
   // }, [time])
   useEffect(() => {
     const updateTx = async () => {
-      if (readyTx === undefined) {
-        setReadyTx(await db.readyTxs.get(readyTxId))
-        setPendingTx(await db.pendingTxs.where('readyTxId').equals(readyTxId).first())
+      if (readyTx === undefined && txHistoryId !== 0) {
+        console.log('txHistoryId', txHistoryId)
+        const txHistory = await db.txHistory.get(txHistoryId)
+        console.log('pendingTxId', txHistory?.pendingTxId as number)
+        setPendingTx(await db.pendingTxs.get(txHistory?.pendingTxId as number))
+        console.log('readyTxId', pendingTx?.readyTxId as number)
+        setReadyTx(await db.readyTxs.get(pendingTx?.readyTxId as number))
       }
     }
     updateTx()
     setCancelProgress(0)
-  }, [readyTxId])
+  }, [txHistoryId])
 
   const continueTx = async () => {
     if (readyTx && pendingTx) {
