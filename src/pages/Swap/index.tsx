@@ -15,7 +15,7 @@ import { useSwapCallback } from 'hooks/useSwapCallback'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import JSBI from 'jsbi'
 import { RadiusSwapResponse } from 'lib/hooks/swap/useSendSwapTransaction'
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowDown, CheckCircle, HelpCircle, Info } from 'react-feather'
 import ReactGA from 'react-ga4'
 import { BsArrowDown } from 'react-icons/bs'
@@ -353,6 +353,8 @@ export default function Swap({ history }: RouteComponentProps) {
     disabled: false,
   })
 
+  const isRunning = useRef<boolean>(false)
+
   const formattedAmounts = useMemo(
     () => ({
       [independentField]: typedValue,
@@ -456,182 +458,179 @@ export default function Swap({ history }: RouteComponentProps) {
     parameters
   )
 
-  const func1 = useCallback(async () => {
-    if (split1) {
-      routerContract
-        .nonces(account)
-        .then(async (contractNonce: any) => {
-          routerContract
-            .operator()
-            .then(async (operatorAddress: any) => {
-              const tempState1 = { ...swapState.myState }
-              setSwapState({
-                ...swapState,
-                attemptingTxn: true,
-                swapErrorMessage: undefined,
-                txHash: undefined,
-                swapResponse: undefined,
-                showTimeLockPuzzle: false,
-                myState: tempState1,
-              })
-
-              const res = await split1(swapState.backerIntegrity, contractNonce)
-              console.log('res1', res)
-              const tempState = { ...swapState.myState, process: 2, ...res, operatorAddress }
-              setSwapState({ ...swapState, myState: tempState })
-            })
-            .catch(() => {
-              console.log('failed to load operator')
-              setSwapState({
-                ...swapState,
-                myState: { process: 0, errorMessage: 'RPC server is not responding, please try again' },
-              })
-            })
-        })
-        .catch(() => {
-          console.log('failed to load nonce')
-          setSwapState({
-            ...swapState,
-            myState: { process: 0, errorMessage: 'RPC server is not responding, please try again' },
-          })
-        })
-    }
-  }, [split1])
-
-  const func2 = useCallback(async () => {
-    if (split2) {
-      const tempState1 = { ...swapState.myState }
-      setSwapState({ ...swapState, myState: tempState1 })
-      const res = await split2(swapState.myState.signMessage)
-      console.log('res2', res)
-      if (res) {
-        const tempState = { ...swapState.myState, process: 3, ...res }
-        setSwapState({ ...swapState, myState: tempState })
-      } else {
-        setSwapState({ ...swapState, myState: { process: 0 } })
-      }
-    }
-  }, [split2])
-
-  const func3 = useCallback(async () => {
-    if (split3) {
-      await sleep(300)
-      const tempState1 = { ...swapState.myState }
-      setSwapState({ ...swapState, myState: tempState1 })
-      const res = await split3(swapState.myState.timeLockPuzzleParam, swapState.myState.timeLockPuzzleSnarkParam)
-      console.log('res3', res)
-      const tempState = { ...swapState.myState, process: 4, ...res }
-      setSwapState({ ...swapState, myState: tempState })
-    }
-  }, [split3])
-
-  const func4 = useCallback(async () => {
-    if (split4) {
-      const tempState1 = { ...swapState.myState }
-      setSwapState({ ...swapState, myState: tempState1 })
-      const res = await split4(
-        swapState.myState.timeLockPuzzleData,
-        swapState.myState.txNonce,
-        swapState.myState.signMessage,
-        swapState.myState.idPath
-      )
-      console.log('res4', res)
-      const tempState = { ...swapState.myState, process: 5, ...res }
-      setSwapState({ ...swapState, myState: tempState })
-    }
-  }, [split4])
-  const func5 = useCallback(async () => {
-    if (split5) {
-      const tempState1 = { ...swapState.myState }
-      setSwapState({ ...swapState, myState: tempState1 })
-      split5(
-        swapState.myState.txHash,
-        swapState.myState.mimcHash,
-        swapState.myState.signMessage,
-        swapState.myState.encryptedSwapTx,
-        swapState.myState.sig,
-        swapState.myState.operatorAddress
-      )
-        .then(async (res) => {
-          onUserInput(Field.INPUT, '')
-          console.log('res5', res)
-          setSwapState({ ...swapState, myState: { process: 6 } })
-          await sleep(10000)
-          setSwapState({
-            ...swapState,
-            attemptingTxn: false,
-            showConfirm: false,
-            swapErrorMessage: undefined,
-            txHash: undefined,
-            swapResponse: res,
-            myState: { process: 0 },
-          })
-        })
-        .catch(async (e) => {
-          console.error(e)
-          onUserInput(Field.INPUT, '')
-          setSwapState({
-            ...swapState,
-            attemptingTxn: false,
-            showConfirm: false,
-            swapErrorMessage: e.message,
-            txHash: undefined,
-            swapResponse: undefined,
-            myState: { process: 0 },
-          })
-        })
-    }
-  }, [split5])
-
   // console.log('myState a', myState)
   const routerContract = useV2RouterContract() as Contract
 
   useEffect(() => {
+    const func1 = async () => {
+      if (split1 && !isRunning.current) {
+        isRunning.current = true
+        routerContract
+          .nonces(account)
+          .then(async (contractNonce: any) => {
+            routerContract
+              .operator()
+              .then(async (operatorAddress: any) => {
+                setSwapState({
+                  ...swapState,
+                  attemptingTxn: true,
+                  swapErrorMessage: undefined,
+                  txHash: undefined,
+                  swapResponse: undefined,
+                  showTimeLockPuzzle: false,
+                })
+
+                const res = await split1(swapState.backerIntegrity, contractNonce)
+                console.log('res1', res)
+                const tempState = { ...swapState.myState, process: 2, ...res, operatorAddress }
+                setSwapState({ ...swapState, myState: tempState })
+                isRunning.current = false
+              })
+              .catch(() => {
+                console.log('failed to load operator')
+                setSwapState({
+                  ...swapState,
+                  myState: { process: 0, errorMessage: 'RPC server is not responding, please try again' },
+                })
+                isRunning.current = false
+              })
+          })
+          .catch(() => {
+            console.log('failed to load nonce')
+            setSwapState({
+              ...swapState,
+              myState: { process: 0, errorMessage: 'RPC server is not responding, please try again' },
+            })
+          })
+      }
+    }
+
+    const func2 = async () => {
+      if (split2 && !isRunning.current) {
+        isRunning.current = true
+        const res = await split2(swapState.myState.signMessage)
+        console.log('res2', res)
+        if (res) {
+          const tempState = { ...swapState.myState, process: 3, ...res }
+          setSwapState({ ...swapState, myState: tempState })
+        } else {
+          setSwapState({ ...swapState, myState: { process: 0 } })
+        }
+        isRunning.current = false
+      }
+    }
+
+    const func3 = async () => {
+      if (split3 && !isRunning.current) {
+        isRunning.current = true
+        await sleep(300)
+        const res = await split3(swapState.myState.timeLockPuzzleParam, swapState.myState.timeLockPuzzleSnarkParam)
+        console.log('res3', res)
+        const tempState = { ...swapState.myState, process: 4, ...res }
+        setSwapState({ ...swapState, myState: tempState })
+        isRunning.current = false
+      }
+    }
+
+    const func4 = async () => {
+      if (split4 && !isRunning.current) {
+        isRunning.current = true
+        const res = await split4(
+          swapState.myState.timeLockPuzzleData,
+          swapState.myState.txNonce,
+          swapState.myState.signMessage,
+          swapState.myState.idPath
+        )
+        console.log('res4', res)
+        const tempState = { ...swapState.myState, process: 5, ...res }
+        setSwapState({ ...swapState, myState: tempState })
+        isRunning.current = false
+      }
+    }
+    const func5 = async () => {
+      if (split5 && !isRunning.current) {
+        isRunning.current = true
+        split5(
+          swapState.myState.txHash,
+          swapState.myState.mimcHash,
+          swapState.myState.signMessage,
+          swapState.myState.encryptedSwapTx,
+          swapState.myState.sig,
+          swapState.myState.operatorAddress
+        )
+          .then(async (res) => {
+            onUserInput(Field.INPUT, '')
+            console.log('res5', res)
+            setSwapState({ ...swapState, myState: { process: 6 } })
+            await sleep(10000)
+            setSwapState({
+              ...swapState,
+              attemptingTxn: false,
+              showConfirm: false,
+              swapErrorMessage: undefined,
+              txHash: undefined,
+              swapResponse: res,
+              myState: { process: 0 },
+            })
+            isRunning.current = false
+          })
+          .catch(async (e) => {
+            console.error(e)
+            onUserInput(Field.INPUT, '')
+            setSwapState({
+              ...swapState,
+              attemptingTxn: false,
+              showConfirm: false,
+              swapErrorMessage: e.message,
+              txHash: undefined,
+              swapResponse: undefined,
+              myState: { process: 0 },
+            })
+            isRunning.current = false
+          })
+      }
+    }
+
     console.log('run?')
     if (swapState.myState.process === 1) {
       console.log('1', swapState.myState, func1)
-      if (func1 && split1) func1()
-      else setSwapState({ ...swapState, myState: { ...swapState.myState, dangle: true } })
+      func1()
     }
     if (swapState.myState.process === 2) {
       console.log('2', swapState.myState, func2)
-      if (func2 && split2) func2()
-      else setSwapState({ ...swapState, myState: { ...swapState.myState, dangle: true } })
+      func2()
     }
     if (swapState.myState.process === 3) {
       console.log('3', swapState.myState, func3)
-      if (func3 && split3) func3()
-      else setSwapState({ ...swapState, myState: { ...swapState.myState, dangle: true } })
+      func3()
     }
     if (swapState.myState.process === 4) {
       console.log('4', swapState.myState, func4, split4)
-      if (func4 && split4) func4()
-      else setSwapState({ ...swapState, myState: { ...swapState.myState, dangle: true } })
+      func4()
     }
     if (swapState.myState.process === 5) {
       console.log('5', swapState.myState, func5, split5)
-      if (func5 && split5) func5()
-      else setSwapState({ ...swapState, myState: { ...swapState.myState, dangle: true } })
+      func5()
     }
-  }, [swapState.myState.process, swapState.myState.rerun])
+  }, [swapState.myState.process, split1, split2, split3, split4, split5])
 
-  useEffect(() => {
-    console.log('refresh split5')
-    if (
-      swapState.myState.dangle &&
-      ((swapState.myState.process === 1 && split1) ||
-        (swapState.myState.process === 2 && split2) ||
-        (swapState.myState.process === 3 && split3) ||
-        (swapState.myState.process === 4 && split4) ||
-        (swapState.myState.process === 5 && split5))
-    ) {
-      console.log('dangle')
-      setSwapState({
-        ...swapState,
-        myState: { ...swapState.myState, dangle: false, rerun: !swapState.myState.rerun },
-      })
-    }
-  }, [split1, split2, split3, split4, split5])
+  // useEffect(() => {
+  //   console.log('refresh split5')
+  //   if (
+  //     swapState.myState.dangle &&
+  //     ((swapState.myState.process === 1 && split1) ||
+  //       (swapState.myState.process === 2 && split2) ||
+  //       (swapState.myState.process === 3 && split3) ||
+  //       (swapState.myState.process === 4 && split4) ||
+  //       (swapState.myState.process === 5 && split5))
+  //   ) {
+  //     console.log('dangle')
+  //     setSwapState({
+  //       ...swapState,
+  //       myState: { ...swapState.myState, dangle: false, rerun: !swapState.myState.rerun },
+  //     })
+  //   }
+  // }, [split1, split2, split3, split4, split5])
 
   // useEffect(() => {
   //   setInterval(() => {

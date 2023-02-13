@@ -155,8 +155,13 @@ export function ClaimReimbursement({
       )
       console.log('🚀 ~ file: ReimburseModal.tsx:93 ~ claim ~ result', result)
 
-      await db.txHistory.update(tx.id as number, { status: Status.REIMBURSED })
+      // TODO: reimbursement amount update logic need
+      // TODO: txId polling에 넣어두면 좋을듯. 직접 보내는 tx니까.
+      // TODO: popup도 있으면 좋을 듯
+
+      await db.txHistory.update(tx.id as number, { status: Status.REIMBURSED, reimbursementTxId: result.hash })
     }
+    onDismiss()
   }
 
   return (
@@ -356,8 +361,10 @@ export function ReimbursementDetails({ isOpen, onDismiss, tx }: { isOpen: boolea
                   Transaction Hash
                 </ThemedText.Black>
                 <ThemedText.Black fontSize={16} fontWeight={400} color={'#dddddd'}>
-                  {shortenTxId(tx.txId)}
-                  <ExternalLink href={getExplorerLink(chainId ?? 137, tx.txId, ExplorerDataType.TRANSACTION)}>
+                  {shortenTxId(tx.reimbursementTxId)}
+                  <ExternalLink
+                    href={getExplorerLink(chainId ?? 137, tx.reimbursementTxId, ExplorerDataType.TRANSACTION)}
+                  >
                     <LinkIcon size="12px" />
                   </ExternalLink>
                 </ThemedText.Black>
