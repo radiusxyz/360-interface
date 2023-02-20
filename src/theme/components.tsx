@@ -107,6 +107,29 @@ const StyledLink = styled.a`
   }
 `
 
+const StyledLinkCenter = styled.a`
+  text-decoration: none;
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  color: ${({ theme }) => theme.primary1};
+  font-weight: 500;
+
+  /* :hover {
+    text-decoration: underline;
+  }
+
+  :focus {
+    outline: none;
+    text-decoration: underline;
+  }
+
+  :active {
+    text-decoration: none;
+  } */
+`
+
 const LinkIconWrapper = styled.a`
   text-decoration: none;
   cursor: pointer;
@@ -197,6 +220,15 @@ export function ExternalLink({
   ...rest
 }: Omit<HTMLProps<HTMLAnchorElement>, 'as' | 'ref' | 'onClick'> & { href: string }) {
   return <StyledLink target={target} rel={rel} href={href} onClick={handleClickExternalLink} {...rest} />
+}
+
+export function ExternalLinkCenter({
+  target = '_blank',
+  href,
+  rel = 'noopener noreferrer',
+  ...rest
+}: Omit<HTMLProps<HTMLAnchorElement>, 'as' | 'ref' | 'onClick'> & { href: string }) {
+  return <StyledLinkCenter target={target} rel={rel} href={href} onClick={handleClickExternalLink} {...rest} />
 }
 
 export function ExternalLinkIcon({

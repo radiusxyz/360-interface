@@ -124,12 +124,12 @@ const Aligner = styled.span`
 `
 
 const StyledDropDown = styled(DropDown)<{ selected: boolean }>`
-  margin: 0 15px 0 15px;
+  margin: 0 10px 0 10px;
   height: 6px;
   width: 10px;
 
   path {
-    stroke: #ffffff33;
+    stroke: #ffffff;
     stroke-width: 1.5px;
   }
 `
@@ -299,11 +299,11 @@ export default function CurrencyInputPanel({
                 setModalOpen(true)
               }
             }}
-            style={mouseOver ? { backgroundColor: '#1b1b1b' } : {}}
+            style={mouseOver ? { backgroundColor: '#0066ff' } : {}}
             onMouseOver={() => setMouseOver(true)}
             onMouseOut={() => setMouseOver(false)}
           >
-            <Aligner>
+            <Aligner style={pair || currency ? {} : { justifyContent: 'right' }}>
               <RowFixed>
                 {pair ? (
                   <span style={{ marginRight: '0.5rem' }}>
@@ -311,10 +311,8 @@ export default function CurrencyInputPanel({
                   </span>
                 ) : currency ? (
                   <CurrencyLogo style={{ marginRight: '0.5rem' }} currency={currency} size={'32px'} />
-                ) : mouseOver ? (
-                  <EmptyCurrencyLogoHover />
                 ) : (
-                  <EmptyCurrencyLogo />
+                  <></>
                 )}
                 {pair ? (
                   <StyledTokenName className="pair-name-container">
@@ -326,7 +324,11 @@ export default function CurrencyInputPanel({
                       ? currency.symbol.slice(0, 4) +
                         '...' +
                         currency.symbol.slice(currency.symbol.length - 5, currency.symbol.length)
-                      : currency?.symbol) || <Trans>Select</Trans>}
+                      : currency?.symbol) || (
+                      <span style={{ fontSize: '17px', fontWeight: 'bold' }}>
+                        <Trans>Select Token</Trans>
+                      </span>
+                    )}
                   </StyledTokenName>
                 )}
               </RowFixed>

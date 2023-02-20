@@ -34,11 +34,11 @@ const ProceedButton = styled(ButtonError)`
 
 export function CancelSuggestModal({
   isOpen,
-  readyTxId,
+  txHistoryId,
   onDismiss,
 }: {
   isOpen: boolean
-  readyTxId: number
+  txHistoryId: number
   onDismiss: () => void
 }) {
   const dispatch = useAppDispatch()
@@ -59,18 +59,22 @@ export function CancelSuggestModal({
   // }, [time])
   useEffect(() => {
     const updateTx = async () => {
-      if (readyTx === undefined) {
-        setReadyTx(await db.readyTxs.get(readyTxId))
-        setPendingTx(await db.pendingTxs.where('readyTxId').equals(readyTxId).first())
+      if (readyTx === undefined && txHistoryId !== 0) {
+        console.log('txHistoryId', txHistoryId)
+        const txHistory = await db.txHistory.get(txHistoryId)
+        console.log('pendingTxId', txHistory?.pendingTxId as number)
+        setPendingTx(await db.pendingTxs.get(txHistory?.pendingTxId as number))
+        console.log('readyTxId', pendingTx?.readyTxId as number)
+        setReadyTx(await db.readyTxs.get(pendingTx?.readyTxId as number))
       }
     }
     updateTx()
     setCancelProgress(0)
-  }, [readyTxId])
+  }, [txHistoryId])
 
   const continueTx = async () => {
     if (readyTx && pendingTx) {
-      const doneRound = parseInt(await recorderContract.currentRound({ gasLimit: 40_000_000 })) - 1
+      const doneRound = parseInt(await recorderContract.currentRound({ gasLimit: 1_000_000 })) - 1
       await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
       if (pendingTx.order === -1) {
         await db.pushPendingTx(
@@ -237,7 +241,17 @@ function TransactionCancelSuggest({
         >
           <RowCenter>
             {flag ? (
-              <img src={errorImage} width="220" height="220" alt="" />
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '220px',
+                  height: '220px',
+                }}
+              >
+                <img src={errorImage} width="110" height="110" alt="" />
+              </div>
             ) : (
               <img src={respondingImage} width="220" height="220" alt="" />
             )}

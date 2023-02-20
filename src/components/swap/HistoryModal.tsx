@@ -9,6 +9,7 @@ import { useCancelManager, useReimbursementManager } from 'state/modal/hooks'
 import styled from 'styled-components/macro'
 
 import { ExternalLink } from '../../theme'
+import { shortenTxId } from '../../utils'
 import { db, Status, TokenAmount } from '../../utils/db'
 import { ExplorerDataType, getExplorerLink } from '../../utils/getExplorerLink'
 import Modal from '../Modal'
@@ -171,19 +172,14 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
       subAccessor: 'txHash',
       // eslint-disable-next-line react/display-name
       format: (i: string, subAccessor: string) => {
-        const shortenTxId = i.length > 60 ? i.substring(0, 10) + '...' + i.substring(58) : i
-        if (i.length > 60) {
-          return (
-            <>
-              <span style={{ color: '#cccccc', marginRight: '5px' }}>{shortenTxId}</span>
-              <ExternalLink href={getExplorerLink(chainId ?? 137, i, ExplorerDataType.TRANSACTION)}>
-                <LinkIconThin />
-              </ExternalLink>
-            </>
-          )
-        } else {
-          return <></>
-        }
+        return (
+          <>
+            <span style={{ color: '#cccccc', marginRight: '5px' }}>{shortenTxId(i, 5)}</span>
+            <ExternalLink href={getExplorerLink(chainId ?? 137, i, ExplorerDataType.TRANSACTION)}>
+              <LinkIconThin />
+            </ExternalLink>
+          </>
+        )
       },
     },
   ]

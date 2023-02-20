@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components/macro'
 
 import { escapeRegExp } from '../../utils'
@@ -66,10 +66,18 @@ export const Input = React.memo(function InnerInput({
     }
   }
 
+  const [placeHolder, setPlaceHolder] = useState<string | undefined>(placeholder)
+
   return (
     <StyledInput
       {...rest}
       value={prependSymbol && value ? prependSymbol + value : value}
+      onFocus={() => {
+        setPlaceHolder('')
+      }}
+      onBlur={() => {
+        setPlaceHolder(placeholder)
+      }}
       onChange={(event) => {
         if (prependSymbol) {
           const value = event.target.value
@@ -92,7 +100,7 @@ export const Input = React.memo(function InnerInput({
       // text-specific options
       type="text"
       pattern="^[0-9]*[.,]?[0-9]*$"
-      placeholder={placeholder || '0.0'}
+      placeholder={placeHolder === '' ? '' : '0.0'}
       minLength={1}
       maxLength={79}
       spellCheck="false"

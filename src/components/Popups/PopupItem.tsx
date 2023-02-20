@@ -182,7 +182,7 @@ export default function PopupItem({
               <CancelButton
                 onClick={() => {
                   console.log('values.data.readyTxId', values)
-                  setShowCancel(values.data.readyTxId)
+                  setShowCancel(values.data.txHistoryId)
                 }}
               >
                 Cancel Transaction

@@ -278,7 +278,7 @@ export default function CurrencyList({
         width: '100%',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'start',
         flexDirection: 'column',
       }}
     >

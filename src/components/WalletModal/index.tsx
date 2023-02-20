@@ -145,6 +145,18 @@ export default function WalletModal({
   // important that these are destructed from the account-specific web3-react context
   const { active, account, connector, activate, error } = useWeb3React()
 
+  connector?.on('networkChanged', () => {
+    console.log('networkChanged')
+  })
+  connector?.on('chainChanged', () => {
+    console.log('chainChanged')
+  })
+  connector?.on('accountsChanged', () => {
+    console.log('accountsChanged')
+  })
+
+  // console.log('walletStatus', active, account, connector, activate, error)
+
   const [walletView, setWalletView] = useState(WALLET_VIEWS.ACCOUNT)
   const previousWalletView = usePrevious(walletView)
 
@@ -262,6 +274,7 @@ export default function WalletModal({
               <Option
                 id={`connect-${key}`}
                 key={key}
+                size={46}
                 color={'#E8831D'}
                 header={<Trans>Install Metamask</Trans>}
                 subheader={null}

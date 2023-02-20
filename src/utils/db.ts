@@ -65,6 +65,8 @@ export interface PendingTxParam {
 export interface TxHistory {
   id?: number
   pendingTxId: number
+  reimbursementTxId?: string
+  reimbursement?: TokenAmount
   txId: string
   txDate: number
   from: TokenAmount

@@ -209,7 +209,7 @@ export default function useSendSwapTransaction(
         const { deadline, availableFrom, amountIn, amountOut, path, idPath } = resolvedCalls[0]
 
         // TODO: get nonce from Swap index
-        const contractNonce = await routerContract.nonces(account, { gasLimit: 40_000_000 })
+        const contractNonce = await routerContract.nonces(account)
 
         const operatorPendingTxCnt = await fetch(
           `${process.env.REACT_APP_360_OPERATOR}/tx/pendingTxCnt?chainId=${chainId}&walletAddress=${account}`
@@ -483,6 +483,8 @@ export default function useSendSwapTransaction(
         idPath: string
       ): Promise<{ txHash: string; mimcHash: string; encryptedSwapTx: any }> {
         console.log('signMessage', signMessage)
+        console.log('timeLockPuzzleData', timeLockPuzzleData)
+        console.log('idPath', idPath)
         const signer = library.getSigner()
         const signAddress = await signer.getAddress()
 
@@ -497,15 +499,16 @@ export default function useSendSwapTransaction(
         }
 
         const txInfoToHash: TxInfo = {
-          tx_owner: signAddress.split('x')[1],
-          function_selector: swapExactTokensForTokens.split('x')[1],
+          tx_owner: signMessage.txOwner.split('x')[1],
+          function_selector: signMessage.functionSelector.split('x')[1],
           amount_in: `${signMessage.amountIn}`,
           amount_out: `${signMessage.amountOut}`,
-          to: signAddress.split('x')[1],
-          deadline: `${deadline}`,
-          nonce: `${txNonce}`,
+          to: signMessage.to.split('x')[1],
+          deadline: `${signMessage.deadline}`,
+          nonce: `${signMessage.nonce}`,
           path: pathToHash,
         }
+        console.log('🚀 ~ file: useSendSwapTransaction.tsx:511 ~ returnuseMemo ~ txInfoToHash', txInfoToHash)
 
         const encryptData = await poseidonEncryptWithTxHash(
           txInfoToHash,
@@ -514,6 +517,7 @@ export default function useSendSwapTransaction(
           timeLockPuzzleData.commitment_hex,
           idPath
         )
+        console.log('🚀 ~ file: useSendSwapTransaction.tsx:520 ~ returnuseMemo ~ encryptData', encryptData)
 
         const encryptedPath = {
           message_length: encryptData.message_length,
@@ -676,7 +680,7 @@ export async function sendEIP712Tx(
       const msgHash = typedDataEncoder.hash(domain(chainId), { Claim: CLAIM_TYPE }, res.txOrderMsg)
 
       const verifySigner = recoverAddress(msgHash, res.signature)
-      // const operatorAddress = await routerContract.operator({ gasLimit: 40_000_000 })
+      // const operatorAddress = await routerContract.operator()
 
       if (
         verifySigner === operatorAddress &&
@@ -754,7 +758,7 @@ export async function sendEIP712Tx(
     })
     .catch(async (error) => {
       console.log(error)
-      const _currentRound = parseInt((await recorderContract.currentRound({ gasLimit: 40_000_000 })).toString())
+      const _currentRound = parseInt((await recorderContract.currentRound()).toString())
       const doneRound = _currentRound === 0 ? 0 : _currentRound - 1
 
       await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
@@ -770,7 +774,7 @@ export async function sendEIP712Tx(
           progressHere: 1,
         }
       )
-      await db.pushTxHistory(
+      const txHistoryId = await db.pushTxHistory(
         { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
         {
           pendingTxId: parseInt(pendingTxId.toString()),
@@ -780,7 +784,7 @@ export async function sendEIP712Tx(
         }
       )
 
-      setCancel(readyTx?.id as number)
+      setCancel(txHistoryId as number)
 
       if (error.name === 'AbortError') {
         throw new Error(

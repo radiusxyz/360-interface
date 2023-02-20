@@ -91,18 +91,21 @@ export function CurrencySearch({
   const [searchQuery, setSearchQuery] = useState<string>('')
   const debouncedQuery = useDebounce(searchQuery, 200)
 
+  const [allToken, setAllToken] = useState<{ [address: string]: Token }>({})
+
   const bTokens = useBTokens(aTokenAddress)
   const aTokens = useATokens(bTokenAddress)
   const allTokens = useAllTokens()
-  let allToken: { [address: string]: Token }
-  if (aTokenAddress) {
-    allToken = bTokens
-  } else if (bTokenAddress) {
-    allToken = aTokens
-  } else {
-    allToken = allTokens
-  }
 
+  useEffect(() => {
+    if (aTokenAddress) {
+      setAllToken(bTokens)
+    } else if (bTokenAddress) {
+      setAllToken(aTokens)
+    } else {
+      setAllToken(allTokens)
+    }
+  }, [aTokenAddress, bTokenAddress, aTokens, bTokens, allTokens])
   // if they input an address, use it
   const isAddressSearch = isAddress(debouncedQuery)
 
@@ -236,11 +239,11 @@ export function CurrencySearch({
           <ImportRow token={searchToken} showImportView={showImportView} setImportToken={setImportToken} />
         </Column>
       ) : filteredSortedTokens?.length > 0 || filteredInactiveTokens?.length > 0 ? (
-        <div style={{ flex: '1', width: '100%', alignItems: 'center', justifyContent: 'center' }}>
-          <AutoSizer disableWidth style={{ display: 'flex', width: '100%', height: '100%', justifyContent: 'center' }}>
-            {({ height }) => (
+        <div style={{ flex: '1', width: '100%', alignItems: 'start', justifyContent: 'start' }}>
+          <AutoSizer disableWidth style={{ display: 'flex', width: '100%', height: '100%', justifyContent: 'start' }}>
+            {(height) => (
               <CurrencyList
-                height={height}
+                height={filteredSortedTokens.length * 80}
                 currencies={disableNonToken ? filteredSortedTokens : filteredSortedTokensWithETH}
                 otherListTokens={filteredInactiveTokens}
                 onCurrencySelect={handleCurrencySelect}

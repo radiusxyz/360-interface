@@ -1,3 +1,4 @@
+import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { ChainTokenMap, tokensToChainTokenMap } from 'lib/hooks/useTokenList/utils'
 import { useEffect, useMemo, useState } from 'react'
 import { useAppSelector } from 'state/hooks'
@@ -7,7 +8,6 @@ import BROKEN_LIST from '../../constants/tokenLists/broken.tokenlist.json'
 import UNSUPPORTED_TOKEN_LIST from '../../constants/tokenLists/unsupported.tokenlist.json'
 import { AppState } from '../index'
 import { UNSUPPORTED_LIST_URLS } from './../../constants/lists'
-
 export type TokenAddressMap = ChainTokenMap
 
 type Mutable<T> = {
@@ -119,50 +119,70 @@ export function useCombinedActiveList(): TokenAddressMap {
   return activeTokens
 }
 
-// TODO: get a, b token list from operator
 export function useCombinedActiveAList(bTokenAddress: string | null | undefined): TokenAddressMap {
-  const [aList, setAList] = useState([])
+  const { chainId } = useActiveWeb3React()
+  const activeListUrls = useActiveListUrls()
+  const allTokens = useCombinedTokenMapFromUrls(activeListUrls)
+  const [activeTokens, setActiveTokens] = useState({ chainId: {} })
+
   useEffect(() => {
-    if (bTokenAddress)
+    if (chainId && allTokens[chainId] && bTokenAddress)
       fetch(`${process.env.REACT_APP_360_OPERATOR}/token/availableSwapTokens?bTokenAddress=${bTokenAddress}`)
         .then((res) => {
           res.json().then((json) => {
-            setAList(json)
+            const tmpTokens: any = {}
+            tmpTokens[chainId] = {}
+            for (const token of json) {
+              if (isInListNoCase(token, Object.keys(allTokens[chainId])))
+                for (const findToken of Object.keys(allTokens[chainId])) {
+                  if (token.toLowerCase() === findToken.toLowerCase())
+                    tmpTokens[chainId][token] = allTokens[chainId][findToken]
+                }
+            }
+            setActiveTokens(tmpTokens)
           })
         })
         .catch((e) => console.error(e))
-  }, [])
-  const activeListUrls = useActiveListUrls()
-  const allTokens = useCombinedTokenMapFromUrls(activeListUrls)
-  const activeTokens: any = { 137: {} }
-  if (allTokens)
-    for (const token of aList) {
-      if (token in allTokens[137]) activeTokens[137][token] = allTokens[137][token]
-    }
+  }, [chainId, bTokenAddress, activeListUrls, allTokens])
+
   // debugger
   return activeTokens
 }
 
-// TODO: get a, b token list from operator
+function isInListNoCase(val: string, list: string[]) {
+  for (const a of list) {
+    if (a.toLowerCase() === val.toLowerCase()) {
+      return true
+    }
+  }
+  return false
+}
+
 export function useCombinedActiveBList(aTokenAddress: string | null | undefined): TokenAddressMap {
-  const [bList, setBList] = useState([])
+  const { chainId } = useActiveWeb3React()
+  const activeListUrls = useActiveListUrls()
+  const allTokens = useCombinedTokenMapFromUrls(activeListUrls)
+  const [activeTokens, setActiveTokens] = useState({ chainId: {} })
+
   useEffect(() => {
-    if (aTokenAddress)
+    if (chainId && allTokens[chainId] && aTokenAddress)
       fetch(`${process.env.REACT_APP_360_OPERATOR}/token/availableSwapTokens?aTokenAddress=${aTokenAddress}`)
         .then((res) => {
           res.json().then((json) => {
-            setBList(json)
+            const tmpTokens: any = {}
+            tmpTokens[chainId] = {}
+            for (const token of json) {
+              if (isInListNoCase(token, Object.keys(allTokens[chainId])))
+                for (const findToken of Object.keys(allTokens[chainId])) {
+                  if (token.toLowerCase() === findToken.toLowerCase())
+                    tmpTokens[chainId][token] = allTokens[chainId][findToken]
+                }
+            }
+            setActiveTokens(tmpTokens)
           })
         })
         .catch((e) => console.error(e))
-  }, [])
-  const activeListUrls = useActiveListUrls()
-  const allTokens = useCombinedTokenMapFromUrls(activeListUrls)
-  const activeTokens: any = { 137: {} }
-  if (allTokens)
-    for (const token of bList) {
-      if (token in allTokens[137]) activeTokens[137][token] = allTokens[137][token]
-    }
+  }, [chainId, aTokenAddress, activeListUrls, allTokens])
   // debugger
   return activeTokens
 }

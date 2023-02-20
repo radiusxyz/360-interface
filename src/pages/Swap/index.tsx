@@ -1,7 +1,7 @@
 import { Contract } from '@ethersproject/contracts'
 import { Trans } from '@lingui/macro'
 import { Trade } from '@uniswap/router-sdk'
-import { Currency, CurrencyAmount, Token, TradeType } from '@uniswap/sdk-core'
+import { Currency, CurrencyAmount, TradeType } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'
 import { Trade as V3Trade } from '@uniswap/v3-sdk'
 import Off from 'assets/images/off.png'
@@ -15,15 +15,13 @@ import { useSwapCallback } from 'hooks/useSwapCallback'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import JSBI from 'jsbi'
 import { RadiusSwapResponse } from 'lib/hooks/swap/useSendSwapTransaction'
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowDown, CheckCircle, HelpCircle, Info } from 'react-feather'
 import ReactGA from 'react-ga4'
 import { BsArrowDown } from 'react-icons/bs'
 import { RouteComponentProps } from 'react-router-dom'
 import { Text } from 'rebass'
-import { useAppDispatch } from 'state/hooks'
 import { useCancelManager, useReimbursementManager, useShowHistoryManager } from 'state/modal/hooks'
-import { setProgress } from 'state/modal/reducer'
 import { fetchTimeLockPuzzleParam, fetchTimeLockPuzzleSnarkParam } from 'state/parameters/fetch'
 import {
   useParameters,
@@ -47,10 +45,7 @@ import { HistoryModal } from '../../components/swap/HistoryModal'
 import { ReimbursementModal } from '../../components/swap/ReimburseModal'
 import { ArrowWrapper, SwapCallbackError, Wrapper } from '../../components/swap/styleds'
 import SwapHeader from '../../components/swap/SwapHeader'
-import TokenWarningModal from '../../components/TokenWarningModal'
 import { SupportedChainId as SupportedChainIds } from '../../constants/chains'
-import { TOKEN_SHORTHANDS } from '../../constants/tokens'
-import { useAllTokens, useCurrency } from '../../hooks/Tokens'
 import { ApprovalState, useApprovalOptimizedTrade, useApproveCallbackFromTrade } from '../../hooks/useApproveCallback'
 import { useV2RouterContract } from '../../hooks/useContract'
 import useENSAddress from '../../hooks/useENSAddress'
@@ -61,17 +56,11 @@ import { useUSDCValue } from '../../hooks/useUSDCPrice'
 import useWrapCallback, { WrapErrorText, WrapType } from '../../hooks/useWrapCallback'
 import { useWalletModalToggle } from '../../state/application/hooks'
 import { Field } from '../../state/swap/actions'
-import {
-  useDefaultsFromURLSearch,
-  useDerivedSwapInfo,
-  useSwapActionHandlers,
-  useSwapState,
-} from '../../state/swap/hooks'
+import { useDerivedSwapInfo, useSwapActionHandlers, useSwapState } from '../../state/swap/hooks'
 import { useExpertModeManager } from '../../state/user/hooks'
 import { LinkStyledButton, ThemedText } from '../../theme'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { warningSeverity } from '../../utils/prices'
-import { supportedChainId } from '../../utils/supportedChainId'
 import AppBody from '../AppBody'
 
 const SwapButtonConfirmed = styled(ButtonConfirmed)`
@@ -174,82 +163,67 @@ export default function Swap({ history }: RouteComponentProps) {
     }
   }
 
-  const [myState, setMyState] = useState<any>({ process: 0 })
-  const [backerIntegrity, setBackerIntegrity] = useState(false)
-  const [optionHover, setOptionHover] = useState(false)
+  // const [optionHover, setOptionHover] = useState(false)
 
   function sleep(ms: number) {
     return new Promise((r) => setTimeout(r, ms))
   }
 
-  const dispatch = useAppDispatch()
-
-  useEffect(() => {
-    dispatch(setProgress({ newParam: 0 }))
-  }, [])
-
   const [cancel, setCancel] = useCancelManager()
   const [reimbursement, setReimbursement] = useReimbursementManager()
   const [showHistory, setShowHistory] = useShowHistoryManager()
 
-  const [showTest, setShowTest] = useState(false)
-  const [showReimbursement, setShowReimbursement] = useState(false)
-
   const { account, chainId } = useActiveWeb3React()
-  const loadedUrlParams = useDefaultsFromURLSearch()
+  // const loadedUrlParams = useDefaultsFromURLSearch()
 
   const controls = useAnimationControls()
-
-  const [toggle, setToggle] = useState(false)
-
-  const [disabled, setDisabled] = useState(true)
 
   useEffect(() => {
     if (account) {
       fetch(`${process.env.REACT_APP_360_OPERATOR}/whiteList?walletAddress=` + account)
         .then(async (is) => {
           const val = await is.text()
-          if (val === 'false') setDisabled(true)
-          else setDisabled(false)
+          if (val === 'false') setSwapState({ ...swapState, disabled: true })
+          else setSwapState({ ...swapState, disabled: false })
         })
         .catch((e) => console.error(e))
     }
   }, [account])
 
   // token warning stuff
-  const [loadedInputCurrency, loadedOutputCurrency] = [
-    useCurrency(loadedUrlParams?.[Field.INPUT]?.currencyId),
-    useCurrency(loadedUrlParams?.[Field.OUTPUT]?.currencyId),
-  ]
-  const [dismissTokenWarning, setDismissTokenWarning] = useState<boolean>(false)
-  const urlLoadedTokens: Token[] = useMemo(
-    () => [loadedInputCurrency, loadedOutputCurrency]?.filter((c): c is Token => c?.isToken ?? false) ?? [],
-    [loadedInputCurrency, loadedOutputCurrency]
-  )
-  const handleConfirmTokenWarning = useCallback(() => {
-    setDismissTokenWarning(true)
-  }, [])
+  // const [loadedInputCurrency, loadedOutputCurrency] = [
+  //   useCurrency(loadedUrlParams?.[Field.INPUT]?.currencyId),
+  //   useCurrency(loadedUrlParams?.[Field.OUTPUT]?.currencyId),
+  // ]
+  // const [dismissTokenWarning, setDismissTokenWarning] = useState<boolean>(false)
+  // const urlLoadedTokens: Token[] = useMemo(
+  //   () => [loadedInputCurrency, loadedOutputCurrency]?.filter((c): c is Token => c?.isToken ?? false) ?? [],
+  //   [loadedInputCurrency, loadedOutputCurrency]
+  // )
+  // const handleConfirmTokenWarning = useCallback(() => {
+  //   setDismissTokenWarning(true)
+  // }, [])
 
   // dismiss warning if all imported tokens are in active lists
-  const defaultTokens = useAllTokens()
-  const importTokensNotInDefault = useMemo(
-    () =>
-      urlLoadedTokens &&
-      urlLoadedTokens
-        .filter((token: Token) => {
-          return !Boolean(token.address in defaultTokens)
-        })
-        .filter((token: Token) => {
-          // Any token addresses that are loaded from the shorthands map do not need to show the import URL
-          const supported = supportedChainId(chainId)
-          if (!supported) return true
-          return !Object.keys(TOKEN_SHORTHANDS).some((shorthand) => {
-            const shorthandTokenAddress = TOKEN_SHORTHANDS[shorthand][supported]
-            return shorthandTokenAddress && shorthandTokenAddress === token.address
-          })
-        }),
-    [chainId, defaultTokens, urlLoadedTokens]
-  )
+  // const defaultTokens = useAllTokens()
+  // const importTokensNotInDefault = useMemo(
+  //   () =>
+  //     urlLoadedTokens &&
+  //     urlLoadedTokens
+  //       .filter((token: Token) => {
+  //         return !Boolean(token.address in defaultTokens)
+  //       })
+  //       .filter((token: Token) => {
+  //         // Any token addresses that are loaded from the shorthands map do not need to show the import URL
+  //         const supported = supportedChainId(chainId)
+  //         if (!supported) return true
+  //         return !Object.keys(TOKEN_SHORTHANDS).some((shorthand) => {
+  //           const shorthandTokenAddress = TOKEN_SHORTHANDS[shorthand][supported]
+  //           return shorthandTokenAddress && shorthandTokenAddress === token.address
+  //         })
+  //       }),
+  //   [chainId, defaultTokens, urlLoadedTokens]
+  // )
 
   const theme = useContext(ThemeContext)
 
@@ -326,7 +300,7 @@ export default function Swap({ history }: RouteComponentProps) {
   const priceImpact = trade?.priceImpact
   // console.log(trade?.inputAmount, trade?.outputAmount, fiatValueInput, fiatValueOutput, priceImpact)
 
-  const { onSwitchTokens, onCurrencySelection, onUserInput, onChangeRecipient } = useSwapActionHandlers()
+  const { onCurrencySelection, onUserInput, onChangeRecipient } = useSwapActionHandlers()
   const isValid = !swapInputError
   const dependentField: Field = independentField === Field.INPUT ? Field.OUTPUT : Field.INPUT
 
@@ -344,14 +318,14 @@ export default function Swap({ history }: RouteComponentProps) {
   )
 
   // reset if they close warning without tokens in params
-  const handleDismissTokenWarning = useCallback(() => {
-    setDismissTokenWarning(true)
-    history.push('/swap/')
-  }, [history])
+  // const handleDismissTokenWarning = useCallback(() => {
+  //   setDismissTokenWarning(true)
+  //   history.push('/swap/')
+  // }, [history])
 
   // modal and loading
   const [
-    { showConfirm, tradeToConfirm, swapErrorMessage, attemptingTxn, txHash, swapResponse, showTimeLockPuzzle },
+    swapState, // { showConfirm, tradeToConfirm, swapErrorMessage, attemptingTxn, txHash, swapResponse, showTimeLockPuzzle },
     setSwapState,
   ] = useState<{
     showConfirm: boolean
@@ -361,6 +335,10 @@ export default function Swap({ history }: RouteComponentProps) {
     txHash: string | undefined
     swapResponse: RadiusSwapResponse | undefined
     showTimeLockPuzzle: boolean
+    myState: any
+    backerIntegrity: boolean
+    toggle: boolean
+    disabled: boolean
   }>({
     showConfirm: false,
     tradeToConfirm: undefined,
@@ -369,7 +347,13 @@ export default function Swap({ history }: RouteComponentProps) {
     txHash: undefined,
     swapResponse: undefined,
     showTimeLockPuzzle: false,
+    myState: { process: 0 },
+    backerIntegrity: false,
+    toggle: false,
+    disabled: false,
   })
+
+  const isRunning = useRef<boolean>(false)
 
   const formattedAmounts = useMemo(
     () => ({
@@ -447,11 +431,9 @@ export default function Swap({ history }: RouteComponentProps) {
 
   const sigHandler = () => {
     setSwapState({
+      ...swapState,
       attemptingTxn: false,
-      tradeToConfirm,
-      showConfirm,
       swapErrorMessage: undefined,
-      txHash,
       swapResponse: undefined,
       showTimeLockPuzzle: true,
     })
@@ -469,7 +451,7 @@ export default function Swap({ history }: RouteComponentProps) {
   } = useSwapCallback(
     approvalOptimizedTrade,
     allowedSlippage,
-    backerIntegrity,
+    swapState.backerIntegrity,
     recipient,
     signatureData,
     sigHandler,
@@ -480,130 +462,191 @@ export default function Swap({ history }: RouteComponentProps) {
   const routerContract = useV2RouterContract() as Contract
 
   useEffect(() => {
-    // console.log('myState b', myState)
-    if (split1 && split2 && split3 && split4 && split5) {
-      const func1 = async () => {
+    const func1 = async () => {
+      if (split1 && !isRunning.current) {
+        isRunning.current = true
         routerContract
-          .nonces(account, { gasLimit: 40_000_000 })
+          .nonces(account)
           .then(async (contractNonce: any) => {
             routerContract
-              .operator({ gasLimit: 40_000_000 })
+              .operator()
               .then(async (operatorAddress: any) => {
                 setSwapState({
+                  ...swapState,
                   attemptingTxn: true,
-                  tradeToConfirm,
-                  showConfirm,
                   swapErrorMessage: undefined,
                   txHash: undefined,
                   swapResponse: undefined,
                   showTimeLockPuzzle: false,
                 })
 
-                const res = await split1(backerIntegrity, contractNonce)
+                const res = await split1(swapState.backerIntegrity, contractNonce)
                 console.log('res1', res)
-                const tempState = { ...myState, process: 2, ...res, operatorAddress }
-                setMyState(tempState)
+                const tempState = { ...swapState.myState, process: 2, ...res, operatorAddress }
+                setSwapState({ ...swapState, myState: tempState })
+                isRunning.current = false
               })
               .catch(() => {
                 console.log('failed to load operator')
-                setMyState({ process: 0, errorMessage: 'RPC server is not responding, please try again' })
+                setSwapState({
+                  ...swapState,
+                  myState: { process: 0, errorMessage: 'RPC server is not responding, please try again' },
+                })
+                isRunning.current = false
               })
           })
           .catch(() => {
             console.log('failed to load nonce')
-            setMyState({ process: 0, errorMessage: 'RPC server is not responding, please try again' })
+            setSwapState({
+              ...swapState,
+              myState: { process: 0, errorMessage: 'RPC server is not responding, please try again' },
+            })
           })
       }
-      const func2 = async () => {
-        const res = await split2(myState.signMessage)
+    }
+
+    const func2 = async () => {
+      if (split2 && !isRunning.current) {
+        isRunning.current = true
+        const res = await split2(swapState.myState.signMessage)
         console.log('res2', res)
         if (res) {
-          const tempState = { ...myState, process: 3, ...res }
-          setMyState(tempState)
+          const tempState = { ...swapState.myState, process: 3, ...res }
+          setSwapState({ ...swapState, myState: tempState })
         } else {
-          setMyState({ process: 0 })
+          setSwapState({ ...swapState, myState: { process: 0 } })
         }
+        isRunning.current = false
       }
-      const func3 = async () => {
+    }
+
+    const func3 = async () => {
+      if (split3 && !isRunning.current) {
+        isRunning.current = true
         await sleep(300)
-        const res = await split3(myState.timeLockPuzzleParam, myState.timeLockPuzzleSnarkParam)
+        const res = await split3(swapState.myState.timeLockPuzzleParam, swapState.myState.timeLockPuzzleSnarkParam)
         console.log('res3', res)
-        const tempState = { ...myState, process: 4, ...res }
-        setMyState(tempState)
+        const tempState = { ...swapState.myState, process: 4, ...res }
+        setSwapState({ ...swapState, myState: tempState })
+        isRunning.current = false
       }
-      const func4 = async () => {
-        const res = await split4(myState.timeLockPuzzleData, myState.txNonce, myState.signMessage, myState.idPath)
+    }
+
+    const func4 = async () => {
+      if (split4 && !isRunning.current) {
+        isRunning.current = true
+        const res = await split4(
+          swapState.myState.timeLockPuzzleData,
+          swapState.myState.txNonce,
+          swapState.myState.signMessage,
+          swapState.myState.idPath
+        )
         console.log('res4', res)
-        const tempState = { ...myState, process: 5, ...res }
-        setMyState(tempState)
+        const tempState = { ...swapState.myState, process: 5, ...res }
+        setSwapState({ ...swapState, myState: tempState })
+        isRunning.current = false
       }
-      const func5 = async () => {
+    }
+    const func5 = async () => {
+      if (split5 && !isRunning.current) {
+        isRunning.current = true
         split5(
-          myState.txHash,
-          myState.mimcHash,
-          myState.signMessage,
-          myState.encryptedSwapTx,
-          myState.sig,
-          myState.operatorAddress
+          swapState.myState.txHash,
+          swapState.myState.mimcHash,
+          swapState.myState.signMessage,
+          swapState.myState.encryptedSwapTx,
+          swapState.myState.sig,
+          swapState.myState.operatorAddress
         )
           .then(async (res) => {
             onUserInput(Field.INPUT, '')
             console.log('res5', res)
-            setMyState({ process: 6 })
+            setSwapState({ ...swapState, myState: { process: 6 } })
             await sleep(10000)
-            setMyState({ process: 0 })
             setSwapState({
+              ...swapState,
               attemptingTxn: false,
-              tradeToConfirm,
               showConfirm: false,
               swapErrorMessage: undefined,
-              txHash: 'test',
+              txHash: undefined,
               swapResponse: res,
-              showTimeLockPuzzle,
+              myState: { process: 0 },
             })
+            isRunning.current = false
           })
           .catch(async (e) => {
             console.error(e)
             onUserInput(Field.INPUT, '')
             setSwapState({
+              ...swapState,
               attemptingTxn: false,
-              tradeToConfirm,
               showConfirm: false,
               swapErrorMessage: e.message,
               txHash: undefined,
               swapResponse: undefined,
-              showTimeLockPuzzle,
+              myState: { process: 0 },
             })
-            setMyState({ process: 0 })
+            isRunning.current = false
           })
       }
-
-      if (myState.process === 1) {
-        console.log('1', myState)
-        func1()
-      }
-      if (myState.process === 2) {
-        console.log('2', myState)
-        func2()
-      }
-      if (myState.process === 3) {
-        console.log('3', myState)
-        func3()
-      }
-      if (myState.process === 4) {
-        console.log('4', myState)
-        func4()
-      }
-      if (myState.process === 5) {
-        console.log('5', myState)
-        func5()
-      }
     }
-  }, [myState])
+
+    console.log('run?')
+    if (swapState.myState.process === 1) {
+      console.log('1', swapState.myState, func1)
+      func1()
+    }
+    if (swapState.myState.process === 2) {
+      console.log('2', swapState.myState, func2)
+      func2()
+    }
+    if (swapState.myState.process === 3) {
+      console.log('3', swapState.myState, func3)
+      func3()
+    }
+    if (swapState.myState.process === 4) {
+      console.log('4', swapState.myState, func4, split4)
+      func4()
+    }
+    if (swapState.myState.process === 5) {
+      console.log('5', swapState.myState, func5, split5)
+      func5()
+    }
+  }, [swapState.myState.process, split1, split2, split3, split4, split5])
+
+  // useEffect(() => {
+  //   console.log('refresh split5')
+  //   if (
+  //     swapState.myState.dangle &&
+  //     ((swapState.myState.process === 1 && split1) ||
+  //       (swapState.myState.process === 2 && split2) ||
+  //       (swapState.myState.process === 3 && split3) ||
+  //       (swapState.myState.process === 4 && split4) ||
+  //       (swapState.myState.process === 5 && split5))
+  //   ) {
+  //     console.log('dangle')
+  //     setSwapState({
+  //       ...swapState,
+  //       myState: { ...swapState.myState, dangle: false, rerun: !swapState.myState.rerun },
+  //     })
+  //   }
+  // }, [split1, split2, split3, split4, split5])
+
+  // useEffect(() => {
+  //   setInterval(() => {
+  //     if (swapState.myState.dangle)
+  //       setSwapState({
+  //         ...swapState,
+  //         myState: { ...swapState.myState, dangle: false, process: swapState.myState.process },
+  //       })
+  //   }, 3000)
+  // }, [])
 
   const handleSwap = () => {
-    console.log('handleSwap', myState)
-    if (myState.process === 0) setMyState({ process: 1 })
+    console.log('handleSwap', swapState.myState)
+    if (swapState.myState.process === 0) {
+      setSwapState({ ...swapState, myState: { process: 1 } })
+    }
   }
 
   const handleSwap2 = useCallback(() => {
@@ -615,9 +658,8 @@ export default function Swap({ history }: RouteComponentProps) {
     }
 
     setSwapState({
+      ...swapState,
       attemptingTxn: true,
-      tradeToConfirm,
-      showConfirm,
       swapErrorMessage: undefined,
       txHash: undefined,
       swapResponse: undefined,
@@ -628,23 +670,20 @@ export default function Swap({ history }: RouteComponentProps) {
         setTimeout(() => {
           if (res.msg === 'timeOver') {
             setSwapState({
+              ...swapState,
               attemptingTxn: false,
-              tradeToConfirm,
-              showConfirm,
               swapErrorMessage: undefined,
               txHash: 'test',
               swapResponse: res,
-              showTimeLockPuzzle,
             })
           } else {
             setSwapState({
+              ...swapState,
               attemptingTxn: false,
-              tradeToConfirm,
               showConfirm: false,
               swapErrorMessage: undefined,
               txHash: 'test',
               swapResponse: res,
-              showTimeLockPuzzle,
             })
           }
         }, 3000)
@@ -666,31 +705,29 @@ export default function Swap({ history }: RouteComponentProps) {
       })
       .catch(async (error) => {
         setTimeout(() => {
-          dispatch(setProgress({ newParam: 0 }))
           console.log(error.message)
           setSwapState({
+            ...swapState,
             attemptingTxn: false,
-            tradeToConfirm,
             showConfirm: false,
             swapErrorMessage: error.message,
             txHash: undefined,
             swapResponse: undefined,
-            showTimeLockPuzzle,
           })
         }, 3000)
       })
   }, [
     swapCallback,
     priceImpact,
-    tradeToConfirm,
-    showConfirm,
+    swapState.tradeToConfirm,
+    swapState.showConfirm,
     recipient,
     recipientAddress,
     account,
     approvalOptimizedTradeString,
     approvalOptimizedTrade?.inputAmount?.currency?.symbol,
     approvalOptimizedTrade?.outputAmount?.currency?.symbol,
-    showTimeLockPuzzle,
+    swapState.showTimeLockPuzzle,
   ])
 
   // errors
@@ -722,33 +759,39 @@ export default function Swap({ history }: RouteComponentProps) {
 
   const handleConfirmDismiss = useCallback(() => {
     console.log('on dismiss')
-    setMyState({ process: 0 })
     setSwapState({
+      ...swapState,
       showConfirm: false,
-      tradeToConfirm,
-      attemptingTxn,
-      swapErrorMessage,
-      txHash,
-      swapResponse,
-      showTimeLockPuzzle,
+      myState: { process: 0 },
     })
     // if there was a tx hash, we want to clear the input
-    if (txHash) {
+    if (swapState.txHash) {
       onUserInput(Field.INPUT, '')
     }
-  }, [attemptingTxn, onUserInput, showTimeLockPuzzle, swapErrorMessage, swapResponse, tradeToConfirm, txHash])
+  }, [
+    swapState.attemptingTxn,
+    onUserInput,
+    swapState.showTimeLockPuzzle,
+    swapState.swapErrorMessage,
+    swapState.swapResponse,
+    swapState.tradeToConfirm,
+    swapState.txHash,
+  ])
 
   const handleAcceptChanges = useCallback(() => {
     setSwapState({
+      ...swapState,
       tradeToConfirm: trade,
-      swapErrorMessage,
-      txHash,
-      attemptingTxn,
-      showConfirm,
-      swapResponse,
-      showTimeLockPuzzle,
     })
-  }, [attemptingTxn, showConfirm, showTimeLockPuzzle, swapErrorMessage, swapResponse, trade, txHash])
+  }, [
+    swapState.attemptingTxn,
+    swapState.showConfirm,
+    swapState.showTimeLockPuzzle,
+    swapState.swapErrorMessage,
+    swapState.swapResponse,
+    trade,
+    swapState.txHash,
+  ])
 
   const handleInputSelect = useCallback(
     (inputCurrency) => {
@@ -775,7 +818,9 @@ export default function Swap({ history }: RouteComponentProps) {
   }, [maxInputAmount, onUserInput])
 
   const handleOutputSelect = useCallback(
-    (outputCurrency) => onCurrencySelection(Field.OUTPUT, outputCurrency),
+    (outputCurrency) => {
+      onCurrencySelection(Field.OUTPUT, outputCurrency)
+    },
     [onCurrencySelection]
   )
 
@@ -785,7 +830,7 @@ export default function Swap({ history }: RouteComponentProps) {
 
   useEffect(() => {
     const a = !(!isValid || routeIsSyncing || routeIsLoading || !!swapCallbackError)
-    const b = !toggle
+    const b = !swapState.toggle
     if (a && b) {
       controls.start((i) => {
         switch (i) {
@@ -799,8 +844,8 @@ export default function Swap({ history }: RouteComponentProps) {
             return { height: '100%', opacity: 1, transition: { delay: 0.5, duration: 0.3 } }
         }
       })
-      setToggle(true)
-    } else if (toggle) {
+      setSwapState({ ...swapState, toggle: true })
+    } else if (swapState.toggle) {
       controls.start((i) => {
         switch (i) {
           case 'out':
@@ -818,7 +863,7 @@ export default function Swap({ history }: RouteComponentProps) {
             return { height: '0px', opacity: 0, transition: { duration: 0.3 } }
         }
       })
-      setToggle(false)
+      setSwapState({ ...swapState, toggle: false })
     }
   }, [isValid, routeIsSyncing, routeIsLoading, swapCallbackError, controls])
 
@@ -830,28 +875,15 @@ export default function Swap({ history }: RouteComponentProps) {
 
   const minimum = trade?.minimumAmountOut(allowedSlippage).toSignificant(6).toString()
 
-  function openProgress() {
-    dispatch(setProgress({ newParam: 4 }))
-    setSwapState({
-      tradeToConfirm: trade,
-      swapErrorMessage,
-      txHash,
-      attemptingTxn,
-      showConfirm: true,
-      swapResponse,
-      showTimeLockPuzzle,
-    })
-  }
-
   // TODO: CLEAR CACHE 자동로딩
   return (
     <>
-      <TokenWarningModal
+      {/* <TokenWarningModal
         isOpen={importTokensNotInDefault.length > 0 && !dismissTokenWarning}
         tokens={importTokensNotInDefault}
         onConfirm={handleConfirmTokenWarning}
         onDismiss={handleDismissTokenWarning}
-      />
+      /> */}
 
       <AppBody>
         <div
@@ -866,30 +898,30 @@ export default function Swap({ history }: RouteComponentProps) {
           <Wrapper id="swap-page">
             <HistoryModal isOpen={showHistory} onDismiss={() => setShowHistory(false)} />
             <ConfirmSwapModal
-              isOpen={showConfirm}
+              isOpen={swapState.showConfirm}
               trade={trade}
-              progress={myState.process}
-              originalTrade={tradeToConfirm}
+              progress={swapState.myState.process}
+              originalTrade={swapState.tradeToConfirm}
               inputCurrency={currencies[Field.INPUT]}
               outputCurrency={currencies[Field.OUTPUT]}
               onAcceptChanges={handleAcceptChanges}
-              errorMessage={myState?.errorMessage}
-              attemptingTxn={attemptingTxn}
-              txHash={txHash}
+              errorMessage={swapState.myState?.errorMessage}
+              attemptingTxn={swapState.attemptingTxn}
+              txHash={swapState.txHash}
               recipient={recipient}
               allowedSlippage={allowedSlippage}
               onConfirm={handleSwap}
-              swapErrorMessage={swapErrorMessage}
+              swapErrorMessage={swapState.swapErrorMessage}
               onDismiss={handleConfirmDismiss}
-              swapResponse={swapResponse}
-              showTimeLockPuzzle={showTimeLockPuzzle}
+              swapResponse={swapState.swapResponse}
+              showTimeLockPuzzle={swapState.showTimeLockPuzzle}
             />
             <ReimbursementModal
               isOpen={reimbursement !== 0}
               historyId={reimbursement}
               onDismiss={() => setReimbursement(0)}
             />
-            <CancelSuggestModal isOpen={cancel !== 0} readyTxId={cancel} onDismiss={() => setCancel(0)} />
+            <CancelSuggestModal isOpen={cancel !== 0} txHistoryId={cancel} onDismiss={() => setCancel(0)} />
             <AutoColumn gap={'sm'}>
               <div style={{ display: 'relative' }}>
                 <CurrencyInputPanel
@@ -984,8 +1016,11 @@ export default function Swap({ history }: RouteComponentProps) {
                 </MouseoverTooltip>
               </div>
               <div style={{ marginLeft: '6px', marginRight: '10px' }}>MEV Protection Guarantee</div>
-              <div style={{ marginRight: '4px', height: '100%' }} onClick={() => setBackerIntegrity(!backerIntegrity)}>
-                {backerIntegrity ? (
+              <div
+                style={{ marginRight: '4px', height: '100%' }}
+                onClick={() => setSwapState({ ...swapState, backerIntegrity: !swapState.backerIntegrity })}
+              >
+                {swapState.backerIntegrity ? (
                   <img src={On} width="49px" height="22px" alt={'checked'} />
                 ) : (
                   <img src={Off} width="49px" height="22px" alt={'unchecked'} />
@@ -1038,7 +1073,7 @@ export default function Swap({ history }: RouteComponentProps) {
                   <Trans>Unsupported Network</Trans>
                 </ThemedText.Main>
               </SwapButtonPrimary>
-            ) : disabled ? (
+            ) : swapState.disabled ? (
               <SwapButtonPrimary disabled={true}>
                 <ThemedText.Main mb="4px">
                   <Trans>Your address is not whitelisted</Trans>
@@ -1111,12 +1146,12 @@ export default function Swap({ history }: RouteComponentProps) {
             ) : (
               <SwapButtonError
                 onClick={() => {
-                  console.log('button click', isExpertMode, showConfirm, myState)
-                  dispatch(setProgress({ newParam: 0 }))
+                  console.log('button click', isExpertMode, swapState.showConfirm, swapState.myState)
                   if (isExpertMode) {
                     handleSwap()
                   } else {
                     setSwapState({
+                      ...swapState,
                       tradeToConfirm: trade,
                       attemptingTxn: false,
                       swapErrorMessage: undefined,
@@ -1147,7 +1182,9 @@ export default function Swap({ history }: RouteComponentProps) {
                 </Text>
               </SwapButtonError>
             )}
-            {isExpertMode && swapErrorMessage ? <SwapCallbackError error={swapErrorMessage} /> : null}
+            {isExpertMode && swapState.swapErrorMessage ? (
+              <SwapCallbackError error={swapState.swapErrorMessage} />
+            ) : null}
           </div>
         </div>
         <div
