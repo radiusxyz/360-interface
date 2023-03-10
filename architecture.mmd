@@ -1,0 +1,23 @@
+sequenceDiagram
+	participant User
+	participant Operator
+	participant Blockchain
+
+	User->>Operator: encTX, TX_MIMC, puzzle, proof, TX_Hash, TX_sig_u
+	Operator->>Operator: verify proof and TX_sig_u
+	par solve time lock puzzle
+		Operator->>User: round, order, TX_MIMC, TX_Hash, previous_Hash, sig_o
+		User->>User: verify sig_o with sended Hashes(TX_MIMC, TX_Hash)
+
+		break when Operator didn't send order response
+			User->>Blockchain: Register cancel-command  when Operator transfer no order information or verifying is failed
+		end
+	end
+	Operator->>Blockchain: write TX Hash[] according to the order
+	Operator->>Blockchain: batch(TX[], TX_sig_u[])
+	Blockchain->>Blockchain: Validate TX
+	Blockchain->>Blockchain: Execute TX
+	break When the operator runs out of sequence
+		User->>Blockchain: Claim : round, order, TX, previous_Hash, sig_o
+	end
+	Blockchain->>Blockchain: make TX_MIMC, TX_Hash and verify sig_o & TX_Hash chain is raisedIf succeed, Operator lose

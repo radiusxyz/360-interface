@@ -60,6 +60,7 @@ export default function App() {
   const router = useV2RouterContract()
   const recorder = useRecorderContract()
 
+  // TODO: debouncing 적용 고려
   useEffect(() => {
     const interval = setInterval(async () => {
       await CheckPendingTx({ chainId, account, library, dispatch, router, recorder })

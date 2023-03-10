@@ -1,0 +1,21 @@
+flowchart TD
+	Start([Start]) --> hasReceipt{has Tx Receipt?}
+	hasReceipt -- Yes --> isKnownTxId{known TxId?}
+	hasReceipt -- No --> Wait[Wait]
+	Wait --> Start
+	isKnownTxId -- Yes --> readLogOnOrder[read log on recorded order]
+	isKnownTxId -- No --> readFirstLog[read first log]
+	readLogOnOrder --> AllRight{is right order & proofHash}
+	AllRight -- Yes --> isSuccess{is success}
+	AllRight -- No --> reimbursement([reimbursement])
+	isSuccess -- Yes --> Success([Success])
+	isSuccess -- No --> isCanceled{is canceled}
+	isCanceled -- Yes --> Canceled([Canceled])
+	isCanceled -- No --> Rejected([Rejected])
+	readFirstLog --> isRightNonce{is Right Nonce&Account}
+  isRightNonce -- No --> existNextLog{exist Next Log}
+	existNextLog -- Yes --> readNextLog
+	readNextLog --> isRightNonce
+	existNextLog -- No --> nextRound[wait Next Round]
+	nextRound --> Start
+	isRightNonce -- Yes --> isSuccess

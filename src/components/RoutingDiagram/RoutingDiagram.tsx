@@ -129,7 +129,7 @@ function Pool({ currency0, currency1, feeAmount }: { currency0: Currency; curren
   const tokenInfo0 = useTokenInfoFromActiveList(currency0)
   const tokenInfo1 = useTokenInfoFromActiveList(currency1)
 
-  // todo - link pool icon to info.uniswap.org via query params
+  // todo - link pool icon to 360dex.io via query params
   return (
     <MouseoverTooltip
       text={<Trans>{tokenInfo0?.symbol + '/' + tokenInfo1?.symbol + ' ' + feeAmount / 10000}% pool</Trans>}
