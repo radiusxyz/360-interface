@@ -465,12 +465,17 @@ export default function Swap({ history }: RouteComponentProps) {
     const func1 = async () => {
       if (split1 && !isRunning.current) {
         isRunning.current = true
+        const time1 = Date.now()
         routerContract
           .nonces(account)
           .then(async (contractNonce: any) => {
+            console.log('after get nonce', Date.now() - time1)
+
+            const time2 = Date.now()
             routerContract
               .operator()
               .then(async (operatorAddress: any) => {
+                console.log('after get operator', Date.now() - time2)
                 setSwapState({
                   ...swapState,
                   attemptingTxn: true,
@@ -480,13 +485,16 @@ export default function Swap({ history }: RouteComponentProps) {
                   showTimeLockPuzzle: false,
                 })
 
+                const time3 = Date.now()
                 const res = await split1(swapState.backerIntegrity, contractNonce)
+                console.log('after split1', Date.now() - time3)
                 console.log('res1', res)
                 const tempState = { ...swapState.myState, process: 2, ...res, operatorAddress }
                 setSwapState({ ...swapState, myState: tempState })
                 isRunning.current = false
               })
               .catch(() => {
+                console.log('after get operator', Date.now() - time2)
                 console.log('failed to load operator')
                 setSwapState({
                   ...swapState,
@@ -496,6 +504,7 @@ export default function Swap({ history }: RouteComponentProps) {
               })
           })
           .catch(() => {
+            console.log('after get nonce', Date.now() - time1)
             console.log('failed to load nonce')
             setSwapState({
               ...swapState,
@@ -508,7 +517,9 @@ export default function Swap({ history }: RouteComponentProps) {
     const func2 = async () => {
       if (split2 && !isRunning.current) {
         isRunning.current = true
+        const time = Date.now()
         const res = await split2(swapState.myState.signMessage)
+        console.log('after split2', Date.now() - time)
         console.log('res2', res)
         if (res) {
           const tempState = { ...swapState.myState, process: 3, ...res }
@@ -524,7 +535,9 @@ export default function Swap({ history }: RouteComponentProps) {
       if (split3 && !isRunning.current) {
         isRunning.current = true
         await sleep(300)
+        const time = Date.now()
         const res = await split3(swapState.myState.timeLockPuzzleParam, swapState.myState.timeLockPuzzleSnarkParam)
+        console.log('after split3', Date.now() - time)
         console.log('res3', res)
         const tempState = { ...swapState.myState, process: 4, ...res }
         setSwapState({ ...swapState, myState: tempState })
@@ -535,12 +548,14 @@ export default function Swap({ history }: RouteComponentProps) {
     const func4 = async () => {
       if (split4 && !isRunning.current) {
         isRunning.current = true
+        const time = Date.now()
         const res = await split4(
           swapState.myState.timeLockPuzzleData,
           swapState.myState.txNonce,
           swapState.myState.signMessage,
           swapState.myState.idPath
         )
+        console.log('after split4', Date.now() - time)
         console.log('res4', res)
         const tempState = { ...swapState.myState, process: 5, ...res }
         setSwapState({ ...swapState, myState: tempState })
@@ -550,6 +565,8 @@ export default function Swap({ history }: RouteComponentProps) {
     const func5 = async () => {
       if (split5 && !isRunning.current) {
         isRunning.current = true
+        const time = Date.now()
+
         split5(
           swapState.myState.txHash,
           swapState.myState.mimcHash,
@@ -560,6 +577,7 @@ export default function Swap({ history }: RouteComponentProps) {
         )
           .then(async (res) => {
             onUserInput(Field.INPUT, '')
+            console.log('after split5', Date.now() - time)
             console.log('res5', res)
             setSwapState({ ...swapState, myState: { process: 6 } })
             await sleep(10000)
@@ -576,6 +594,7 @@ export default function Swap({ history }: RouteComponentProps) {
           })
           .catch(async (e) => {
             console.error(e)
+            console.log('after split5', Date.now() - time)
             onUserInput(Field.INPUT, '')
             setSwapState({
               ...swapState,

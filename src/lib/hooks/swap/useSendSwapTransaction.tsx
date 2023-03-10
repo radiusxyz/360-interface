@@ -510,6 +510,7 @@ export default function useSendSwapTransaction(
         }
         console.log('🚀 ~ file: useSendSwapTransaction.tsx:511 ~ returnuseMemo ~ txInfoToHash', txInfoToHash)
 
+        const time = Date.now()
         const encryptData = await poseidonEncryptWithTxHash(
           txInfoToHash,
           timeLockPuzzleData.s2_string,
@@ -517,6 +518,7 @@ export default function useSendSwapTransaction(
           timeLockPuzzleData.commitment_hex,
           idPath
         )
+        console.log('encrypt time', Date.now() - time)
         console.log('🚀 ~ file: useSendSwapTransaction.tsx:520 ~ returnuseMemo ~ encryptData', encryptData)
 
         const encryptedPath = {
@@ -659,6 +661,7 @@ export async function sendEIP712Tx(
   operatorAddress: string
 ): Promise<RadiusSwapResponse> {
   const readyTx = await db.readyTxs.where({ txHash: encryptedSwapTx.txHash }).first()
+  const time = Date.now()
   const sendResponse = await fetchWithTimeout(
     `${process.env.REACT_APP_360_OPERATOR}/tx`,
     {
@@ -673,7 +676,10 @@ export async function sendEIP712Tx(
     },
     10000
   )
-    .then(async (res) => res.json())
+    .then(async (res) => {
+      console.log('get Tx time', Date.now() - time)
+      return res.json()
+    })
     .then(async (res) => {
       console.log('json response', res, res.txOrderMsg)
 
