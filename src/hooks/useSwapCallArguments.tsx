@@ -62,7 +62,7 @@ export function useSwapCallArguments(
     const amountIn = JSBI.toNumber(trade.inputAmount.numerator)
     const amountOut = JSBI.toNumber(trade.minimumAmountOut(_allowedSlippage).numerator)
 
-    const availableFromNumber = Math.floor(Date.now() / 1000 + 70)
+    const availableFromNumber = Math.floor(Date.now() / 1000 + 5)
     const deadlineNumber = Math.floor(Date.now() / 1000 + 60 * 30)
 
     const routePath = v2trade.routes as unknown as Omit<IRoute<Currency, Currency, Pair | Pool>, 'path'> &
