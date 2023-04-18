@@ -7,7 +7,6 @@ import { RadiusSwapResponse } from 'lib/hooks/swap/useSendSwapTransaction'
 import { SwapCallbackState, useSwapCallback as useLibSwapCallBack } from 'lib/hooks/swap/useSwapCallback'
 import { ReactNode, useMemo } from 'react'
 import { ParameterState } from 'state/parameters/reducer'
-import { TimeLockPuzzleParam } from 'state/parameters/reducer'
 
 import { TimeLockPuzzleResponse } from '../wasm/timeLockPuzzle'
 import useENS from './useENS'
@@ -28,28 +27,23 @@ export function useSwapCallback(
 ): {
   state: SwapCallbackState
   callback: null | (() => Promise<RadiusSwapResponse>)
-  split1?: (
+  prepareSignMessage?: (
     backerIntegrity: boolean,
     nonce: string
   ) => Promise<{
     signMessage: any
-    timeLockPuzzleParam: TimeLockPuzzleParam
-    timeLockPuzzleSnarkParam: string
     txNonce: number
     idPath: string
   }>
-  split2?: (signMessage: any) => Promise<{ sig: Signature } | null>
-  split3?: (
-    timeLockPuzzleParam: TimeLockPuzzleParam,
-    timeLockPuzzleSnarkParam: string
-  ) => Promise<{ timeLockPuzzleData: TimeLockPuzzleResponse }>
-  split4?: (
+  userSign?: (signMessage: any) => Promise<{ sig: Signature } | null>
+  getTimeLockPuzzle?: () => Promise<{ timeLockPuzzleData: TimeLockPuzzleResponse }>
+  createEncryptProof?: (
     timeLockPuzzleData: TimeLockPuzzleResponse,
     txNonce: number,
     signMessage: any,
     idPath: string
   ) => Promise<{ txHash: string; mimcHash: string; encryptedSwapTx: any }>
-  split5?: (
+  sendEncryptedTx?: (
     txHash: string,
     mimcHash: string,
     signMessage: any,
@@ -69,11 +63,11 @@ export function useSwapCallback(
   const {
     state,
     callback: libCallback,
-    split1,
-    split2,
-    split3,
-    split4,
-    split5,
+    prepareSignMessage,
+    userSign,
+    getTimeLockPuzzle,
+    createEncryptProof,
+    sendEncryptedTx,
     error,
   } = useLibSwapCallBack({
     trade,
@@ -99,11 +93,11 @@ export function useSwapCallback(
   return {
     state,
     callback,
-    split1,
-    split2,
-    split3,
-    split4,
-    split5,
+    prepareSignMessage,
+    userSign,
+    getTimeLockPuzzle,
+    createEncryptProof,
+    sendEncryptedTx,
     error,
   }
 }

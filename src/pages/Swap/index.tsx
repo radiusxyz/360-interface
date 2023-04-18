@@ -22,12 +22,7 @@ import { BsArrowDown } from 'react-icons/bs'
 import { RouteComponentProps } from 'react-router-dom'
 import { Text } from 'rebass'
 import { useCancelManager, useReimbursementManager, useShowHistoryManager } from 'state/modal/hooks'
-import { fetchTimeLockPuzzleParam, fetchTimeLockPuzzleSnarkParam } from 'state/parameters/fetch'
-import {
-  useParameters,
-  useTimeLockPuzzleParamManager,
-  useTimeLockPuzzleSnarkParamManager,
-} from 'state/parameters/hooks'
+import { useParameters } from 'state/parameters/hooks'
 import { TradeState } from 'state/routing/types'
 import styled, { ThemeContext } from 'styled-components/macro'
 
@@ -85,7 +80,8 @@ const SwapButtonError = styled(ButtonError)`
 `
 const SwapButtonLight = styled(ButtonLight)`
   margin: 10px 0px 24px 0px;
-  background: linear-gradient(97deg, #ff0057%, #00ff66 65%, #2cff9a 100%);
+  background: linear-gradient(97deg, #0057ff 10%, #00ff66 65%, #2cff9a 100%);
+  color: #ffffff;
   border-radius: 4px;
   border: 0px solid #fff;
 `
@@ -234,24 +230,25 @@ export default function Swap({ history }: RouteComponentProps) {
   const [isExpertMode] = useExpertModeManager()
 
   const parameters = useParameters()
-  const [timeLockPuzzleParam, updateTimeLockPuzzleParam] = useTimeLockPuzzleParamManager()
-  const [timeLockPuzzleSnarkParam, updateTimeLockPuzzleSnarkParam] = useTimeLockPuzzleSnarkParamManager()
 
-  useEffect(() => {
-    if (!timeLockPuzzleParam) {
-      fetchTimeLockPuzzleParam((newParam: boolean) => {
-        updateTimeLockPuzzleParam(newParam)
-      })
-    }
-  }, [timeLockPuzzleParam, updateTimeLockPuzzleParam])
+  // const [timeLockPuzzleParam, updateTimeLockPuzzleParam] = useTimeLockPuzzleParamManager()
+  // const [timeLockPuzzleSnarkParam, updateTimeLockPuzzleSnarkParam] = useTimeLockPuzzleSnarkParamManager()
 
-  useEffect(() => {
-    if (!timeLockPuzzleSnarkParam) {
-      fetchTimeLockPuzzleSnarkParam((newParam: boolean) => {
-        updateTimeLockPuzzleSnarkParam(newParam)
-      })
-    }
-  }, [updateTimeLockPuzzleSnarkParam, timeLockPuzzleSnarkParam])
+  // useEffect(() => {
+  //   if (!timeLockPuzzleParam) {
+  //     fetchTimeLockPuzzleParam((newParam: boolean) => {
+  //       updateTimeLockPuzzleParam(newParam)
+  //     })
+  //   }
+  // }, [timeLockPuzzleParam, updateTimeLockPuzzleParam])
+
+  // useEffect(() => {
+  //   if (!timeLockPuzzleSnarkParam) {
+  //     fetchTimeLockPuzzleSnarkParam((newParam: boolean) => {
+  //       updateTimeLockPuzzleSnarkParam(newParam)
+  //     })
+  //   }
+  // }, [updateTimeLockPuzzleSnarkParam, timeLockPuzzleSnarkParam])
 
   // swap state
   const { independentField, typedValue, recipient } = useSwapState()
@@ -443,11 +440,11 @@ export default function Swap({ history }: RouteComponentProps) {
   const {
     callback: swapCallback,
     error: swapCallbackError,
-    split1,
-    split2,
-    split3,
-    split4,
-    split5,
+    prepareSignMessage,
+    userSign,
+    getTimeLockPuzzle,
+    createEncryptProof,
+    sendEncryptedTx,
   } = useSwapCallback(
     approvalOptimizedTrade,
     allowedSlippage,
@@ -458,208 +455,180 @@ export default function Swap({ history }: RouteComponentProps) {
     parameters
   )
 
+  useEffect(() => {
+    if (getTimeLockPuzzle && !swapState.myState.TimeLockPuzzleParam) {
+      getTimeLockPuzzle().then((res) => {
+        setSwapState({
+          ...swapState,
+          myState: { process: 0, myState: { ...res } },
+        })
+      })
+    }
+  }, [getTimeLockPuzzle, swapState.myState])
+
   // console.log('myState a', myState)
   const routerContract = useV2RouterContract() as Contract
 
-  useEffect(() => {
-    const func1 = async () => {
-      if (split1 && !isRunning.current) {
-        isRunning.current = true
-        const time1 = Date.now()
-        routerContract
-          .nonces(account)
-          .then(async (contractNonce: any) => {
-            console.log('after get nonce', Date.now() - time1)
+  const prepareSignMessageFunc = useCallback(async () => {
+    if (prepareSignMessage) {
+      const time1 = Date.now()
+      routerContract
+        .nonces(account)
+        .then(async (contractNonce: any) => {
+          console.log('after get nonce', Date.now() - time1)
 
-            const time2 = Date.now()
-            routerContract
-              .operator()
-              .then(async (operatorAddress: any) => {
-                console.log('after get operator', Date.now() - time2)
-                setSwapState({
-                  ...swapState,
-                  attemptingTxn: true,
-                  swapErrorMessage: undefined,
-                  txHash: undefined,
-                  swapResponse: undefined,
-                  showTimeLockPuzzle: false,
-                })
+          const time2 = Date.now()
+          routerContract
+            .operator()
+            .then(async (operatorAddress: any) => {
+              console.log('after get operator', Date.now() - time2)
+              setSwapState({
+                ...swapState,
+                attemptingTxn: true,
+                swapErrorMessage: undefined,
+                txHash: undefined,
+                swapResponse: undefined,
+                showTimeLockPuzzle: false,
+              })
 
-                const time3 = Date.now()
-                const res = await split1(swapState.backerIntegrity, contractNonce)
-                console.log('after split1', Date.now() - time3)
-                console.log('res1', res)
-                const tempState = { ...swapState.myState, process: 2, ...res, operatorAddress }
-                setSwapState({ ...swapState, myState: tempState })
-                isRunning.current = false
-              })
-              .catch(() => {
-                console.log('after get operator', Date.now() - time2)
-                console.log('failed to load operator')
-                setSwapState({
-                  ...swapState,
-                  myState: { process: 0, errorMessage: 'RPC server is not responding, please try again' },
-                })
-                isRunning.current = false
-              })
-          })
-          .catch(() => {
-            console.log('after get nonce', Date.now() - time1)
-            console.log('failed to load nonce')
-            setSwapState({
-              ...swapState,
-              myState: { process: 0, errorMessage: 'RPC server is not responding, please try again' },
+              const time3 = Date.now()
+              const res = await prepareSignMessage(swapState.backerIntegrity, contractNonce)
+              console.log('after prepareSignMessage', Date.now() - time3)
+              console.log('res1', res)
+              const tempState = { ...swapState.myState, process: 2, ...res, operatorAddress }
+              setSwapState({ ...swapState, myState: tempState })
             })
+            .catch(() => {
+              console.log('after get operator', Date.now() - time2)
+              console.log('failed to load operator')
+              setSwapState({
+                ...swapState,
+                myState: { process: 0, errorMessage: 'RPC server is not responding, please try again' },
+              })
+            })
+        })
+        .catch(() => {
+          console.log('after get nonce', Date.now() - time1)
+          console.log('failed to load nonce')
+          setSwapState({
+            ...swapState,
+            myState: { process: 0, errorMessage: 'RPC server is not responding, please try again' },
           })
-      }
+        })
     }
+  }, [prepareSignMessage])
 
-    const func2 = async () => {
-      if (split2 && !isRunning.current) {
-        isRunning.current = true
-        const time = Date.now()
-        const res = await split2(swapState.myState.signMessage)
-        console.log('after split2', Date.now() - time)
-        console.log('res2', res)
-        if (res) {
-          const tempState = { ...swapState.myState, process: 3, ...res }
-          setSwapState({ ...swapState, myState: tempState })
-        } else {
-          setSwapState({ ...swapState, myState: { process: 0 } })
-        }
-        isRunning.current = false
-      }
+  const createEncryptProofFunc = useCallback(async () => {
+    if (createEncryptProof) {
+      const time = Date.now()
+      const res = await createEncryptProof(
+        swapState.myState.timeLockPuzzleData,
+        swapState.myState.txNonce,
+        swapState.myState.signMessage,
+        swapState.myState.idPath
+      )
+      console.log('after createEncryptProof', Date.now() - time)
+      console.log('res4', res)
+      const tempState = { ...swapState.myState, process: 3, ...res }
+      setSwapState({ ...swapState, myState: tempState })
     }
+  }, [createEncryptProof])
 
-    const func3 = async () => {
-      if (split3 && !isRunning.current) {
-        isRunning.current = true
-        await sleep(300)
-        const time = Date.now()
-        const res = await split3(swapState.myState.timeLockPuzzleParam, swapState.myState.timeLockPuzzleSnarkParam)
-        console.log('after split3', Date.now() - time)
-        console.log('res3', res)
+  const userSignFunc = useCallback(async () => {
+    if (userSign) {
+      const time = Date.now()
+      const res = await userSign(swapState.myState.signMessage)
+      console.log('after userSign', Date.now() - time)
+      console.log('res2', res)
+      if (res) {
         const tempState = { ...swapState.myState, process: 4, ...res }
         setSwapState({ ...swapState, myState: tempState })
-        isRunning.current = false
+      } else {
+        setSwapState({ ...swapState, myState: { process: 0 } })
       }
     }
+  }, [userSign /*, swapState*/])
 
-    const func4 = async () => {
-      if (split4 && !isRunning.current) {
-        isRunning.current = true
-        const time = Date.now()
-        const res = await split4(
-          swapState.myState.timeLockPuzzleData,
-          swapState.myState.txNonce,
-          swapState.myState.signMessage,
-          swapState.myState.idPath
-        )
-        console.log('after split4', Date.now() - time)
-        console.log('res4', res)
-        const tempState = { ...swapState.myState, process: 5, ...res }
-        setSwapState({ ...swapState, myState: tempState })
-        isRunning.current = false
-      }
-    }
-    const func5 = async () => {
-      if (split5 && !isRunning.current) {
-        isRunning.current = true
-        const time = Date.now()
+  const sendEncryptedTxFunc = useCallback(async () => {
+    if (sendEncryptedTx && getTimeLockPuzzle) {
+      const time = Date.now()
 
-        split5(
-          swapState.myState.txHash,
-          swapState.myState.mimcHash,
-          swapState.myState.signMessage,
-          swapState.myState.encryptedSwapTx,
-          swapState.myState.sig,
-          swapState.myState.operatorAddress
-        )
-          .then(async (res) => {
-            onUserInput(Field.INPUT, '')
-            console.log('after split5', Date.now() - time)
-            console.log('res5', res)
-            setSwapState({ ...swapState, myState: { process: 6 } })
-            await sleep(10000)
-            setSwapState({
-              ...swapState,
-              attemptingTxn: false,
-              showConfirm: false,
-              swapErrorMessage: undefined,
-              txHash: undefined,
-              swapResponse: res,
-              myState: { process: 0 },
-            })
-            isRunning.current = false
+      sendEncryptedTx(
+        swapState.myState.txHash,
+        swapState.myState.mimcHash,
+        swapState.myState.signMessage,
+        swapState.myState.encryptedSwapTx,
+        swapState.myState.sig,
+        swapState.myState.operatorAddress
+      )
+        .then(async (res) => {
+          onUserInput(Field.INPUT, '')
+          console.log('after sendEncryptedTx', Date.now() - time)
+          console.log('res5', res)
+          setSwapState({ ...swapState, myState: { process: 5 } })
+
+          await sleep(10000)
+          setSwapState({
+            ...swapState,
+            attemptingTxn: false,
+            showConfirm: false,
+            swapErrorMessage: undefined,
+            txHash: undefined,
+            swapResponse: res,
+            myState: { process: 0 },
           })
-          .catch(async (e) => {
-            console.error(e)
-            console.log('after split5', Date.now() - time)
-            onUserInput(Field.INPUT, '')
-            setSwapState({
-              ...swapState,
-              attemptingTxn: false,
-              showConfirm: false,
-              swapErrorMessage: e.message,
-              txHash: undefined,
-              swapResponse: undefined,
-              myState: { process: 0 },
-            })
-            isRunning.current = false
+        })
+        .catch(async (e) => {
+          console.error(e)
+          console.log('after sendEncryptedTx', Date.now() - time)
+          onUserInput(Field.INPUT, '')
+          setSwapState({
+            ...swapState,
+            attemptingTxn: false,
+            showConfirm: false,
+            swapErrorMessage: e.message,
+            txHash: undefined,
+            swapResponse: undefined,
+            myState: { process: 0 },
           })
-      }
+        })
     }
+  }, [sendEncryptedTx, getTimeLockPuzzle])
 
-    console.log('run?')
-    if (swapState.myState.process === 1) {
-      console.log('1', swapState.myState, func1)
-      func1()
+  useEffect(() => {
+    if (prepareSignMessageFunc !== null && !isRunning.current && swapState.myState.process === 1) {
+      console.log('1', swapState.myState, prepareSignMessageFunc)
+      isRunning.current = true
+      prepareSignMessageFunc()
+      isRunning.current = false
     }
-    if (swapState.myState.process === 2) {
-      console.log('2', swapState.myState, func2)
-      func2()
+  }, [swapState.myState.process, prepareSignMessageFunc])
+  useEffect(() => {
+    if (createEncryptProofFunc !== null && !isRunning.current && swapState.myState.process === 2) {
+      console.log('2', swapState.myState, createEncryptProofFunc, createEncryptProof)
+      isRunning.current = true
+      createEncryptProofFunc()
+      isRunning.current = false
     }
-    if (swapState.myState.process === 3) {
-      console.log('3', swapState.myState, func3)
-      func3()
-    }
-    if (swapState.myState.process === 4) {
-      console.log('4', swapState.myState, func4, split4)
-      func4()
-    }
-    if (swapState.myState.process === 5) {
-      console.log('5', swapState.myState, func5, split5)
-      func5()
-    }
-  }, [swapState.myState.process, split1, split2, split3, split4, split5])
+  }, [swapState.myState.process, createEncryptProofFunc])
 
-  // useEffect(() => {
-  //   console.log('refresh split5')
-  //   if (
-  //     swapState.myState.dangle &&
-  //     ((swapState.myState.process === 1 && split1) ||
-  //       (swapState.myState.process === 2 && split2) ||
-  //       (swapState.myState.process === 3 && split3) ||
-  //       (swapState.myState.process === 4 && split4) ||
-  //       (swapState.myState.process === 5 && split5))
-  //   ) {
-  //     console.log('dangle')
-  //     setSwapState({
-  //       ...swapState,
-  //       myState: { ...swapState.myState, dangle: false, rerun: !swapState.myState.rerun },
-  //     })
-  //   }
-  // }, [split1, split2, split3, split4, split5])
+  useEffect(() => {
+    if (userSignFunc !== null && !isRunning.current && swapState.myState.process === 3) {
+      console.log('3', swapState.myState, userSignFunc)
+      isRunning.current = true
+      userSignFunc()
+      isRunning.current = false
+    }
+  }, [swapState.myState.process, userSignFunc])
 
-  // useEffect(() => {
-  //   setInterval(() => {
-  //     if (swapState.myState.dangle)
-  //       setSwapState({
-  //         ...swapState,
-  //         myState: { ...swapState.myState, dangle: false, process: swapState.myState.process },
-  //       })
-  //   }, 3000)
-  // }, [])
+  useEffect(() => {
+    if (sendEncryptedTxFunc !== null && !isRunning.current && swapState.myState.process === 4) {
+      console.log('4', swapState.myState, sendEncryptedTxFunc, sendEncryptedTx)
+      isRunning.current = true
+      sendEncryptedTxFunc()
+      isRunning.current = false
+    }
+  }, [swapState.myState.process, sendEncryptedTxFunc])
 
   const handleSwap = () => {
     console.log('handleSwap', swapState.myState)

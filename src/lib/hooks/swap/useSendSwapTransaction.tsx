@@ -119,28 +119,23 @@ export default function useSendSwapTransaction(
   sigHandler: () => void
 ): {
   callback: null | (() => Promise<RadiusSwapResponse>)
-  split1?: (
+  prepareSignMessage?: (
     backerIntegrity: boolean,
     nonce: string
   ) => Promise<{
     signMessage: any
-    timeLockPuzzleParam: TimeLockPuzzleParam
-    timeLockPuzzleSnarkParam: string
     txNonce: number
     idPath: string
   }>
-  split2?: (signMessage: any) => Promise<{ sig: Signature } | null>
-  split3?: (
-    timeLockPuzzleParam: TimeLockPuzzleParam,
-    timeLockPuzzleSnarkParam: string
-  ) => Promise<{ timeLockPuzzleData: TimeLockPuzzleResponse }>
-  split4?: (
+  userSign?: (signMessage: any) => Promise<{ sig: Signature } | null>
+  getTimeLockPuzzle?: () => Promise<{ timeLockPuzzleData: TimeLockPuzzleResponse }>
+  createEncryptProof?: (
     timeLockPuzzleData: TimeLockPuzzleResponse,
     txNonce: number,
     signMessage: any,
     idPath: string
   ) => Promise<{ txHash: string; mimcHash: string; encryptedSwapTx: any }>
-  split5?: (
+  sendEncryptedTx?: (
     txHash: string,
     mimcHash: string,
     signMessage: any,
@@ -382,32 +377,14 @@ export default function useSendSwapTransaction(
 
         return sendResponse
       },
-      split1: async function split1(
+      prepareSignMessage: async function prepareSignMessage(
         backerIntegrity: boolean,
         nonce: string
       ): Promise<{
         signMessage: any
-        timeLockPuzzleParam: TimeLockPuzzleParam
-        timeLockPuzzleSnarkParam: string
         txNonce: number
         idPath: string
       }> {
-        let timeLockPuzzleParam: TimeLockPuzzleParam | null = await localForage.getItem('time_lock_puzzle_param')
-        let timeLockPuzzleSnarkParam: string | null = await localForage.getItem('time_lock_puzzle_snark_param')
-
-        // if save flag is false or getItem result is null
-        if (!parameters.timeLockPuzzleParam || !timeLockPuzzleParam) {
-          timeLockPuzzleParam = await fetchTimeLockPuzzleParam((newParam: boolean) => {
-            dispatch(setTimeLockPuzzleParam({ newParam }))
-          })
-        }
-
-        if (!parameters.timeLockPuzzleSnarkParam || !timeLockPuzzleSnarkParam) {
-          timeLockPuzzleSnarkParam = await fetchTimeLockPuzzleSnarkParam((newParam: boolean) => {
-            dispatch(setTimeLockPuzzleSnarkParam({ newParam }))
-          })
-        }
-
         const signer = library.getSigner()
         const signAddress = await signer.getAddress()
 
@@ -441,9 +418,9 @@ export default function useSendSwapTransaction(
 
         sigHandler()
 
-        return { signMessage, timeLockPuzzleParam, timeLockPuzzleSnarkParam, txNonce, idPath }
+        return { signMessage, txNonce, idPath }
       },
-      split2: async function split2(signMessage: any): Promise<{ sig: Signature } | null> {
+      userSign: async function userSign(signMessage: any): Promise<{ sig: Signature } | null> {
         const typedData = JSON.stringify({
           types: {
             EIP712Domain: DOMAIN_TYPE,
@@ -463,20 +440,33 @@ export default function useSendSwapTransaction(
           return null
         })
 
-        if (now + 10000 < Date.now()) {
+        if (now + 5000 < Date.now()) {
           return null
         }
 
         return sig ? { sig } : null
       },
-      split3: async function split3(
-        timeLockPuzzleParam: TimeLockPuzzleParam,
-        timeLockPuzzleSnarkParam: string
-      ): Promise<{ timeLockPuzzleData: TimeLockPuzzleResponse }> {
+      getTimeLockPuzzle: async function getTimeLockPuzzle(): Promise<{ timeLockPuzzleData: TimeLockPuzzleResponse }> {
+        let timeLockPuzzleParam: TimeLockPuzzleParam | null = await localForage.getItem('time_lock_puzzle_param')
+        let timeLockPuzzleSnarkParam: string | null = await localForage.getItem('time_lock_puzzle_snark_param')
+
+        // if save flag is false or getItem result is null
+        if (!parameters.timeLockPuzzleParam || !timeLockPuzzleParam) {
+          timeLockPuzzleParam = await fetchTimeLockPuzzleParam((newParam: boolean) => {
+            dispatch(setTimeLockPuzzleParam({ newParam }))
+          })
+        }
+
+        if (!parameters.timeLockPuzzleSnarkParam || !timeLockPuzzleSnarkParam) {
+          timeLockPuzzleSnarkParam = await fetchTimeLockPuzzleSnarkParam((newParam: boolean) => {
+            dispatch(setTimeLockPuzzleSnarkParam({ newParam }))
+          })
+        }
+
         const timeLockPuzzleData = await getTimeLockPuzzleProof(timeLockPuzzleParam, timeLockPuzzleSnarkParam)
         return { timeLockPuzzleData }
       },
-      split4: async function split4(
+      createEncryptProof: async function createEncryptProof(
         timeLockPuzzleData: TimeLockPuzzleResponse,
         txNonce: number,
         signMessage: any,
@@ -557,7 +547,7 @@ export default function useSendSwapTransaction(
 
         return { txHash, mimcHash, encryptedSwapTx }
       },
-      split5: async function split5(
+      sendEncryptedTx: async function sendEncryptedTx(
         txHash: string,
         mimcHash: string,
         signMessage: any,
