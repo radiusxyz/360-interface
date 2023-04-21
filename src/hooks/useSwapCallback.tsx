@@ -5,7 +5,7 @@ import { Percent } from '@uniswap/sdk-core'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { RadiusSwapResponse } from 'lib/hooks/swap/useSendSwapTransaction'
 import { SwapCallbackState, useSwapCallback as useLibSwapCallBack } from 'lib/hooks/swap/useSwapCallback'
-import { ReactNode, useMemo } from 'react'
+import { ReactNode } from 'react'
 import { ParameterState } from 'state/parameters/reducer'
 
 import { TimeLockPuzzleResponse } from '../wasm/timeLockPuzzle'
@@ -22,11 +22,9 @@ export function useSwapCallback(
   backerIntegrity: boolean,
   recipientAddressOrName: string | null, // the ENS name or address of the recipient of the trade, or null if swap should be returned to sender
   signatureData: SignatureData | undefined | null,
-  sigHandler: () => void,
   parameters: ParameterState
 ): {
   state: SwapCallbackState
-  callback: null | (() => Promise<RadiusSwapResponse>)
   prepareSignMessage?: (
     backerIntegrity: boolean,
     nonce: string
@@ -60,39 +58,19 @@ export function useSwapCallback(
   const { address: recipientAddress } = useENS(recipientAddressOrName)
   const recipient = recipientAddressOrName === null ? account : recipientAddress
 
-  const {
-    state,
-    callback: libCallback,
-    prepareSignMessage,
-    userSign,
-    getTimeLockPuzzle,
-    createEncryptProof,
-    sendEncryptedTx,
-    error,
-  } = useLibSwapCallBack({
-    trade,
-    allowedSlippage,
-    recipientAddressOrName: recipient,
-    signatureData,
-    backerIntegrity,
-    deadline,
-    sigHandler,
-    parameters,
-  })
-
-  const callback = useMemo(() => {
-    if (!libCallback || !trade) {
-      return null
-    }
-    return () =>
-      libCallback().then((response) => {
-        return response
-      })
-  }, [libCallback, trade])
+  const { state, prepareSignMessage, userSign, getTimeLockPuzzle, createEncryptProof, sendEncryptedTx, error } =
+    useLibSwapCallBack({
+      trade,
+      allowedSlippage,
+      recipientAddressOrName: recipient,
+      signatureData,
+      backerIntegrity,
+      deadline,
+      parameters,
+    })
 
   return {
     state,
-    callback,
     prepareSignMessage,
     userSign,
     getTimeLockPuzzle,

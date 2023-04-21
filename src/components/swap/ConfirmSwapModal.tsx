@@ -117,17 +117,14 @@ export default function ConfirmSwapModal({
   recipient,
   swapErrorMessage,
   isOpen,
-  attemptingTxn,
   txHash,
   swapResponse,
-  showTimeLockPuzzle,
 }: {
   isOpen: boolean
   trade: InterfaceTrade<Currency, Currency, TradeType> | undefined
   originalTrade: Trade<Currency, Currency, TradeType> | undefined
   inputCurrency: Currency | null | undefined
   outputCurrency: Currency | null | undefined
-  attemptingTxn: boolean
   txHash: string | undefined
   recipient: string | null
   allowedSlippage: Percent
@@ -138,7 +135,6 @@ export default function ConfirmSwapModal({
   progress: number
   swapErrorMessage: ReactNode | undefined
   swapResponse?: RadiusSwapResponse | undefined
-  showTimeLockPuzzle: boolean
 }) {
   const showAcceptChanges = useMemo(
     () => Boolean(trade && originalTrade && tradeMeaningfullyDiffers(trade, originalTrade)),

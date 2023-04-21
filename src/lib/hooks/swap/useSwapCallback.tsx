@@ -24,7 +24,6 @@ export enum SwapCallbackState {
 
 interface UseSwapCallbackReturns {
   state: SwapCallbackState
-  callback?: () => Promise<RadiusSwapResponse>
   prepareSignMessage?: (
     backerIntegrity: boolean,
     nonce: string
@@ -59,7 +58,6 @@ interface UseSwapCallbackArgs {
   backerIntegrity: boolean
   deadline: BigNumber | undefined
   feeOptions?: FeeOptions
-  sigHandler: () => void
   parameters: ParameterState
 }
 
@@ -73,7 +71,6 @@ export function useSwapCallback({
   backerIntegrity,
   deadline,
   feeOptions,
-  sigHandler,
   parameters,
 }: UseSwapCallbackArgs): UseSwapCallbackReturns {
   const { account, chainId, library } = useActiveWeb3React()
@@ -87,18 +84,8 @@ export function useSwapCallback({
     deadline,
     feeOptions
   )
-  const { callback, prepareSignMessage, userSign, getTimeLockPuzzle, createEncryptProof, sendEncryptedTx } =
-    useSendSwapTransaction(
-      account,
-      chainId,
-      library,
-      trade,
-      swapCalls,
-      deadline,
-      allowedSlippage,
-      parameters,
-      sigHandler
-    )
+  const { prepareSignMessage, userSign, getTimeLockPuzzle, createEncryptProof, sendEncryptedTx } =
+    useSendSwapTransaction(account, chainId, library, trade, swapCalls, deadline, allowedSlippage, parameters)
 
   const { address: recipientAddress } = useENS(recipientAddressOrName)
   const recipient = recipientAddressOrName === null ? account : recipientAddress
@@ -109,7 +96,6 @@ export function useSwapCallback({
       !library ||
       !account ||
       !chainId ||
-      !callback ||
       !prepareSignMessage ||
       !userSign ||
       !getTimeLockPuzzle ||
@@ -128,12 +114,11 @@ export function useSwapCallback({
 
     return {
       state: SwapCallbackState.VALID,
-      callback: async () => callback(),
       prepareSignMessage: async (a: any, b: any) => prepareSignMessage(a, b),
       userSign: async (a: any) => userSign(a),
       getTimeLockPuzzle: async () => getTimeLockPuzzle(),
       createEncryptProof: async (a: any, b: any, c: any, d: any) => createEncryptProof(a, b, c, d),
       sendEncryptedTx: async (a: any, b: any, c: any, d: any, e: any, f: any) => sendEncryptedTx(a, b, c, d, e, f),
     }
-  }, [trade, library, account, chainId, callback, recipient, recipientAddressOrName])
+  }, [trade, library, account, chainId, recipient, recipientAddressOrName])
 }
