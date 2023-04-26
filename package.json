@@ -229,7 +229,8 @@
     "wasm-time-lock-puzzle-zkp": "^0.1.0",
     "wcag-contrast": "^3.0.0",
     "web3-react-core": "npm:@web3-react/core@^6.0.9",
-    "wicg-inert": "^3.1.1"
+    "wicg-inert": "^3.1.1",
+    "worker-loader": "^3.0.8"
   },
   "peerDependencies": {
     "@babel/runtime": "^7.17.0",

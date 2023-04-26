@@ -43,6 +43,7 @@
   ],
   "plugins": ["simple-import-sort", "unused-imports"],
   "rules": {
+    "import/no-webpack-loader-syntax": "off",
     "unused-imports/no-unused-imports": "error",
     "simple-import-sort/imports": "error",
     "simple-import-sort/exports": "error",

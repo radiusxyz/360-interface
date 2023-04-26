@@ -148,24 +148,6 @@ export default function useSendSwapTransaction(
   const [cancel, setCancel] = useCancelManager()
   // const progress = useProgress()
 
-  const emptyResponse = {
-    data: {
-      txOrderMsg: {
-        round: 0,
-        order: 0,
-        mimcHash: '',
-        txHash: '',
-        proofHash: '',
-      },
-      signature: {
-        r: '',
-        s: '',
-        v: 27,
-      },
-    },
-    msg: 'timeOver',
-  }
-
   return useMemo(() => {
     if (!trade || !library || !account || !chainId) {
       return { callback: null }

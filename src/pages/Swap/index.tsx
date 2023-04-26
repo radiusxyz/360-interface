@@ -15,14 +15,18 @@ import { useSwapCallback } from 'hooks/useSwapCallback'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import JSBI from 'jsbi'
 import { RadiusSwapResponse } from 'lib/hooks/swap/useSendSwapTransaction'
+import localForage from 'localforage'
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowDown, CheckCircle, HelpCircle, Info } from 'react-feather'
 import ReactGA from 'react-ga4'
 import { BsArrowDown } from 'react-icons/bs'
 import { RouteComponentProps } from 'react-router-dom'
 import { Text } from 'rebass'
+import { useAppDispatch } from 'state/hooks'
 import { useCancelManager, useReimbursementManager, useShowHistoryManager } from 'state/modal/hooks'
+import { fetchTimeLockPuzzleParam, fetchTimeLockPuzzleSnarkParam } from 'state/parameters/fetch'
 import { useParameters } from 'state/parameters/hooks'
+import { setTimeLockPuzzleParam, setTimeLockPuzzleSnarkParam, TimeLockPuzzleParam } from 'state/parameters/reducer'
 import { TradeState } from 'state/routing/types'
 import styled, { ThemeContext } from 'styled-components/macro'
 
@@ -55,6 +59,9 @@ import { LinkStyledButton, ThemedText } from '../../theme'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { warningSeverity } from '../../utils/prices'
 import AppBody from '../AppBody'
+// eslint-disable-next-line import/no-webpack-loader-syntax
+// import myWorker from 'worker-loader!./worker'
+import myWorker from './worker'
 
 const SwapButtonConfirmed = styled(ButtonConfirmed)`
   margin: 10px 0px 24px 0px;
@@ -363,7 +370,6 @@ export default function Swap({ history }: RouteComponentProps) {
     error: swapCallbackError,
     prepareSignMessage,
     userSign,
-    getTimeLockPuzzle,
     createEncryptProof,
     sendEncryptedTx,
   } = useSwapCallback(
@@ -380,21 +386,88 @@ export default function Swap({ history }: RouteComponentProps) {
       setSwapParams({ ...swapParams, process: 1 })
     }
   }
+  const dispatch = useAppDispatch()
+
+  async function getTimeLockPuzzleParam() {
+    let timeLockPuzzleParam: TimeLockPuzzleParam | null = await localForage.getItem('time_lock_puzzle_param')
+    let timeLockPuzzleSnarkParam: string | null = await localForage.getItem('time_lock_puzzle_snark_param')
+
+    // if save flag is false or getItem result is null
+    if (!parameters.timeLockPuzzleParam || !timeLockPuzzleParam) {
+      timeLockPuzzleParam = await fetchTimeLockPuzzleParam((newParam: boolean) => {
+        dispatch(setTimeLockPuzzleParam({ newParam }))
+      })
+    }
+
+    if (!parameters.timeLockPuzzleSnarkParam || !timeLockPuzzleSnarkParam) {
+      timeLockPuzzleSnarkParam = await fetchTimeLockPuzzleSnarkParam((newParam: boolean) => {
+        dispatch(setTimeLockPuzzleSnarkParam({ newParam }))
+      })
+    }
+
+    return { timeLockPuzzleParam, timeLockPuzzleSnarkParam }
+  }
+
+  const worker = useMemo(() => new Worker('./worker'), [])
+  worker.onmessage = async (e) => {
+    console.log('raynear', e.data)
+    const timeLockPuzzle = await import('wasm-time-lock-puzzle-zkp')
+
+    const timeLockPuzzleData = await timeLockPuzzle.get_time_lock_puzzle_proof(
+      e.data.timeLockPuzzleParam,
+      e.data.timeLockPuzzleSnarkParam
+    )
+    worker.postMessage({ target: 'timeLockPuzzle', timeLockPuzzleData })
+  }
+
+  console.log('raynear', myWorker)
+
+  console.log('raynear2', worker)
 
   useEffect(() => {
     console.log(
-      '🚀 ~ file: index.tsx:386 ~ useEffect ~ swapParams.timeLockPuzzleData:',
-      getTimeLockPuzzle,
-      swapParams.timeLockPuzzleData
+      '🚀 ~ file: index.tsx:413 ~ useEffect ~ swapParams.timeLockPuzzleData:'
+      // getTimeLockPuzzle,
+      // swapParams.timeLockPuzzleData
     )
-    if (getTimeLockPuzzle && !isRunning.current && !swapParams.timeLockPuzzleData) {
+    if (!isRunning.current) {
+      // && !swapParams.timeLockPuzzleData) {
       isRunning.current = true
-      getTimeLockPuzzle().then((res) => {
-        setSwapParams({ ...swapParams, ...res })
+      getTimeLockPuzzleParam().then((res) => {
+        console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
+        worker.postMessage({
+          timeLockPuzzleParam: res.timeLockPuzzleParam,
+          timeLockPuzzleSnarkParam: res.timeLockPuzzleSnarkParam,
+        })
       })
+
+      // getTimeLockPuzzle().then((res) => {
+      //   setSwapParams({ ...swapParams, ...res })
+      // })
       isRunning.current = false
     }
-  }, [getTimeLockPuzzle, swapParams])
+  }, [])
+
+  myWorker.onmessage = (e: MessageEvent<any>) => {
+    if (e.data.target === 'timeLockPuzzle') {
+      console.log('worker response', e.data)
+    }
+  }
+
+  // useEffect(() => {
+  //   console.log(
+  //     '🚀 ~ file: index.tsx:428 ~ useEffect ~ swapParams.timeLockPuzzleData:',
+  //     getTimeLockPuzzle,
+  //     swapParams.timeLockPuzzleData
+  //   )
+  //   if (!isRunning.current && !swapParams.timeLockPuzzleData) {
+  //     isRunning.current = true
+  //     getTimeLockPuzzle().then((res) => {
+  //       setSwapParams({ ...swapParams, ...res })
+  //     })
+  //     isRunning.current = false
+  //   }
+  // }, [swapParams])
 
   const prepareSignMessageFunc = useCallback(async () => {
     if (prepareSignMessage) {
@@ -468,7 +541,7 @@ export default function Swap({ history }: RouteComponentProps) {
   }, [userSign, swapParams])
 
   const sendEncryptedTxFunc = useCallback(async () => {
-    if (sendEncryptedTx && getTimeLockPuzzle) {
+    if (sendEncryptedTx) {
       const time = Date.now()
 
       sendEncryptedTx(
@@ -509,7 +582,7 @@ export default function Swap({ history }: RouteComponentProps) {
           setSwapParams({ process: 0 })
         })
     }
-  }, [sendEncryptedTx, getTimeLockPuzzle, onUserInput, swapParams, swapState])
+  }, [sendEncryptedTx, onUserInput, swapParams, swapState])
 
   useEffect(() => {
     console.log('🚀 ~ file: index.tsx:512 ~ useEffect ~ swapParams.process:', swapParams.process)
