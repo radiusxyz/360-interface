@@ -6,6 +6,14 @@ declare module '@metamask/jazzicon' {
 
 declare module 'fortmatic'
 
+// typings/custom.d.ts
+declare module 'worker-loader!*' {
+  class WebpackWorker extends Worker {
+    constructor()
+  }
+
+  export default WebpackWorker
+}
 interface Window {
   // walletLinkExtension is injected by the Coinbase Wallet extension
   walletLinkExtension?: any

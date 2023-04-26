@@ -29,6 +29,8 @@ import { useParameters } from 'state/parameters/hooks'
 import { setTimeLockPuzzleParam, setTimeLockPuzzleSnarkParam, TimeLockPuzzleParam } from 'state/parameters/reducer'
 import { TradeState } from 'state/routing/types'
 import styled, { ThemeContext } from 'styled-components/macro'
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import Worker from 'worker-loader!./worker'
 
 import AddressInputPanel from '../../components/AddressInputPanel'
 import { ButtonConfirmed, ButtonError, ButtonLight, ButtonPrimary } from '../../components/Button'
@@ -59,9 +61,6 @@ import { LinkStyledButton, ThemedText } from '../../theme'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { warningSeverity } from '../../utils/prices'
 import AppBody from '../AppBody'
-// eslint-disable-next-line import/no-webpack-loader-syntax
-// import myWorker from 'worker-loader!./worker'
-import myWorker from './worker'
 
 const SwapButtonConfirmed = styled(ButtonConfirmed)`
   margin: 10px 0px 24px 0px;
@@ -408,21 +407,9 @@ export default function Swap({ history }: RouteComponentProps) {
     return { timeLockPuzzleParam, timeLockPuzzleSnarkParam }
   }
 
-  const worker = useMemo(() => new Worker('./worker'), [])
-  worker.onmessage = async (e) => {
-    console.log('raynear', e.data)
-    const timeLockPuzzle = await import('wasm-time-lock-puzzle-zkp')
-
-    const timeLockPuzzleData = await timeLockPuzzle.get_time_lock_puzzle_proof(
-      e.data.timeLockPuzzleParam,
-      e.data.timeLockPuzzleSnarkParam
-    )
-    worker.postMessage({ target: 'timeLockPuzzle', timeLockPuzzleData })
-  }
+  const myWorker = useMemo(() => new Worker(), [])
 
   console.log('raynear', myWorker)
-
-  console.log('raynear2', worker)
 
   useEffect(() => {
     console.log(
@@ -435,7 +422,7 @@ export default function Swap({ history }: RouteComponentProps) {
       isRunning.current = true
       getTimeLockPuzzleParam().then((res) => {
         console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
-        worker.postMessage({
+        myWorker.postMessage({
           timeLockPuzzleParam: res.timeLockPuzzleParam,
           timeLockPuzzleSnarkParam: res.timeLockPuzzleSnarkParam,
         })

@@ -1,11 +1,7 @@
 /* eslint-env worker */
-// const self = globalThis// as unknown as DedicatedWorkerGlobalScope
-const self = window.globalThis
+const self = globalThis as unknown as DedicatedWorkerGlobalScope
 
-console.log('raynear')
-
-self.onmessage = async (e) => {
-  console.log('raynear', e.data)
+self.addEventListener('message', async (e) => {
   const timeLockPuzzle = await import('wasm-time-lock-puzzle-zkp')
 
   const timeLockPuzzleData = await timeLockPuzzle.get_time_lock_puzzle_proof(
@@ -13,7 +9,6 @@ self.onmessage = async (e) => {
     e.data.timeLockPuzzleSnarkParam
   )
   self.postMessage({ target: 'timeLockPuzzle', timeLockPuzzleData })
-}
+})
 
-console.log(self.onmessage)
-export default self
+export default {} as any
