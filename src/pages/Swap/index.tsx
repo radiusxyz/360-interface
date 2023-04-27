@@ -177,10 +177,7 @@ export default function Swap({ history }: RouteComponentProps) {
 
   const isRunning = useRef<boolean>(false)
 
-  const [
-    swapState, // { tradeToConfirm, swapErrorMessage, txHash, swapResponse},
-    setSwapState,
-  ] = useState<{
+  const [swapState, setSwapState] = useState<{
     tradeToConfirm: Trade<Currency, Currency, TradeType> | undefined
     swapErrorMessage: string | undefined
     txHash: string | undefined
@@ -340,10 +337,8 @@ export default function Swap({ history }: RouteComponentProps) {
     approvalOptimizedTrade?.inputAmount?.currency.symbol,
   ])
 
-  // check if user has gone through approval process, used to show two step buttons, reset on token change
-
+  // Check Account in Whitelist
   useEffect(() => {
-    console.log('🚀 ~ file: index.tsx:337 ~ useEffect ~ account:', account)
     if (account) {
       fetch(`${process.env.REACT_APP_360_OPERATOR}/whiteList?walletAddress=` + account)
         .then(async (is) => {
@@ -357,7 +352,6 @@ export default function Swap({ history }: RouteComponentProps) {
 
   // mark when a user has submitted an approval, reset onTokenSelection for input field
   useEffect(() => {
-    console.log('🚀 ~ file: index.tsx:351 ~ useEffect ~ approvalState:', approvalState)
     if (approvalState === ApprovalState.PENDING) {
       setApprovalSubmitted(true)
     }
@@ -389,7 +383,7 @@ export default function Swap({ history }: RouteComponentProps) {
   }
   const dispatch = useAppDispatch()
 
-  async function getTimeLockPuzzleParam() {
+  const getTimeLockPuzzleParam = useCallback(async () => {
     let timeLockPuzzleParam: TimeLockPuzzleParam | null = await localForage.getItem('time_lock_puzzle_param')
     let timeLockPuzzleSnarkParam: string | null = await localForage.getItem('time_lock_puzzle_snark_param')
 
@@ -407,14 +401,12 @@ export default function Swap({ history }: RouteComponentProps) {
     }
 
     return { timeLockPuzzleParam, timeLockPuzzleSnarkParam }
-  }
+  }, [dispatch, parameters.timeLockPuzzleParam, parameters.timeLockPuzzleSnarkParam])
 
   const worker = useMemo(() => new Worker(), [])
 
   useEffect(() => {
-    if (!isRunning.current) {
-      // && !swapParams.timeLockPuzzleData) {
-      isRunning.current = true
+    if (!swapParams.timeLockPuzzleData) {
       getTimeLockPuzzleParam().then((res) => {
         console.log('post to timeLockPuzzle', res)
         worker.postMessage({
@@ -423,19 +415,20 @@ export default function Swap({ history }: RouteComponentProps) {
           timeLockPuzzleSnarkParam: res.timeLockPuzzleSnarkParam,
         })
       })
-
-      // getTimeLockPuzzle().then((res) => {
-      //   setSwapParams({ ...swapParams, ...res })
-      // })
-      isRunning.current = false
     }
-  }, [])
+  }, [getTimeLockPuzzleParam, swapParams.timeLockPuzzleData, worker])
 
   worker.onmessage = (e: MessageEvent<any>) => {
     if (e.data.target === 'timeLockPuzzle') {
       setSwapParams({ ...swapParams, timeLockPuzzleDone: true, timeLockPuzzleData: { ...e.data.data } })
     }
-    if (e.data.target === 'encryptor' && account && chainId && swapParams.timeLockPuzzleData) {
+    if (
+      e.data.target === 'encryptor' &&
+      account &&
+      chainId &&
+      swapParams.timeLockPuzzleData &&
+      swapParams.signMessage
+    ) {
       const encryptData = e.data.data
       console.log('🚀 ~ file: useSendSwapTransaction.tsx:520 ~ returnuseMemo ~ encryptData', encryptData)
 
@@ -579,7 +572,7 @@ export default function Swap({ history }: RouteComponentProps) {
       if (res) {
         setSwapParams({ ...swapParams, signingDone: true, ...res })
       } else {
-        setSwapParams({ ...swapParams, start: false })
+        setSwapParams({ ...swapParams, confirm: false })
       }
     }
   }, [userSign, swapParams])
@@ -652,17 +645,11 @@ export default function Swap({ history }: RouteComponentProps) {
 
   const isSigning = useRef(false)
   useEffect(() => {
-    if (
-      userSignFunc !== null &&
-      !isSigning.current &&
-      swapParams.prepareDone &&
-      swapParams.confirm &&
-      !swapParams.signingDone
-    ) {
-      console.log('3', swapParams, userSignFunc)
+    if (!isSigning.current && swapParams.prepareDone && swapParams.confirm && !swapParams.signingDone) {
       isSigning.current = true
-      userSignFunc()
-      isSigning.current = false
+      userSignFunc().then(() => {
+        isSigning.current = false
+      })
     }
   }, [swapParams, userSignFunc])
 
@@ -709,13 +696,17 @@ export default function Swap({ history }: RouteComponentProps) {
 
   const handleConfirmDismiss = useCallback(() => {
     console.log('on dismiss')
-    setSwapParams({ start: false })
+    setSwapParams({
+      start: false,
+      timeLockPuzzleData: swapParams.timeLockPuzzleData,
+      timeLockPuzzleDone: swapParams.timeLockPuzzleDone,
+    })
 
     // if there was a tx hash, we want to clear the input
     if (swapState.txHash) {
       onUserInput(Field.INPUT, '')
     }
-  }, [onUserInput, swapState])
+  }, [onUserInput, swapState, swapParams])
 
   const handleAcceptChanges = useCallback(() => {
     setSwapState({
@@ -758,15 +749,6 @@ export default function Swap({ history }: RouteComponentProps) {
   const swapIsUnsupported = useIsSwapUnsupported(currencies[Field.INPUT], currencies[Field.OUTPUT])
 
   useEffect(() => {
-    console.log(
-      '🚀 ~ file: index.tsx:632 ~ useEffect ~ a:',
-      isValid,
-      routeIsSyncing,
-      routeIsLoading,
-      swapCallbackError,
-      controls,
-      toggle
-    )
     const a = !(!isValid || routeIsSyncing || routeIsLoading || !!swapCallbackError)
     const b = !toggle
     if (a && b) {
