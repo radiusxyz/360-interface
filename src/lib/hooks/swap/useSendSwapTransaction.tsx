@@ -49,7 +49,7 @@ export interface TxInfo {
 
 const MAXIMUM_PATH_LENGTH = 3
 
-interface EncryptedSwapTx {
+export interface EncryptedSwapTx {
   txOwner: string
   functionSelector: string
   amountIn: string

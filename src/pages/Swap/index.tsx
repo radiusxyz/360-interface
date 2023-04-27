@@ -1,4 +1,5 @@
 import { Contract } from '@ethersproject/contracts'
+import { _TypedDataEncoder as typedDataEncoder } from '@ethersproject/hash'
 import { Trans } from '@lingui/macro'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, CurrencyAmount, TradeType } from '@uniswap/sdk-core'
@@ -9,6 +10,7 @@ import On from 'assets/images/on.png'
 import SwapDetailsDropdown from 'components/swap/SwapDetailsDropdown'
 import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter'
 import { MouseoverTooltip } from 'components/Tooltip'
+import { domain, SWAP_TYPE } from 'constants/eip712'
 import { motion, useAnimationControls } from 'framer-motion'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useSwapCallback } from 'hooks/useSwapCallback'
@@ -30,7 +32,7 @@ import { setTimeLockPuzzleParam, setTimeLockPuzzleSnarkParam, TimeLockPuzzlePara
 import { TradeState } from 'state/routing/types'
 import styled, { ThemeContext } from 'styled-components/macro'
 // eslint-disable-next-line import/no-webpack-loader-syntax
-import Worker from 'worker-loader!./worker'
+import Worker from 'worker-loader!../../workers/worker'
 
 import AddressInputPanel from '../../components/AddressInputPanel'
 import { ButtonConfirmed, ButtonError, ButtonLight, ButtonPrimary } from '../../components/Button'
@@ -53,6 +55,7 @@ import useIsArgentWallet from '../../hooks/useIsArgentWallet'
 import { useIsSwapUnsupported } from '../../hooks/useIsSwapUnsupported'
 import { useUSDCValue } from '../../hooks/useUSDCPrice'
 import useWrapCallback, { WrapErrorText, WrapType } from '../../hooks/useWrapCallback'
+import { EncryptedSwapTx, TxInfo } from '../../lib/hooks/swap/useSendSwapTransaction'
 import { useWalletModalToggle } from '../../state/application/hooks'
 import { Field } from '../../state/swap/actions'
 import { useDerivedSwapInfo, useSwapActionHandlers, useSwapState } from '../../state/swap/hooks'
@@ -61,6 +64,9 @@ import { LinkStyledButton, ThemedText } from '../../theme'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { warningSeverity } from '../../utils/prices'
 import AppBody from '../AppBody'
+
+const MAXIMUM_PATH_LENGTH = 3
+const swapExactTokensForTokens = '0x73a2cff1'
 
 const SwapButtonConfirmed = styled(ButtonConfirmed)`
   margin: 10px 0px 24px 0px;
@@ -172,17 +178,15 @@ export default function Swap({ history }: RouteComponentProps) {
   const isRunning = useRef<boolean>(false)
 
   const [
-    swapState, // { showConfirm, tradeToConfirm, swapErrorMessage, txHash, swapResponse},
+    swapState, // { tradeToConfirm, swapErrorMessage, txHash, swapResponse},
     setSwapState,
   ] = useState<{
-    showConfirm: boolean
     tradeToConfirm: Trade<Currency, Currency, TradeType> | undefined
     swapErrorMessage: string | undefined
     txHash: string | undefined
     swapResponse: RadiusSwapResponse | undefined
     backerIntegrity: boolean
   }>({
-    showConfirm: false,
     tradeToConfirm: undefined,
     swapErrorMessage: undefined,
     txHash: undefined,
@@ -194,7 +198,7 @@ export default function Swap({ history }: RouteComponentProps) {
 
   const [toggle, setToggle] = useState<boolean>(false)
 
-  const [swapParams, setSwapParams] = useState<any>({ process: 0 })
+  const [swapParams, setSwapParams] = useState<any>({ start: false })
 
   const routerContract = useV2RouterContract() as Contract
   // errors
@@ -381,9 +385,7 @@ export default function Swap({ history }: RouteComponentProps) {
   )
 
   const handleSwap = () => {
-    if (swapParams.process === 0) {
-      setSwapParams({ ...swapParams, process: 1 })
-    }
+    setSwapParams({ ...swapParams, confirm: true })
   }
   const dispatch = useAppDispatch()
 
@@ -407,22 +409,16 @@ export default function Swap({ history }: RouteComponentProps) {
     return { timeLockPuzzleParam, timeLockPuzzleSnarkParam }
   }
 
-  const myWorker = useMemo(() => new Worker(), [])
-
-  console.log('raynear', myWorker)
+  const worker = useMemo(() => new Worker(), [])
 
   useEffect(() => {
-    console.log(
-      '🚀 ~ file: index.tsx:413 ~ useEffect ~ swapParams.timeLockPuzzleData:'
-      // getTimeLockPuzzle,
-      // swapParams.timeLockPuzzleData
-    )
     if (!isRunning.current) {
       // && !swapParams.timeLockPuzzleData) {
       isRunning.current = true
       getTimeLockPuzzleParam().then((res) => {
-        console.log('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
-        myWorker.postMessage({
+        console.log('post to timeLockPuzzle', res)
+        worker.postMessage({
+          target: 'timeLockPuzzle',
           timeLockPuzzleParam: res.timeLockPuzzleParam,
           timeLockPuzzleSnarkParam: res.timeLockPuzzleSnarkParam,
         })
@@ -435,9 +431,49 @@ export default function Swap({ history }: RouteComponentProps) {
     }
   }, [])
 
-  myWorker.onmessage = (e: MessageEvent<any>) => {
+  worker.onmessage = (e: MessageEvent<any>) => {
     if (e.data.target === 'timeLockPuzzle') {
-      console.log('worker response', e.data)
+      setSwapParams({ ...swapParams, timeLockPuzzleDone: true, timeLockPuzzleData: { ...e.data.data } })
+    }
+    if (e.data.target === 'encryptor' && account && chainId && swapParams.timeLockPuzzleData) {
+      const encryptData = e.data.data
+      console.log('🚀 ~ file: useSendSwapTransaction.tsx:520 ~ returnuseMemo ~ encryptData', encryptData)
+
+      const encryptedPath = {
+        message_length: encryptData.message_length,
+        nonce: encryptData.nonce,
+        commitment: swapParams.timeLockPuzzleData.commitment_hex,
+        cipher_text: [encryptData.cipher_text],
+        r1: swapParams.timeLockPuzzleData.r1,
+        r3: swapParams.timeLockPuzzleData.r3,
+        s1: swapParams.timeLockPuzzleData.s1,
+        s3: swapParams.timeLockPuzzleData.s3,
+        k: swapParams.timeLockPuzzleData.k,
+        time_lock_puzzle_snark_proof: swapParams.timeLockPuzzleData.time_lock_puzzle_snark_proof,
+        encryption_proof: encryptData.proof,
+      }
+
+      // console.log(sig)
+
+      const txHash = typedDataEncoder.hash(domain(chainId), { Swap: SWAP_TYPE }, swapParams.signMessage)
+      const mimcHash = '0x' + encryptData.tx_id
+
+      const encryptedSwapTx: EncryptedSwapTx = {
+        txOwner: account,
+        functionSelector: swapExactTokensForTokens,
+        amountIn: `${swapParams.signMessage.amountIn}`,
+        amountOut: `${swapParams.signMessage.amountOut}`,
+        path: encryptedPath,
+        to: account,
+        nonce: swapParams.txNonce,
+        backerIntegrity: swapParams.signMessage.backerIntegrity,
+        availableFrom: swapParams.signMessage.availableFrom,
+        deadline: swapParams.signMessage.deadline,
+        txHash,
+        mimcHash,
+      }
+
+      setSwapParams({ ...swapParams, encryptorDone: true, txHash, mimcHash, encryptedSwapTx })
     }
   }
 
@@ -474,14 +510,14 @@ export default function Swap({ history }: RouteComponentProps) {
               const res = await prepareSignMessage(swapState.backerIntegrity, contractNonce)
               console.log('after prepareSignMessage', Date.now() - time3)
               console.log('res1', res)
-              setSwapParams({ ...swapParams, process: 2, ...res, operatorAddress })
+              setSwapParams({ ...swapParams, prepareDone: true, ...res, operatorAddress })
             })
             .catch(() => {
               console.log('after get operator', Date.now() - time2)
               console.log('failed to load operator')
               setSwapParams({
                 ...swapParams,
-                process: 0,
+                start: false,
                 errorMessage: 'RPC server is not responding, please try again',
               })
             })
@@ -491,7 +527,7 @@ export default function Swap({ history }: RouteComponentProps) {
           console.log('failed to load nonce')
           setSwapParams({
             ...swapParams,
-            process: 0,
+            start: false,
             errorMessage: 'RPC server is not responding, please try again',
           })
         })
@@ -499,30 +535,51 @@ export default function Swap({ history }: RouteComponentProps) {
   }, [prepareSignMessage, swapParams, account, routerContract, swapState.backerIntegrity])
 
   const createEncryptProofFunc = useCallback(async () => {
-    if (createEncryptProof) {
-      const time = Date.now()
-      const res = await createEncryptProof(
-        swapParams.timeLockPuzzleData,
-        swapParams.txNonce,
-        swapParams.signMessage,
-        swapParams.idPath
-      )
-      console.log('after createEncryptProof', Date.now() - time)
-      console.log('res4', res)
-      setSwapParams({ ...swapParams, process: 3, ...res })
+    if (chainId && swapParams.signMessage) {
+      if (swapParams.signMessage.path.length > 3) {
+        console.error('Cannot encrypt path which length is over 3')
+      }
+
+      const pathToHash: string[] = new Array(MAXIMUM_PATH_LENGTH)
+
+      for (let i = 0; i < MAXIMUM_PATH_LENGTH; i++) {
+        pathToHash[i] = i < swapParams.signMessage.path.length ? swapParams.signMessage.path[i].split('x')[1] : '0'
+      }
+
+      const txInfoToHash: TxInfo = {
+        tx_owner: swapParams.signMessage.txOwner.split('x')[1],
+        function_selector: swapParams.signMessage.functionSelector.split('x')[1],
+        amount_in: `${swapParams.signMessage.amountIn}`,
+        amount_out: `${swapParams.signMessage.amountOut}`,
+        to: swapParams.signMessage.to.split('x')[1],
+        deadline: `${swapParams.signMessage.deadline}`,
+        nonce: `${swapParams.signMessage.nonce}`,
+        path: pathToHash,
+      }
+      console.log('🚀 ~ file: useSendSwapTransaction.tsx:511 ~ returnuseMemo ~ txInfoToHash', txInfoToHash, swapParams)
+
+      worker.postMessage({
+        target: 'encryptor',
+        txInfoToHash,
+        s2_string: swapParams.timeLockPuzzleData.s2_string,
+        s2_field_hex: swapParams.timeLockPuzzleData.s2_field_hex,
+        commitment_hex: swapParams.timeLockPuzzleData.commitment_hex,
+        idPath: swapParams.idPath,
+      })
     }
-  }, [createEncryptProof, swapParams])
+  }, [swapParams])
 
   const userSignFunc = useCallback(async () => {
     if (userSign) {
+      console.log('call userSign', swapParams)
       const time = Date.now()
       const res = await userSign(swapParams.signMessage)
       console.log('after userSign', Date.now() - time)
       console.log('res2', res)
       if (res) {
-        setSwapParams({ ...swapParams, process: 4, ...res })
+        setSwapParams({ ...swapParams, signingDone: true, ...res })
       } else {
-        setSwapParams({ ...swapParams, process: 0 })
+        setSwapParams({ ...swapParams, start: false })
       }
     }
   }, [userSign, swapParams])
@@ -543,17 +600,16 @@ export default function Swap({ history }: RouteComponentProps) {
           onUserInput(Field.INPUT, '')
           console.log('after sendEncryptedTx', Date.now() - time)
           console.log('res5', res)
-          setSwapParams({ ...swapParams, process: 5 })
+          setSwapParams({ ...swapParams, sent: true })
 
           await sleep(10000)
           setSwapState({
             ...swapState,
-            showConfirm: false,
             swapErrorMessage: undefined,
             txHash: undefined,
             swapResponse: res,
           })
-          setSwapParams({ process: 0 })
+          setSwapParams({ start: false })
         })
         .catch(async (e) => {
           console.error(e)
@@ -561,29 +617,32 @@ export default function Swap({ history }: RouteComponentProps) {
           onUserInput(Field.INPUT, '')
           setSwapState({
             ...swapState,
-            showConfirm: false,
             swapErrorMessage: e.message,
             txHash: undefined,
             swapResponse: undefined,
           })
-          setSwapParams({ process: 0 })
+          setSwapParams({ start: false })
         })
     }
   }, [sendEncryptedTx, onUserInput, swapParams, swapState])
 
   useEffect(() => {
-    console.log('🚀 ~ file: index.tsx:512 ~ useEffect ~ swapParams.process:', swapParams.process)
-    if (prepareSignMessageFunc !== null && !isRunning.current && swapParams.process === 1) {
+    if (prepareSignMessageFunc !== null && !isRunning.current && swapParams.start && !swapParams.prepareDone) {
       console.log('1', swapParams, prepareSignMessageFunc)
       isRunning.current = true
       prepareSignMessageFunc()
       isRunning.current = false
     }
-  }, [swapParams.process, prepareSignMessageFunc, swapParams])
+  }, [prepareSignMessageFunc, swapParams])
 
   useEffect(() => {
-    console.log('🚀 ~ file: index.tsx:522 ~ useEffect ~ swapParams.process:', swapParams.process)
-    if (createEncryptProofFunc !== null && !isRunning.current && swapParams.process === 2) {
+    if (
+      createEncryptProofFunc !== null &&
+      !isRunning.current &&
+      swapParams.timeLockPuzzleDone &&
+      swapParams.prepareDone &&
+      !swapParams.encryptorDone
+    ) {
       console.log('2', swapParams, createEncryptProofFunc, createEncryptProof)
       isRunning.current = true
       createEncryptProofFunc()
@@ -591,19 +650,30 @@ export default function Swap({ history }: RouteComponentProps) {
     }
   }, [swapParams, createEncryptProofFunc, createEncryptProof])
 
+  const isSigning = useRef(false)
   useEffect(() => {
-    console.log('🚀 ~ file: index.tsx:532 ~ useEffect ~ swapParams.process:', swapParams.process)
-    if (userSignFunc !== null && !isRunning.current && swapParams.process === 3) {
+    if (
+      userSignFunc !== null &&
+      !isSigning.current &&
+      swapParams.prepareDone &&
+      swapParams.confirm &&
+      !swapParams.signingDone
+    ) {
       console.log('3', swapParams, userSignFunc)
-      isRunning.current = true
+      isSigning.current = true
       userSignFunc()
-      isRunning.current = false
+      isSigning.current = false
     }
   }, [swapParams, userSignFunc])
 
   useEffect(() => {
-    console.log('🚀 ~ file: index.tsx:542 ~ useEffect ~ swapParams.process:', swapParams.process)
-    if (sendEncryptedTxFunc !== null && !isRunning.current && swapParams.process === 4) {
+    if (
+      sendEncryptedTxFunc !== null &&
+      !isRunning.current &&
+      !isSigning.current &&
+      swapParams.encryptorDone &&
+      swapParams.signingDone
+    ) {
       console.log('4', swapParams, sendEncryptedTxFunc, sendEncryptedTx)
       isRunning.current = true
       sendEncryptedTxFunc()
@@ -639,11 +709,7 @@ export default function Swap({ history }: RouteComponentProps) {
 
   const handleConfirmDismiss = useCallback(() => {
     console.log('on dismiss')
-    setSwapState({
-      ...swapState,
-      showConfirm: false,
-    })
-    setSwapParams({ process: 0 })
+    setSwapParams({ start: false })
 
     // if there was a tx hash, we want to clear the input
     if (swapState.txHash) {
@@ -763,9 +829,23 @@ export default function Swap({ history }: RouteComponentProps) {
           <Wrapper id="swap-page">
             <HistoryModal isOpen={showHistory} onDismiss={() => setShowHistory(false)} />
             <ConfirmSwapModal
-              isOpen={swapState.showConfirm}
+              isOpen={swapParams.start}
               trade={trade}
-              progress={swapParams.process}
+              progress={
+                !swapParams.start
+                  ? 0
+                  : !swapParams.confirm
+                  ? 1
+                  : !swapParams.signingDone
+                  ? 2
+                  : !swapParams.timeLockPuzzleDone
+                  ? 3
+                  : !swapParams.encryptorDone
+                  ? 4
+                  : !swapParams.sent
+                  ? 5
+                  : 6
+              }
               originalTrade={swapState.tradeToConfirm}
               inputCurrency={currencies[Field.INPUT]}
               outputCurrency={currencies[Field.OUTPUT]}
@@ -1009,7 +1089,7 @@ export default function Swap({ history }: RouteComponentProps) {
             ) : (
               <SwapButtonError
                 onClick={() => {
-                  console.log('button click', isExpertMode, swapState.showConfirm, swapParams)
+                  console.log('button click', isExpertMode, swapParams)
                   if (isExpertMode) {
                     handleSwap()
                   } else {
@@ -1017,10 +1097,10 @@ export default function Swap({ history }: RouteComponentProps) {
                       ...swapState,
                       tradeToConfirm: trade,
                       swapErrorMessage: undefined,
-                      showConfirm: true,
                       txHash: undefined,
                       swapResponse: undefined,
                     })
+                    setSwapParams({ ...swapParams, start: true })
                   }
                 }}
                 id="swap-button"
