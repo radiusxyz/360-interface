@@ -175,8 +175,6 @@ function sleep(ms: number) {
 export default function Swap({ history }: RouteComponentProps) {
   const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
 
-  const isRunning = useRef<boolean>(false)
-
   const [swapState, setSwapState] = useState<{
     tradeToConfirm: Trade<Currency, Currency, TradeType> | undefined
     swapErrorMessage: string | undefined
@@ -405,8 +403,10 @@ export default function Swap({ history }: RouteComponentProps) {
 
   const worker = useMemo(() => new Worker(), [])
 
+  const isPuzzling = useRef<boolean>(false)
   useEffect(() => {
-    if (!swapParams.timeLockPuzzleData) {
+    if (!swapParams.timeLockPuzzleData && !isPuzzling.current) {
+      isPuzzling.current = true
       getTimeLockPuzzleParam().then((res) => {
         console.log('post to timeLockPuzzle', res)
         worker.postMessage({
@@ -421,6 +421,7 @@ export default function Swap({ history }: RouteComponentProps) {
   worker.onmessage = (e: MessageEvent<any>) => {
     if (e.data.target === 'timeLockPuzzle') {
       setSwapParams({ ...swapParams, timeLockPuzzleDone: true, timeLockPuzzleData: { ...e.data.data } })
+      isPuzzling.current = false
     }
     if (
       e.data.target === 'encryptor' &&
@@ -467,23 +468,10 @@ export default function Swap({ history }: RouteComponentProps) {
       }
 
       setSwapParams({ ...swapParams, encryptorDone: true, txHash, mimcHash, encryptedSwapTx })
+
+      isEncrypting.current = false
     }
   }
-
-  // useEffect(() => {
-  //   console.log(
-  //     '🚀 ~ file: index.tsx:428 ~ useEffect ~ swapParams.timeLockPuzzleData:',
-  //     getTimeLockPuzzle,
-  //     swapParams.timeLockPuzzleData
-  //   )
-  //   if (!isRunning.current && !swapParams.timeLockPuzzleData) {
-  //     isRunning.current = true
-  //     getTimeLockPuzzle().then((res) => {
-  //       setSwapParams({ ...swapParams, ...res })
-  //     })
-  //     isRunning.current = false
-  //   }
-  // }, [swapParams])
 
   const prepareSignMessageFunc = useCallback(async () => {
     if (prepareSignMessage) {
@@ -619,27 +607,30 @@ export default function Swap({ history }: RouteComponentProps) {
     }
   }, [sendEncryptedTx, onUserInput, swapParams, swapState])
 
+  const isPreparing = useRef<boolean>(false)
+
   useEffect(() => {
-    if (prepareSignMessageFunc !== null && !isRunning.current && swapParams.start && !swapParams.prepareDone) {
-      console.log('1', swapParams, prepareSignMessageFunc)
-      isRunning.current = true
-      prepareSignMessageFunc()
-      isRunning.current = false
+    if (prepareSignMessageFunc !== null && !isPreparing.current && swapParams.start && !swapParams.prepareDone) {
+      isPreparing.current = true
+      prepareSignMessageFunc().then(() => {
+        isPreparing.current = false
+      })
     }
-  }, [prepareSignMessageFunc, swapParams])
+  }, [prepareSignMessageFunc, swapParams.start, swapParams.prepareDone])
+
+  const isEncrypting = useRef<boolean>(false)
 
   useEffect(() => {
     if (
       createEncryptProofFunc !== null &&
-      !isRunning.current &&
+      !isEncrypting.current &&
       swapParams.timeLockPuzzleDone &&
       swapParams.prepareDone &&
       !swapParams.encryptorDone
     ) {
       console.log('2', swapParams, createEncryptProofFunc, createEncryptProof)
-      isRunning.current = true
+      isEncrypting.current = true
       createEncryptProofFunc()
-      isRunning.current = false
     }
   }, [swapParams, createEncryptProofFunc, createEncryptProof])
 
@@ -653,18 +644,15 @@ export default function Swap({ history }: RouteComponentProps) {
     }
   }, [swapParams, userSignFunc])
 
+  const isSending = useRef<boolean>(false)
+
   useEffect(() => {
-    if (
-      sendEncryptedTxFunc !== null &&
-      !isRunning.current &&
-      !isSigning.current &&
-      swapParams.encryptorDone &&
-      swapParams.signingDone
-    ) {
+    if (!isSending.current && swapParams.encryptorDone && swapParams.signingDone) {
       console.log('4', swapParams, sendEncryptedTxFunc, sendEncryptedTx)
-      isRunning.current = true
-      sendEncryptedTxFunc()
-      isRunning.current = false
+      isSending.current = true
+      sendEncryptedTxFunc().then(() => {
+        isSending.current = false
+      })
     }
   }, [swapParams, sendEncryptedTxFunc, sendEncryptedTx])
 

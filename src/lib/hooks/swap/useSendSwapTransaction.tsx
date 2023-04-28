@@ -329,6 +329,7 @@ export default function useSendSwapTransaction(
         sig: Signature,
         operatorAddress: string
       ): Promise<RadiusSwapResponse> {
+        console.log('run sendEncryptedTx', txHash, mimcHash, signMessage, encryptedSwapTx, sig, operatorAddress)
         let input = trade?.inputAmount?.numerator
         let output = trade?.outputAmount?.numerator
         input = !input ? JSBI.BigInt(0) : input
