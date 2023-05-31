@@ -64,11 +64,11 @@ function colors(darkMode: boolean): Colors {
     text1: darkMode ? '#FFFFFF' : '#000000',
     text1v2: darkMode ? '#FFFFFF' : '#000000',
     text2: darkMode ? '#C3C5CB' : '#565A69',
-    text2v2: darkMode ? '#C3C5CB' : '#565A69',
+    text2v2: darkMode ? '#C3C5CB' : '#ffffff',
     text3: darkMode ? '#8F96AC' : '#6E727D',
-    text3v2: darkMode ? '#8F96AC' : '#6E727D',
+    text3v2: darkMode ? '#8F96AC' : '#6B11FF',
     text4: darkMode ? '#B2B9D2' : '#C3C5CB',
-    text4v2: darkMode ? '#B2B9D2' : '#C3C5CB',
+    text4v2: darkMode ? '#B2B9D2' : '#C5C5C5',
     text5: darkMode ? '#2C2F36' : '#EDEEF2',
     text5v2: darkMode ? '#2C2F36' : '#EDEEF2',
 
@@ -94,9 +94,9 @@ function colors(darkMode: boolean): Colors {
 
     //primary colors
     primary1: darkMode ? '#2172E5' : '#e84523',
-    primary1v2: darkMode ? '#2172E5' : '#e84523',
+    primary1v2: darkMode ? '#2172E5' : '#6B11FF',
     primary2: darkMode ? '#3680E7' : '#FF8CC3',
-    primary2v2: darkMode ? '#3680E7' : '#FF8CC3',
+    primary2v2: darkMode ? '#3680E7' : '#E1E1FF',
     primary3: darkMode ? '#4D8FEA' : '#FF99C9',
     primary3v2: darkMode ? '#4D8FEA' : '#FF99C9',
     primary4: darkMode ? '#376bad70' : '#F6DDE8',

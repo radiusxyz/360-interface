@@ -2,11 +2,27 @@ import useTheme from 'hooks/useTheme'
 import { darken } from 'polished'
 import { Check, ChevronDown } from 'react-feather'
 import { Button as RebassButton, ButtonProps as ButtonPropsOriginal } from 'rebass/styled-components'
-import styled from 'styled-components/macro'
-
+import styled, { keyframes } from 'styled-components/macro'
 import { RowBetween } from '../Row'
+import loadingIcon from '../../assets/images/loading.png'
 
 type ButtonProps = Omit<ButtonPropsOriginal, 'css'>
+
+const rotate = () => keyframes`
+from {
+  transform: rotate(0deg);
+}
+to {
+  transform: rotate(360deg);
+}
+`
+const Loading = styled.img.attrs((props) => ({
+  src: loadingIcon,
+  width: '12px',
+  height: '12px',
+}))`
+  animation: ${rotate} 2s linear infinite;
+`
 
 export const BaseButton = styled(RebassButton)<
   {
@@ -14,6 +30,8 @@ export const BaseButton = styled(RebassButton)<
     width?: string
     $borderRadius?: string
     altDisabledStyle?: boolean
+    loading?: boolean
+    disabled?: boolean
   } & ButtonProps
 >`
   padding: ${({ padding }) => padding ?? '14px'};
@@ -51,15 +69,6 @@ export const BaseButton = styled(RebassButton)<
   }
 `
 
-export const ButtonPrimaryV2 = styled(BaseButton)`
-  background-color: #6b11ff;
-  border-radius: 0;
-  font-size: 18px;
-  font-weight: 500px;
-  color: #ffffff;
-  padding-top: 13px;
-`
-
 export const ButtonPrimary = styled(BaseButton)`
   background-color: ${({ theme }) => theme.primary1};
   color: white;
@@ -85,6 +94,43 @@ export const ButtonPrimary = styled(BaseButton)`
     outline: none;
   }
 `
+
+export const StyledButtonPrimaryV2 = styled(BaseButton)`
+  background-color: ${({ theme, loading, disabled }) =>
+    (loading && theme.primary2v2) || (disabled && 'transparent') || theme.primary1v2}};
+  border-radius: 0;
+  font-size: 18px;
+  font-weight: 500px;
+  color: ${({ theme, loading, disabled }) =>
+    (loading && theme.text3v2) || (disabled && theme.text4v2) || theme.text2v2}};
+  padding-top: 13px;
+  outline: ${({ theme, disabled }) => disabled && `1px solid ${theme.text4v2}`};
+  &: hover {
+
+  }
+  &: active {
+s
+  }
+  &: disabled {
+
+  }
+`
+
+export const ButtonPrimaryV2 = ({
+  disabled,
+  loading,
+  children,
+  ...rest
+}: { disabled?: boolean; loading?: boolean } & ButtonProps) => {
+  return (
+    <StyledButtonPrimaryV2 disabled={disabled} loading={loading}>
+      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', justifyContent: 'center' }}>
+        {loading && <Loading />}
+        {children}
+      </div>
+    </StyledButtonPrimaryV2>
+  )
+}
 
 export const ButtonLight = styled(BaseButton)`
   background-color: ${({ theme }) => theme.primary5};
