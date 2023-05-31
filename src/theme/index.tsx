@@ -62,19 +62,31 @@ function colors(darkMode: boolean): Colors {
 
     // text
     text1: darkMode ? '#FFFFFF' : '#000000',
+    text1v2: darkMode ? '#FFFFFF' : '#000000',
     text2: darkMode ? '#C3C5CB' : '#565A69',
+    text2v2: darkMode ? '#C3C5CB' : '#565A69',
     text3: darkMode ? '#8F96AC' : '#6E727D',
+    text3v2: darkMode ? '#8F96AC' : '#6E727D',
     text4: darkMode ? '#B2B9D2' : '#C3C5CB',
+    text4v2: darkMode ? '#B2B9D2' : '#C3C5CB',
     text5: darkMode ? '#2C2F36' : '#EDEEF2',
+    text5v2: darkMode ? '#2C2F36' : '#EDEEF2',
 
     // backgrounds / greys
-    bg0: darkMode ? '#191B1F' : '#FFFFFF',
+    bg0: darkMode ? '#191B1F' : '#FFF',
+    bg0v2: darkMode ? '#191B1F' : '#FFFFFF',
     bg1: darkMode ? '#212429' : '#F7F8FA',
+    bg1v2: darkMode ? '#212429' : '#F7F8FA',
     bg2: darkMode ? '#2C2F36' : '#EDEEF2',
+    bg2v2: darkMode ? '#2C2F36' : '#EDEEF2',
     bg3: darkMode ? '#40444F' : '#CED0D9',
+    bg3v2: darkMode ? '#40444F' : '#CED0D9',
     bg4: darkMode ? '#565A69' : '#888D9B',
+    bg4v2: darkMode ? '#565A69' : '#888D9B',
     bg5: darkMode ? '#6C7284' : '#888D9B',
+    bg5v2: darkMode ? '#6C7284' : '#888D9B',
     bg6: darkMode ? '#1A2028' : '#6C7284',
+    bg6v2: darkMode ? '#1A2028' : '#6C7284',
 
     //specialty colors
     modalBG: darkMode ? 'rgba(0,0,0,.425)' : 'rgba(0,0,0,0.3)',
@@ -82,18 +94,26 @@ function colors(darkMode: boolean): Colors {
 
     //primary colors
     primary1: darkMode ? '#2172E5' : '#e84523',
+    primary1v2: darkMode ? '#2172E5' : '#e84523',
     primary2: darkMode ? '#3680E7' : '#FF8CC3',
+    primary2v2: darkMode ? '#3680E7' : '#FF8CC3',
     primary3: darkMode ? '#4D8FEA' : '#FF99C9',
-    primary4: darkMode ? '#376bad70' : '#FFFFFF',
+    primary3v2: darkMode ? '#4D8FEA' : '#FF99C9',
+    primary4: darkMode ? '#376bad70' : '#F6DDE8',
+    primary4v2: darkMode ? '#376bad70' : '#FFFFFF',
     primary5: darkMode ? '#153d6f70' : '#ef9c3230',
+    primary5v2: darkMode ? '#153d6f70' : '#ef9c3230',
 
     // color text
     primaryText1: darkMode ? '#5090ea' : '#e83921',
 
     // secondary colors
-    secondary1: darkMode ? '#2172E5' : '#ffffff',
+    secondary1: darkMode ? '#2172E5' : '#e84523',
+    secondary1v2: darkMode ? '#2172E5' : '#FFFFFF',
     secondary2: darkMode ? '#17000b26' : '#F6DDE8',
+    secondary2v2: darkMode ? '#17000b26' : '#F6DDE8',
     secondary3: darkMode ? '#17000b26' : '#ef9c3230',
+    secondary3v2: darkMode ? '#17000b26' : '#ef9c3230',
 
     // other
     red1: darkMode ? '#FF4343' : '#DA2D2B',

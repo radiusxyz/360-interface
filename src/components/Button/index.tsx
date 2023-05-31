@@ -51,6 +51,15 @@ export const BaseButton = styled(RebassButton)<
   }
 `
 
+export const ButtonPrimaryV2 = styled(BaseButton)`
+  background-color: #6b11ff;
+  border-radius: 0;
+  font-size: 18px;
+  font-weight: 500px;
+  color: #ffffff;
+  padding-top: 13px;
+`
+
 export const ButtonPrimary = styled(BaseButton)`
   background-color: ${({ theme }) => theme.primary1};
   color: white;

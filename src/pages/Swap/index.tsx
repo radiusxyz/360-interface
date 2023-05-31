@@ -35,7 +35,7 @@ import styled, { ThemeContext } from 'styled-components/macro'
 import Worker from 'worker-loader!../../workers/worker'
 
 import AddressInputPanel from '../../components/AddressInputPanel'
-import { ButtonConfirmed, ButtonError, ButtonLight, ButtonPrimary } from '../../components/Button'
+import { ButtonConfirmed, ButtonError, ButtonLight, ButtonPrimary, ButtonPrimaryV2 } from '../../components/Button'
 import { AutoColumn } from '../../components/Column'
 import CurrencyInputPanel from '../../components/CurrencyInputPanel'
 import CurrencyLogo from '../../components/CurrencyLogo'
@@ -63,10 +63,32 @@ import { useExpertModeManager } from '../../state/user/hooks'
 import { LinkStyledButton, ThemedText } from '../../theme'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { warningSeverity } from '../../utils/prices'
-import AppBody from '../AppBody'
+import SwapSection from '../SwapSection'
 
 const MAXIMUM_PATH_LENGTH = 3
 const swapExactTokensForTokens = '0x73a2cff1'
+
+const InfoAndSwapWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  max-height: 381px;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+`
+
+const InfoSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #dde0ff;
+  background-color: #ffffff;
+  border-radius: 4px;
+  box-shadow: 0px 4px 21px rgba(90, 18, 61, 0.1);
+  width: 100%;
+  max-width: 500px;
+`
 
 const SwapButtonConfirmed = styled(ButtonConfirmed)`
   margin: 10px 0px 24px 0px;
@@ -778,23 +800,20 @@ export default function Swap({ history }: RouteComponentProps) {
 
   // TODO: CLEAR CACHE 자동로딩
   return (
-    <>
+    <InfoAndSwapWrapper>
       {/* <TokenWarningModal
         isOpen={importTokensNotInDefault.length > 0 && !dismissTokenWarning}
         tokens={importTokensNotInDefault}
         onConfirm={handleConfirmTokenWarning}
         onDismiss={handleDismissTokenWarning}
       /> */}
-
-      <AppBody>
-        <div
-          style={{
-            background: '#000000',
-            borderRadius: '6px',
-            padding: '4px',
-            border: '1.5px solid #5560a3',
-          }}
-        >
+      <InfoSection>
+        <ButtonPrimaryV2>
+          <Trans>Connect Wallet</Trans>
+        </ButtonPrimaryV2>
+      </InfoSection>
+      <SwapSection maxWidth="372px">
+        <>
           <SwapHeader allowedSlippage={allowedSlippage} />
           <Wrapper id="swap-page">
             <HistoryModal isOpen={showHistory} onDismiss={() => setShowHistory(false)} />
@@ -941,8 +960,7 @@ export default function Swap({ history }: RouteComponentProps) {
               </div>
             </div>
           </Wrapper>
-        </div>
-
+        </>
         <div style={{ margin: '10px 35px 0px 35px' }}>
           {recipient !== null && !showWrap ? (
             <>
@@ -1135,12 +1153,13 @@ export default function Swap({ history }: RouteComponentProps) {
             ></motion.div>
           </motion.div>
         </div>
-      </AppBody>
+      </SwapSection>
       <motion.div
         custom={'paper'}
         animate={controls}
         initial={{ height: '0px', opacity: 0 }}
         style={{
+          display: 'none',
           background: 'linear-gradient(180deg, #000000 0%, #cdcdcd 6.31%)',
           overflow: 'hidden',
           maxWidth: '400px',
@@ -1279,6 +1298,6 @@ export default function Swap({ history }: RouteComponentProps) {
           currencies={[currencies[Field.INPUT], currencies[Field.OUTPUT]]}
         />
       )}
-    </>
+    </InfoAndSwapWrapper>
   )
 }
