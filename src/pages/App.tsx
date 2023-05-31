@@ -47,6 +47,8 @@ const HeaderWrapper = styled.div`
   position: fixed;
   top: 0;
   z-index: 2;
+  max-height: 60px;
+  height: 100%;
 `
 
 const Marginer = styled.div`

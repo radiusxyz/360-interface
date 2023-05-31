@@ -55,8 +55,7 @@ export default function RadialGradientByChainUpdater(): null {
         setBackground(backgroundResetStyles)
         const polygonLightGradient =
           'radial-gradient(153.32% 100% at 47.26% 0%, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0)  100%), #FFFFFF'
-        const polygonDarkGradient =
-          'radial-gradient(150.6% 98.22% at 48.06% 0%, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0) 100%), #090909'
+        const polygonDarkGradient = 'radial-gradient(#e9e9ff 0%, #ffffff 100%)'
         backgroundRadialGradientElement.style.background = darkMode ? polygonDarkGradient : polygonLightGradient
         backgroundRadialGradientElement.style.backgroundBlendMode = darkMode ? 'overlay,normal' : 'multiply,normal'
         break

@@ -110,7 +110,6 @@ const SelectorLabel = styled(NetworkLabel)`
   display: none;
   @media screen and (min-width: ${MEDIA_WIDTHS.upToSmall}px) {
     display: block;
-    margin-right: 8px;
   }
 `
 const SelectorControls = styled.div<{ interactive: boolean }>`

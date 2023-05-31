@@ -34,9 +34,10 @@ const Web3StatusGeneric = styled(ButtonSecondary)`
   ${({ theme }) => theme.flexRowNoWrap}
   width: 100%;
   align-items: center;
-  padding: 0.5rem;
-  border-radius: 0px;
+  padding: 12px 52px;
+  border-radius: 43px;
   cursor: pointer;
+  border: 1px solid #9aa4ff;
   user-select: none;
   height: 36px;
 
@@ -60,7 +61,6 @@ const Web3StatusError = styled(Web3StatusGeneric)`
 
 const Web3StatusConnect = styled(Web3StatusGeneric)<{ faded?: boolean }>`
   background-color: ${({ theme }) => theme.primary4};
-  border: none;
 
   color: ${({ theme }) => theme.primaryText1};
   font-weight: 500;
@@ -68,8 +68,9 @@ const Web3StatusConnect = styled(Web3StatusGeneric)<{ faded?: boolean }>`
   ${({ faded }) =>
     faded &&
     css`
-      background-color: ${({ theme }) => theme.primary5};
+      background-color: ${({ theme }) => theme.primary4};
       border: none;
+      border: 1px solid #9aa4ff;
       // border: 1px solid ${({ theme }) => theme.primary5};
       color: ${({ theme }) => theme.primaryText1};
     `}
@@ -91,10 +92,13 @@ const Text = styled.p`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  margin: 0 0.5rem 0 0.25rem;
-  font-size: 1rem;
+  font-size: 18px;
+  line-height: 100%;
   width: fit-content;
   font-weight: 500;
+  color: #4e4e4e;
+  height: auto;
+  margin: 0;
 `
 
 const NetworkIcon = styled(Activity)`
@@ -151,7 +155,7 @@ function Web3StatusInner() {
           <RowBetween>
             <Text>
               <Trans>{pending?.length} Pending</Trans>
-            </Text>{' '}
+            </Text>
             <Loader stroke="white" />
           </RowBetween>
         ) : (
@@ -174,7 +178,7 @@ function Web3StatusInner() {
     return (
       <Web3StatusConnect id="connect-wallet" onClick={toggleWalletModal} faded={!account}>
         <Text>
-          <Trans>Connect Wallet</Trans>
+          <Trans>Connect</Trans>
         </Text>
       </Web3StatusConnect>
     )

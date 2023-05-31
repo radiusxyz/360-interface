@@ -17,19 +17,26 @@ import Web3Status from '../Web3Status'
 import HolidayOrnament from './HolidayOrnament'
 import NetworkSelector from './NetworkSelector'
 
+// const OutMostWrapper = styled.div`
+//   background: ${({ theme }) => theme.bg0};
+//   display: flex;
+//   width: 100%;
+//   justify-content: center;
+//   border: 1px solid #dde0ff;
+// `
+
 const HeaderFrame = styled.div<{ showBackground: boolean }>`
   display: flex;
   grid-template-columns: 120px 1fr 1fr;
   justify-content: space-between;
   align-items: center;
-  flex-direction: row;
+  gap: 10px;
   width: 100%;
   top: 0;
-  position: relative;
-  padding-left: 1rem;
-  padding-right: 1rem;
   z-index: 21;
   position: relative;
+  background: ${({ theme }) => theme.bg0};
+  border-bottom: 1px solid #dde0ff;
   /* Background slide effect on scroll. */
   background-image: ${({ theme }) => `linear-gradient(to bottom, transparent 50%, ${theme.bg0} 50% )}}`};
   background-position: ${({ showBackground }) => (showBackground ? '0 -100%' : '0 0')};
@@ -41,18 +48,15 @@ const HeaderFrame = styled.div<{ showBackground: boolean }>`
 
 const HeaderControls = styled.div`
   display: flex;
-  flex-direction: row;
   align-items: center;
   justify-self: flex-end;
+  margin-right: 175px;
+  gap: 47px;
 `
 
 const HeaderElement = styled.div`
   display: flex;
   align-items: center;
-
-  &:not(:first-child) {
-    margin-left: 0.5em;
-  }
 
   /* addresses safari's lack of support for "gap" */
   & > *:not(:first-child) {
@@ -67,12 +71,12 @@ const HeaderElement = styled.div`
 const HeaderLinks = styled(Row)`
   justify-self: center;
   width: fit-content;
-  padding: 2px;
   display: grid;
   grid-auto-flow: column;
-  grid-gap: 10px;
-  overflow: auto;
+  grid-gap: 59px;
+  margin-left: 400px;
   align-items: center;
+  overflow: hidden;
   ${({ theme }) => theme.mediaWidth.upToLarge`
     justify-self: center;  
     `};
@@ -80,7 +84,6 @@ const HeaderLinks = styled(Row)`
     justify-self: center;
   `};
   ${({ theme }) => theme.mediaWidth.upToMedium`
-    flex-direction: row;
     justify-content: space-between;
     justify-self: center;
     z-index: 99;
@@ -97,12 +100,9 @@ const HeaderLinks = styled(Row)`
 //   background-color: ${({ theme, active }) => (!active ? theme.bg0 : theme.bg0)};
 const AccountElement = styled.div<{ active: boolean }>`
   display: flex;
-  flex-direction: row;
   align-items: center;
-  background-color: #15151e;
   white-space: nowrap;
   width: 100%;
-  height: 40px;
 `
 
 // const UNIAmount = styled(AccountElement)`
@@ -134,13 +134,17 @@ const BalanceText = styled(Text)`
   `};
 `
 
-const Title = styled.a`
+const TitleWrapper = styled.div`
   display: flex;
-  align-items: center;
+  margin-left: 28px;
+  font-size: 24px;
+`
+
+const Title = styled.a`
   pointer-events: auto;
-  justify-self: flex-start;
   text-decoration: none;
-  padding-right: 12px;
+  color: #6b11ff;
+  font-weight: bolder;
   ${({ theme }) => theme.mediaWidth.upToSmall`
     justify-self: center;
   `};
@@ -167,6 +171,7 @@ const StyledNavLink = styled(NavLink).attrs({
   ${({ theme }) => theme.flexRowNoWrap}
   align-items: left;
   outline: none;
+  white-space: nowrap;
   cursor: pointer;
   text-decoration: none;
   color: ${({ theme }) => theme.text2};
@@ -196,12 +201,12 @@ const StyledExternalLink = styled(ExternalLink).attrs({
   align-items: left;
   border-radius: 3rem;
   outline: none;
+  white-space: nowrap;
   cursor: pointer;
   text-decoration: none;
   color: ${({ theme }) => theme.text2};
   font-size: 1rem;
   width: fit-content;
-  margin: 0 12px;
   font-weight: 500;
 
   &.${activeClassName} {
@@ -232,48 +237,56 @@ export default function Header() {
   } = CHAIN_INFO[chainId ? chainId : SupportedChainId.MAINNET]
 
   return (
-    <div style={{ background: '#0E0E0E', display: 'flex', width: '100%', justifyContent: 'center' }}>
-      <HeaderFrame style={{ maxWidth: '1280px' }} showBackground={scrollY > 45}>
+    <HeaderFrame showBackground={scrollY > 45}>
+      <TitleWrapper>
         <Title href=".">
-          <Icon>
-            {/* <img src={Logo} width="28px" height="100%" alt="logo" /> */}
-            <HolidayOrnament />
-          </Icon>
-          <h2 style={{ color: '#ffffff', fontWeight: 'bolder' }}>360°</h2>
+          <>
+            <Icon>
+              {/* <img src={Logo} width="28px" height="100%" alt="logo" /> */}
+              <HolidayOrnament />
+            </Icon>
+            360°
+          </>
         </Title>
-        <HeaderLinks>
-          <StyledNavLink id={`swap-nav-link`} to={'/swap'}>
-            <Trans>Swap</Trans>
-          </StyledNavLink>
-          {/* <StyledExternalLink id={`charts-nav-link`} href={infoLink}>
+      </TitleWrapper>
+      <HeaderLinks>
+        <StyledNavLink id={`swap-nav-link`} to={'/swap'}>
+          <Trans>Swap</Trans>
+        </StyledNavLink>
+        {/* <StyledExternalLink id={`charts-nav-link`} href={infoLink}>
             <Trans>Docs</Trans>
           </StyledExternalLink> */}
-          <StyledExternalLink id={`charts-nav-link`} href={infoLink}>
-            <Trans>About</Trans>
-          </StyledExternalLink>
-        </HeaderLinks>
+        <StyledExternalLink id={`charts-nav-link`} href={infoLink}>
+          <Trans>About</Trans>
+        </StyledExternalLink>
+        <StyledExternalLink id={`history-nav-link`} href={infoLink}>
+          <Trans>History</Trans>
+        </StyledExternalLink>
+        <StyledExternalLink id={`my-profit-nav-link`} href={infoLink}>
+          <Trans>My Profit</Trans>
+        </StyledExternalLink>
+      </HeaderLinks>
 
-        <HeaderControls>
-          <HeaderElement>
-            <NetworkSelector />
-          </HeaderElement>
-          <HeaderElement>
-            <AccountElement active={!!account}>
-              {/*account && userEthBalance ? (
+      <HeaderControls>
+        <HeaderElement>
+          <NetworkSelector />
+        </HeaderElement>
+        <HeaderElement>
+          <AccountElement active={!!account}>
+            {/*account && userEthBalance ? (
                 <BalanceText style={{ flexShrink: 0, userSelect: 'none' }} pl="0.75rem" pr="0.5rem" fontWeight={500}>
                   <Trans>
                     {userEthBalance?.toSignificant(3)} {nativeCurrencySymbol}
                   </Trans>
                 </BalanceText>
               ) : null*/}
-              <Web3Status />
-            </AccountElement>
-          </HeaderElement>
-          {/* <HeaderElement>
+            <Web3Status />
+          </AccountElement>
+        </HeaderElement>
+        {/* <HeaderElement>
             <Menu />
           </HeaderElement> */}
-        </HeaderControls>
-      </HeaderFrame>
-    </div>
+      </HeaderControls>
+    </HeaderFrame>
   )
 }

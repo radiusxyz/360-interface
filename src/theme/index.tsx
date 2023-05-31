@@ -52,8 +52,8 @@ const white = '#FFFFFF'
 const black = '#000000'
 
 function colors(darkMode: boolean): Colors {
-  // force darkMode
-  darkMode = true
+  // force light mode
+  darkMode = false
   return {
     darkMode,
     // base
@@ -68,7 +68,7 @@ function colors(darkMode: boolean): Colors {
     text5: darkMode ? '#2C2F36' : '#EDEEF2',
 
     // backgrounds / greys
-    bg0: darkMode ? '#191B1F' : '#FFF',
+    bg0: darkMode ? '#191B1F' : '#FFFFFF',
     bg1: darkMode ? '#212429' : '#F7F8FA',
     bg2: darkMode ? '#2C2F36' : '#EDEEF2',
     bg3: darkMode ? '#40444F' : '#CED0D9',
@@ -84,14 +84,14 @@ function colors(darkMode: boolean): Colors {
     primary1: darkMode ? '#2172E5' : '#e84523',
     primary2: darkMode ? '#3680E7' : '#FF8CC3',
     primary3: darkMode ? '#4D8FEA' : '#FF99C9',
-    primary4: darkMode ? '#376bad70' : '#F6DDE8',
+    primary4: darkMode ? '#376bad70' : '#FFFFFF',
     primary5: darkMode ? '#153d6f70' : '#ef9c3230',
 
     // color text
     primaryText1: darkMode ? '#5090ea' : '#e83921',
 
     // secondary colors
-    secondary1: darkMode ? '#2172E5' : '#e84523',
+    secondary1: darkMode ? '#2172E5' : '#ffffff',
     secondary2: darkMode ? '#17000b26' : '#F6DDE8',
     secondary3: darkMode ? '#17000b26' : '#ef9c3230',
 
