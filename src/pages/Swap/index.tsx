@@ -7,6 +7,7 @@ import { Trade as V2Trade } from '@uniswap/v2-sdk'
 import { Trade as V3Trade } from '@uniswap/v3-sdk'
 import Off from 'assets/images/off.png'
 import On from 'assets/images/on.png'
+import ferrisWheel from 'assets/images/ferris_wheel.png'
 import SwapDetailsDropdown from 'components/swap/SwapDetailsDropdown'
 import UnsupportedCurrencyFooter from 'components/swap/UnsupportedCurrencyFooter'
 import { MouseoverTooltip } from 'components/Tooltip'
@@ -82,12 +83,27 @@ const InfoSection = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 12px;
   border: 1px solid #dde0ff;
   background-color: #ffffff;
   border-radius: 4px;
   box-shadow: 0px 4px 21px rgba(90, 18, 61, 0.1);
   width: 100%;
   max-width: 500px;
+`
+
+const FerrisWheel = styled.img.attrs(() => ({
+  src: ferrisWheel,
+  height: '60px',
+  width: '60px',
+}))``
+
+const GreetingMessage = styled.p`
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 26.97px;
+  color: #5800af;
+  margin: 0;
 `
 
 const SwapButtonConfirmed = styled(ButtonConfirmed)`
@@ -808,9 +824,9 @@ export default function Swap({ history }: RouteComponentProps) {
         onDismiss={handleDismissTokenWarning}
       /> */}
       <InfoSection>
-        <ButtonPrimaryV2>
-          <Trans>Connect Wallet</Trans>
-        </ButtonPrimaryV2>
+        {' '}
+        <FerrisWheel />
+        <GreetingMessage>Welcome to 360°</GreetingMessage>
       </InfoSection>
       <SwapSection maxWidth="372px">
         <>
