@@ -71,7 +71,6 @@ const StyledMenu = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #000000;
   position: relative;
   border: none;
   text-align: left;
@@ -179,7 +178,9 @@ export default function SettingsTab({ placeholderSlippage }: { placeholderSlippa
         </ModalContentWrapper>
       </Modal> */}
       <StyledMenuButton onClick={toggle} id="open-settings-dialog-button" aria-label={t`Transaction Settings`}>
-        <img src={settingImage} width={'24px'} height={'24px'} alt={'settings'} style={{ marginRight: '20px' }} />
+        <div style={{ width: '16.67px', height: '16.67px' }}>
+          <img width="16.67px" height="16.67px" src={settingImage} alt={'settings'} style={{ filter: 'invert(50%)' }} />
+        </div>
         {expertMode ? (
           <EmojiWrapper>
             <span role="img" aria-label="wizard-icon">

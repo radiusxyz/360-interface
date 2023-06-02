@@ -12,7 +12,6 @@ import TradePrice from './TradePrice'
 
 export const Wrapper = styled.div`
   position: relative;
-  padding: 6px 16px 14px 16px;
 `
 
 export const ArrowWrapper = styled.div<{ clickable: boolean }>`

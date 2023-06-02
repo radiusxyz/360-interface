@@ -11,7 +11,6 @@ const StyledInput = styled.input<{ error?: boolean; fontSize?: string; align?: s
   outline: none;
   border: none;
   flex: 1 1 auto;
-  background: #101010;
   border-radius: 20px;
   height: 40px;
   font-size: ${({ fontSize }) => fontSize ?? '28px'};

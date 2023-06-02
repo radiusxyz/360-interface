@@ -165,7 +165,19 @@ export const ButtonGray = styled(BaseButton)`
   color: ${({ theme }) => theme.text2};
   font-size: 16px;
   font-weight: 500;
+  &:hover {
+    background-color: ${({ theme, disabled }) => !disabled && darken(0.05, theme.bg2)};
+  }
+  &:active {
+    background-color: ${({ theme, disabled }) => !disabled && darken(0.1, theme.bg2)};
+  }
+`
 
+export const ButtonGrayV2 = styled(BaseButton)`
+  background-color: ${({ theme }) => theme.bg1};
+  color: ${({ theme }) => theme.text2};
+  font-size: 16px;
+  font-weight: 500;
   &:hover {
     background-color: ${({ theme, disabled }) => !disabled && darken(0.05, theme.bg2)};
   }

@@ -817,14 +817,7 @@ export default function Swap({ history }: RouteComponentProps) {
   // TODO: CLEAR CACHE 자동로딩
   return (
     <InfoAndSwapWrapper>
-      {/* <TokenWarningModal
-        isOpen={importTokensNotInDefault.length > 0 && !dismissTokenWarning}
-        tokens={importTokensNotInDefault}
-        onConfirm={handleConfirmTokenWarning}
-        onDismiss={handleDismissTokenWarning}
-      /> */}
       <InfoSection>
-        {' '}
         <FerrisWheel />
         <GreetingMessage>Welcome to 360°</GreetingMessage>
       </InfoSection>
@@ -895,18 +888,6 @@ export default function Swap({ history }: RouteComponentProps) {
                   <div style={{ position: 'absolute', margin: '8px' }}>
                     <BsArrowDown size="16" color={'#ffffff'} />
                   </div>
-                  {/* <FadeWrapper>
-                    <RotateWrapper>
-                      <BsArrowDown
-                        size="16"
-                        onClick={() => {
-                          // setApprovalSubmitted(false) // reset 2 step UI for approvals
-                          // onSwitchTokens()
-                        }}
-                        color={'#ffffff'}
-                      />
-                    </RotateWrapper>
-                  </FadeWrapper> */}
                 </ArrowWrapper>
                 <CurrencyInputPanel
                   value={formattedAmounts[Field.OUTPUT]}
@@ -930,51 +911,6 @@ export default function Swap({ history }: RouteComponentProps) {
                 />
               </div>
             </AutoColumn>
-            <div
-              style={{
-                display: 'flex',
-                width: '100%',
-                justifyContent: 'right',
-                textAlign: 'right',
-                height: '20px',
-                marginTop: '14px',
-                marginBottom: '2px',
-                alignItems: 'center',
-                color: '#b3b3b3',
-                fontSize: '13px',
-              }}
-            >
-              <div style={{ display: 'flex', verticalAlign: 'bottom' }}>
-                <MouseoverTooltip
-                  text={
-                    <Trans>
-                      Protect Your Swap: Turn ON for full protection against malicious MEV activity. Your transaction
-                      may revert if at risk to an attack. Turn OFF to proceed the swap with potential exposure to MEV
-                      and lower-price swaps.
-                    </Trans>
-                  }
-                >
-                  <Info
-                    style={{
-                      stroke: '1px',
-                      width: '18px',
-                      height: '18px',
-                    }}
-                  />
-                </MouseoverTooltip>
-              </div>
-              <div style={{ marginLeft: '6px', marginRight: '10px' }}>MEV Protection Guarantee</div>
-              <div
-                style={{ marginRight: '4px', height: '100%' }}
-                onClick={() => setSwapParams({ ...swapParams, backerIntegrity: !swapState.backerIntegrity })}
-              >
-                {swapState.backerIntegrity ? (
-                  <img src={On} width="49px" height="22px" alt={'checked'} />
-                ) : (
-                  <img src={Off} width="49px" height="22px" alt={'unchecked'} />
-                )}
-              </div>
-            </div>
           </Wrapper>
         </>
         <div style={{ margin: '10px 35px 0px 35px' }}>
