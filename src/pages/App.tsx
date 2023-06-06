@@ -6,7 +6,6 @@ import { Suspense, useEffect } from 'react'
 import { Route, Switch } from 'react-router-dom'
 import { useAppDispatch } from 'state/hooks'
 import styled from 'styled-components/macro'
-
 import GoogleAnalyticsReporter from '../components/analytics/GoogleAnalyticsReporter'
 import ErrorBoundary from '../components/ErrorBoundary'
 import Header from '../components/Header'
@@ -19,6 +18,7 @@ import DarkModeQueryParamReader from '../theme/DarkModeQueryParamReader'
 import Footer from './Footer'
 import Swap from './Swap'
 import { RedirectPathToSwapOnly, RedirectToSwap } from './Swap/redirects'
+import '../index.css'
 
 const AppWrapper = styled.div`
   display: flex;

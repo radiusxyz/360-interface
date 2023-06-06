@@ -126,13 +126,21 @@ const SwapButtonError = styled(ButtonError)`
     background: #0066ff;
   }
 `
-const SwapButtonLight = styled(ButtonLight)`
-  margin: 10px 0px 24px 0px;
-  background: linear-gradient(97deg, #0057ff 10%, #00ff66 65%, #2cff9a 100%);
-  color: #ffffff;
-  border-radius: 4px;
-  border: 0px solid #fff;
+// const SwapButtonLight = styled(ButtonLight)`
+//   background: #6b11ff;
+//   color: #ffffff;
+//   padding: 13px;
+//   font-weight: 500;
+//   width: 100%;
+//   font-size: 18px;
+//   line-height: 144.52%;
+//   border-radius: 0;
+// `
+
+const SwapButtonLight = styled(ButtonPrimaryV2)`
+  margin: 0;
 `
+
 const SwapButtonPrimary = styled(ButtonPrimary)`
   margin: 10px 0px 24px 0px;
   background: #cccccc;
@@ -190,6 +198,13 @@ export const FadeWrapper = styled.div`
     animation: fade linear 0.3s;
     animation-fill-mode: forwards;
   }
+`
+const Divider = styled.div`
+  outline: 1px solid #dde0ff;
+  box-shadow: 0px 4px 21px rgba(90, 18, 61, 0.1);
+  border-radius: 4px;
+  width: 100%;
+  height: 1px;
 `
 
 function emptyCache() {
@@ -871,7 +886,7 @@ export default function Swap({ history }: RouteComponentProps) {
                   }
                   value={formattedAmounts[Field.INPUT]}
                   disableNonToken={true}
-                  showMaxButton={true}
+                  showMaxButton={false}
                   currency={currencies[Field.INPUT]}
                   onUserInput={handleTypeInput}
                   onMax={handleMaxInput}
@@ -885,8 +900,16 @@ export default function Swap({ history }: RouteComponentProps) {
                   loading={independentField === Field.OUTPUT && routeIsSyncing}
                 />
                 <ArrowWrapper clickable={false}>
-                  <div style={{ position: 'absolute', margin: '8px' }}>
-                    <BsArrowDown size="16" color={'#ffffff'} />
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      position: 'absolute',
+                      margin: '8px',
+                    }}
+                  >
+                    <BsArrowDown size="16" color={'#DDE0FF'} />
                   </div>
                 </ArrowWrapper>
                 <CurrencyInputPanel
@@ -913,7 +936,7 @@ export default function Swap({ history }: RouteComponentProps) {
             </AutoColumn>
           </Wrapper>
         </>
-        <div style={{ margin: '10px 35px 0px 35px' }}>
+        <div style={{ padding: '40px 24px 24px 24px' }}>
           {recipient !== null && !showWrap ? (
             <>
               <AutoRow justify="space-between" style={{ padding: '0 1rem' }}>
@@ -927,18 +950,16 @@ export default function Swap({ history }: RouteComponentProps) {
               <AddressInputPanel id="recipient" value={recipient} onChange={onChangeRecipient} />
             </>
           ) : null}
-          <div style={{ height: '34px' }}>
-            {!showWrap && userHasSpecifiedInputOutput && (trade || routeIsLoading || routeIsSyncing) ? (
-              <SwapDetailsDropdown
-                trade={trade}
-                syncing={routeIsSyncing}
-                loading={routeIsLoading}
-                showInverted={showInverted}
-                setShowInverted={setShowInverted}
-                allowedSlippage={allowedSlippage}
-              />
-            ) : null}
-          </div>
+          {!showWrap && userHasSpecifiedInputOutput && (trade || routeIsLoading || routeIsSyncing) ? (
+            <SwapDetailsDropdown
+              trade={trade}
+              syncing={routeIsSyncing}
+              loading={routeIsLoading}
+              showInverted={showInverted}
+              setShowInverted={setShowInverted}
+              allowedSlippage={allowedSlippage}
+            />
+          ) : null}
           <div style={{ border: 'none' }}>
             {swapIsUnsupported ? (
               <SwapButtonPrimary disabled={true}>

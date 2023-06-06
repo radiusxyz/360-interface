@@ -105,14 +105,9 @@ export const StyledButtonPrimaryV2 = styled(BaseButton)`
     (loading && theme.text3v2) || (disabled && theme.text4v2) || theme.text2v2}};
   padding-top: 13px;
   outline: ${({ theme, disabled }) => disabled && `1px solid ${theme.text4v2}`};
-  &: hover {
-
-  }
-  &: active {
-s
-  }
-  &: disabled {
-
+  &:hover {
+    cursor: pointer;
+    filter: brightness(120%)
   }
 `
 

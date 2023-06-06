@@ -10,6 +10,7 @@ const StyledSwapHeader = styled.div`
   padding: 11px 25.6px 10px 24px;
   width: 100%;
   color: #000000;
+  border-bottom: 1px solid #dde0ff;
 `
 
 export default function SwapHeader({ allowedSlippage }: { allowedSlippage: Percent }) {

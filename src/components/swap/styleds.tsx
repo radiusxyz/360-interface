@@ -18,15 +18,16 @@ export const ArrowWrapper = styled.div<{ clickable: boolean }>`
   padding: 0px;
   border-radius: 16px;
   height: 32px;
-  width: 32px;
-  position: relative;
-  margin-top: -12px;
-  margin-bottom: -12px;
+  width: 33px;
+  position: absolute;
+  transform: translate(0, -50%);
+  // margin-top: -12px;
+  // margin-bottom: -12px;
   left: calc(50% - 16px);
   /* transform: rotate(90deg); */
   /*background-color: ${({ theme }) => theme.bg1};*/
-  background-color: #383b49;
-  border: 0px solid ${({ theme }) => theme.bg0};
+  background: #ffffff;
+  border: 1px solid #dde0ff;
   z-index: 2;
 
   ${({ clickable }) =>

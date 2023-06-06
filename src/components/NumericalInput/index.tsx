@@ -21,6 +21,7 @@ const StyledInput = styled.input<{ error?: boolean; fontSize?: string; align?: s
   padding: 0px 12px;
   -webkit-appearance: textfield;
   text-align: right;
+  vertical-align: top;
   &:hover {
     background: #1b1b1b;
   }
@@ -39,7 +40,7 @@ const StyledInput = styled.input<{ error?: boolean; fontSize?: string; align?: s
   }
 
   ::placeholder {
-    color: ${({ theme }) => theme.text4};
+    color: #d0b2ff;
   }
 `
 
@@ -50,6 +51,7 @@ export const Input = React.memo(function InnerInput({
   onUserInput,
   placeholder,
   prependSymbol,
+  onBlur,
   ...rest
 }: {
   value: string | number
@@ -71,10 +73,11 @@ export const Input = React.memo(function InnerInput({
     <StyledInput
       {...rest}
       value={prependSymbol && value ? prependSymbol + value : value}
-      onFocus={() => {
-        setPlaceHolder('')
-      }}
-      onBlur={() => {
+      // onFocus={() => {
+      //   setPlaceHolder('')
+      // }}
+      onBlur={(e: any) => {
+        onBlur && onBlur(e)
         setPlaceHolder(placeholder)
       }}
       onChange={(event) => {

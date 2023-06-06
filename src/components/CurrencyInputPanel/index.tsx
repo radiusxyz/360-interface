@@ -26,7 +26,7 @@ const InputPanel = styled.div<{ hideInput?: boolean }>`
   position: relative;
   /*border-radius: ${({ hideInput }) => (hideInput ? '16px' : '20px')};*/
   border-radius: 4px;
-  background-color: 'transparent';
+  background-color: transparent;
   z-index: 1;
   width: ${({ hideInput }) => (hideInput ? '100%' : 'initial')};
   transition: height 1s ease;
@@ -62,9 +62,16 @@ const FixedContainer = styled.div`
 
 const Container = styled.div<{ hideInput: boolean }>`
   /*border-radius: ${({ hideInput }) => (hideInput ? '16px' : '20px')};*/
-  border-radius: '4px';
-  border: 1px solid ${({ theme }) => theme.bg0};
+  border-bottom: 1px solid #dde0ff;
   width: ${({ hideInput }) => (hideInput ? '100%' : 'initial')};
+`
+
+const Aligner = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  gap: 6px;
+  width: 100%;
 `
 
 const CurrencySelect = styled(ButtonGrayV2)<{ visible: boolean; selected: boolean; hideInput?: boolean }>`
@@ -72,61 +79,75 @@ const CurrencySelect = styled(ButtonGrayV2)<{ visible: boolean; selected: boolea
   color: ${({ selected, theme }) => (selected ? theme.text1 : '#000000')};
   font-size: 18px;
   font-weight: 500;
+  flex-shrink: 0;
+  white-space: nowrap;
   background-color: transparent;
   border-radius: 31px;
+  padding: 6px 14px;
   outline: none;
   user-select: none;
   border: none;
   height: ${({ hideInput }) => (hideInput ? '40px' : '40px')};
-  width: ${({ hideInput }) => (hideInput ? '100%' : '160px')};
+  // width: ${({ hideInput }) => (hideInput ? '100%' : '160px')};
+  max-width: 146px;
   justify-content: space-between;
-  margin-left: ${({ hideInput }) => (hideInput ? '0px' : '0px')};
   visibility: ${({ visible }) => (visible ? 'visible' : 'hidden')};
   &:hover {
     color: #6b11ff;
     background-color: #f5f4ff;
   }
+  width: 100%;
 `
 
-const InputRow = styled.div<{ selected: boolean }>`
+const InputRow = styled.div<{ selected: boolean; rowId: string }>`
   ${({ theme }) => theme.flexRowNoWrap}
-  align-items: center;
+  align-items: start;
   justify-content: space-between;
-  padding: 27px 30px 24px 24px;
+  border-bottom: none;
+  gap: 8px;
+  padding: ${(props) => (props.rowId === 'swap-currency-input' ? '38px 24px 20px 24px' : '20px 24px 20px 24px')};
 `
+// Commented out by Gylman
+// const LabelRow = styled.div`
+//   ${({ theme }) => theme.flexRowNoWrap}
+//   align-items: center;
+//   color: ${({ theme }) => theme.text1};
+//   font-size: 0.75rem;
+//   line-height: 1rem;
+//   padding: 0 8px 8px;
+//   span:hover {
+//     cursor: pointer;
+//     color: ${({ theme }) => darken(0.2, theme.text2)};
+//   }
+// `
 
-const LabelRow = styled.div`
-  ${({ theme }) => theme.flexRowNoWrap}
-  align-items: center;
-  color: ${({ theme }) => theme.text1};
-  font-size: 0.75rem;
-  line-height: 1rem;
-  padding: 0 8px 8px;
-  span:hover {
-    cursor: pointer;
-    color: ${({ theme }) => darken(0.2, theme.text2)};
-  }
-`
+// const FiatRow = styled(LabelRow)`
+//   justify-content: flex-end;
+// `
 
-const FiatRow = styled(LabelRow)`
-  justify-content: flex-end;
-`
-
-const Aligner = styled.span`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+const Divider = styled.div`
+  outline: 1px solid #dde0ff;
+  box-shadow: 0px 4px 21px rgba(90, 18, 61, 0.1);
+  border-radius: 4px;
   width: 100%;
 `
 
 const StyledDropDown = styled(DropDown)<{ selected: boolean }>`
-  margin: 0 10px 0 10px;
   height: 6px;
   width: 10px;
-
+  transform: rotate(270deg);
   path {
-    stroke: #ffffff;
+    stroke: #9e91e9;
     stroke-width: 1.5px;
+  }
+
+  &&& {
+    ${CurrencySelect}:hover & {
+      path {
+        stroke: #6b11ff;
+        stroke-width: 1.5px;
+      }
+    }
   }
 `
 
@@ -192,10 +213,56 @@ const StyledBalanceMax = styled.button<{ disabled?: boolean }>`
   }
 `
 
+const InputWrapper = styled.div<{ paint: string; value: string }>`
+  display: flex;
+  border: none;
+  width: 100%;
+  justify-content: end;
+  align-items: start;
+  height: 60px;
+  background-color: ${(props) => (props.value ? '#f5f4ff' : props.paint)};
+  outline: ${(props) => props.value && '1px solid #dde0ff'};
+  &:hover {
+    background: #f5f4ff;
+    outline: 1px solid #dde0ff;
+  }
+  &:focus {
+    background: #f5f4ff;
+    outline: 1px solid #dde0ff;
+  }
+  &:active {
+    background: #f5f4ff;
+    outline: 1px solid #dde0ff;
+  }
+`
+
 const StyledNumericalInput = styled(NumericalInput)<{ $loading: boolean }>`
   ${loadingOpacityMixin};
-  font-weight: 600;
+  display: flex;
+  align-items: start;
+  font-weight: 500;
   text-align: right;
+  vertical-align: top;
+  width: 100%;
+  font-size: 22px;
+  padding: 6px 6px 0px 0px;
+  border-radius: 0;
+  background-color: ${({ value }) => (value ? '#f5f4ff' : 'transparent')};
+  color: ${({ value }) => (value ? '#6B11FF' : '#D0B2FF')};
+  &:hover {
+    background: #f5f4ff;
+  }
+  &:focus {
+    background: #f5f4ff;
+    color: ${({ value }) => (value ? '#6B11FF' : '#D0B2FF')};
+  }
+  &:blur {
+    color: ${({ value }) => (value ? '#6B11FF' : '#D0B2FF')};
+  }
+  &:active {
+    background: #f5f4ff;
+    color: ${({ value }) => (value ? '#6B11FF' : '#D0B2FF')};
+  }
 `
 
 interface CurrencyInputPanelProps {
@@ -252,10 +319,21 @@ export default function CurrencyInputPanel({
   const selectedCurrencyBalance = useCurrencyBalance(account ?? undefined, currency ?? undefined)
   const theme = useTheme()
   const [mouseOver, setMouseOver] = useState(false)
+  const [background, setBackground] = useState('transparent')
 
   const handleDismissSearch = useCallback(() => {
     setModalOpen(false)
   }, [setModalOpen])
+
+  const styleTheParentWhenFocus = (e: any) => {
+    console.log(e.type)
+    setBackground(e.type === 'focus' ? '#f5f4ff' : 'white')
+  }
+
+  const styleTheParentWhenBlur = (e: any) => {
+    console.log(e.type)
+    setBackground('white')
+  }
 
   return (
     <InputPanel id={id} hideInput={hideInput} {...rest}>
@@ -293,7 +371,7 @@ export default function CurrencyInputPanel({
           }
           selected={!onCurrencySelect}
         > */}
-        <InputRow selected={!onCurrencySelect}>
+        <InputRow rowId={id} selected={!onCurrencySelect}>
           <CurrencySelect
             visible={currency !== undefined || currency !== null}
             selected={!!currency}
@@ -307,7 +385,9 @@ export default function CurrencyInputPanel({
             onMouseOver={() => setMouseOver(true)}
             onMouseOut={() => setMouseOver(false)}
           >
-            <Aligner style={pair || currency ? {} : { justifyContent: 'right' }}>
+            {/* Commented out by Gylman */}
+            {/* <Aligner style={pair || currency ? {} : { justifyContent: 'right' }}> */}
+            <Aligner style={pair || currency ? {} : {}}>
               <RowFixed>
                 {pair ? (
                   <DoubleCurrencyLogo currency0={pair.token0} currency1={pair.token1} size={24} margin={true} />
@@ -321,18 +401,6 @@ export default function CurrencyInputPanel({
                     {pair?.token0.symbol}:{pair?.token1.symbol}
                   </StyledTokenName>
                 ) : (
-                  // Commented by GYLMAN
-                  // <StyledTokenName className="token-symbol-container" active={Boolean(currency && currency.symbol)}>
-                  //   {(currency && currency.symbol && currency.symbol.length > 20
-                  //     ? currency.symbol.slice(0, 4) +
-                  //       '...' +
-                  //       currency.symbol.slice(currency.symbol.length - 5, currency.symbol.length)
-                  //     : currency?.symbol) || (
-                  //     <span style={{ fontSize: '17px', fontWeight: 'bold' }}>
-                  //       <Trans>Select Token</Trans>
-                  //     </span>
-                  //   )}
-                  // </StyledTokenName>
                   <StyledTokenNameWrapper>
                     {(currency && currency.symbol && currency.symbol.length > 20
                       ? currency.symbol.slice(0, 4) +
@@ -350,15 +418,32 @@ export default function CurrencyInputPanel({
             </Aligner>
           </CurrencySelect>
           {!hideInput && (
-            <StyledNumericalInput
-              className="token-amount-input"
-              value={value}
-              onUserInput={onUserInput}
-              $loading={loading}
-            />
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                justifyContent: 'start',
+                alignItems: 'end',
+              }}
+            >
+              <InputWrapper value={value} paint={background}>
+                <StyledNumericalInput
+                  className="token-amount-input"
+                  value={value}
+                  width="100%"
+                  onUserInput={onUserInput}
+                  $loading={loading}
+                  onFocus={styleTheParentWhenFocus}
+                  onBlur={styleTheParentWhenBlur}
+                />
+              </InputWrapper>
+            </div>
           )}
         </InputRow>
-        <FiatRow style={{ padding: '0px 24px 24px 24px' }}>
+        {/* Commented out by Gylman */}
+        {/* <FiatRow style={{ padding: '0px 24px 24px 24px' }}> */}
+        {/* <FiatRow>
           <RowBetween>
             {account ? (
               <RowFixed style={{ height: '20px' }}>
@@ -380,19 +465,8 @@ export default function CurrencyInputPanel({
             ) : (
               <span />
             )}
-            {/* <LoadingOpacityContainer $loading={loading}>
-              <FiatValue fiatValue={fiatValue} priceImpact={priceImpact} />
-            </LoadingOpacityContainer>
-            <ThemedText.Body
-              color={theme.text3}
-              fontWeight={500}
-              fontSize={14}
-              style={{ display: 'inline', cursor: 'pointer' }}
-            >
-              {fiatValue && '$' + fiatValue}
-            </ThemedText.Body> */}
           </RowBetween>
-        </FiatRow>
+        </FiatRow> */}
       </Container>
       {onCurrencySelect &&
         (isA === false || isA === true ? (
