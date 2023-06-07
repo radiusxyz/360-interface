@@ -144,7 +144,6 @@ export function useCombinedActiveAList(bTokenAddress: string | null | undefined)
         })
         .catch((e) => console.error(e))
   }, [chainId, bTokenAddress, activeListUrls, allTokens])
-
   // debugger
   return activeTokens
 }

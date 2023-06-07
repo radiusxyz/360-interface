@@ -366,17 +366,6 @@ export default function CurrencyInputPanel({
             ) : (
               <span />
             )}
-            {/* <LoadingOpacityContainer $loading={loading}>
-              <FiatValue fiatValue={fiatValue} priceImpact={priceImpact} />
-            </LoadingOpacityContainer>
-            <ThemedText.Body
-              color={theme.text3}
-              fontWeight={500}
-              fontSize={14}
-              style={{ display: 'inline', cursor: 'pointer' }}
-            >
-              {fiatValue && '$' + fiatValue}
-            </ThemedText.Body> */}
           </RowBetween>
         </FiatRow>
       </Container>

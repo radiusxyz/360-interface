@@ -122,12 +122,12 @@ export function ClaimReimbursement({
     if (library) {
       const amount = await routerContract?.reimbursementAmount()
       const tokenAddress = await vaultContract?.tokenAddress
-      console.log(amount, tokenAddress)
+      // console.log(amount, tokenAddress)
       if (tokenAddress) {
         const token = getContract(tokenAddress, ERC20_ABI, library)
         const decimal = await token.decimals()
         const reward = BigNumber.from(amount).div(BigNumber.from('1' + '0'.repeat(decimal as number)))
-        console.log(amount, decimal, reward)
+        // console.log(amount, decimal, reward)
         setReimbursementAmount(reward.toString())
         const symbol = await token.symbol()
         setReimbursementToken(symbol)
@@ -153,7 +153,7 @@ export function ClaimReimbursement({
         tx.operatorSignature?.s,
         { gasLimit: 1_000_000 }
       )
-      console.log('🚀 ~ file: ReimburseModal.tsx:93 ~ claim ~ result', result)
+      // console.log('🚀 ~ file: ReimburseModal.tsx:93 ~ claim ~ result', result)
 
       // TODO: reimbursement amount update logic need
       // TODO: txId polling에 넣어두면 좋을듯. 직접 보내는 tx니까.
@@ -297,12 +297,12 @@ export function ReimbursementDetails({ isOpen, onDismiss, tx }: { isOpen: boolea
     if (library) {
       const amount = await routerContract?.reimbursementAmount()
       const tokenAddress = await vaultContract?.tokenAddress
-      console.log(amount, tokenAddress)
+      // console.log(amount, tokenAddress)
       if (tokenAddress) {
         const token = getContract(tokenAddress, ERC20_ABI, library)
         const decimal = await token.decimals()
         const reward = BigNumber.from(amount).div(BigNumber.from('1' + '0'.repeat(decimal as number)))
-        console.log(amount, decimal, reward)
+        // console.log(amount, decimal, reward)
         setReimbursementAmount(reward.toString())
         const symbol = await token.symbol()
         setReimbursementToken(symbol)

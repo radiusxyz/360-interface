@@ -20,7 +20,7 @@ export async function getTimeLockPuzzleProof(
   const data = await timeLockPuzzle
     .get_time_lock_puzzle_proof(timeLockPuzzleParam, timeLockPuzzleSnarkParam)
     .then((res) => {
-      console.log(res)
+      // console.log(res)
       return res
     })
     .catch((error) => {

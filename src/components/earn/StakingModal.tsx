@@ -122,7 +122,7 @@ export default function StakingModal({ isOpen, onDismiss, stakingInfo, userLiqui
           })
           .catch((error: any) => {
             setAttempting(false)
-            console.log(error)
+            // console.log(error)
           })
       } else {
         setAttempting(false)

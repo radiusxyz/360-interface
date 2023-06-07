@@ -4135,11 +4135,6 @@
   resolved "https://npm.pkg.github.com/download/@radiusxyz/threesixty-contracts-polygon/0.0.8/3cdf1e350fdfb84e20d462ff4c00842f6ff38492#3cdf1e350fdfb84e20d462ff4c00842f6ff38492"
   integrity sha512-/mgEx3S1C8sEQx58QEIoplXT5tYWPJo3Gi0cW2g9m+2pN0KZwAosG4fOjowTPjyWJ++77iec8qd4KUZgdrF1fg==
 
-"@radiusxyz/threesixty-contracts@^0.1.16":
-  version "0.1.16"
-  resolved "https://npm.pkg.github.com/download/@radiusxyz/threesixty-contracts/0.1.16/87392d1f36a5b7f148222fd198b3170f35519268#87392d1f36a5b7f148222fd198b3170f35519268"
-  integrity sha512-BP3Rr5gaDH3J3JYI288kbdalsqy4gIrqF4Mtn4sbZzqxIiTkoHdnZKCPz4YeAm+QEnugz8rTAxpfsodqBplfUw==
-
 "@ramonak/react-progress-bar@^4.4.0":
   version "4.4.0"
   resolved "https://registry.npmjs.org/@ramonak/react-progress-bar/-/react-progress-bar-4.4.0.tgz"
