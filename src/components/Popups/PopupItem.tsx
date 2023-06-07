@@ -142,7 +142,7 @@ export default function PopupItem({
       ''
     )
 
-  // console.log(values)
+  //console.log(values)
 
   return (
     <Popup>
@@ -181,7 +181,7 @@ export default function PopupItem({
             {values?.title !== 'Cancel pending' && (
               <CancelButton
                 onClick={() => {
-                  // console.log('values.data.readyTxId', values)
+                  //console.log('values.data.readyTxId', values)
                   setShowCancel(values.data.txHistoryId)
                 }}
               >

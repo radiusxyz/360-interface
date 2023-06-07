@@ -298,7 +298,7 @@ export default function Swap({ history }: RouteComponentProps) {
   //   [fiatValueInput, fiatValueOutput, routeIsSyncing]
   // )
   const priceImpact = trade?.priceImpact
-  // // console.log(trade?.inputAmount, trade?.outputAmount, fiatValueInput, fiatValueOutput, priceImpact)
+  // //console.log(trade?.inputAmount, trade?.outputAmount, fiatValueInput, fiatValueOutput, priceImpact)
 
   const { onCurrencySelection, onUserInput, onChangeRecipient } = useSwapActionHandlers()
   const isValid = !swapInputError
@@ -458,7 +458,7 @@ export default function Swap({ history }: RouteComponentProps) {
     parameters
   )
 
-  // // console.log('myState a', myState)
+  // //console.log('myState a', myState)
   const routerContract = useV2RouterContract() as Contract
 
   useEffect(() => {
@@ -469,13 +469,13 @@ export default function Swap({ history }: RouteComponentProps) {
         routerContract
           .nonces(account)
           .then(async (contractNonce: any) => {
-            // console.log('after get nonce', Date.now() - time1)
+            //console.log('after get nonce', Date.now() - time1)
 
             const time2 = Date.now()
             routerContract
               .operator()
               .then(async (operatorAddress: any) => {
-                // console.log('after get operator', Date.now() - time2)
+                //console.log('after get operator', Date.now() - time2)
                 setSwapState({
                   ...swapState,
                   attemptingTxn: true,
@@ -487,15 +487,15 @@ export default function Swap({ history }: RouteComponentProps) {
 
                 const time3 = Date.now()
                 const res = await split1(swapState.backerIntegrity, contractNonce)
-                // console.log('after split1', Date.now() - time3)
-                // console.log('res1', res)
+                //console.log('after split1', Date.now() - time3)
+                //console.log('res1', res)
                 const tempState = { ...swapState.myState, process: 2, ...res, operatorAddress }
                 setSwapState({ ...swapState, myState: tempState })
                 isRunning.current = false
               })
               .catch(() => {
-                // console.log('after get operator', Date.now() - time2)
-                // console.log('failed to load operator')
+                //console.log('after get operator', Date.now() - time2)
+                //console.log('failed to load operator')
                 setSwapState({
                   ...swapState,
                   myState: { process: 0, errorMessage: 'RPC server is not responding, please try again' },
@@ -504,8 +504,8 @@ export default function Swap({ history }: RouteComponentProps) {
               })
           })
           .catch(() => {
-            // console.log('after get nonce', Date.now() - time1)
-            // console.log('failed to load nonce')
+            //console.log('after get nonce', Date.now() - time1)
+            //console.log('failed to load nonce')
             setSwapState({
               ...swapState,
               myState: { process: 0, errorMessage: 'RPC server is not responding, please try again' },
@@ -519,8 +519,8 @@ export default function Swap({ history }: RouteComponentProps) {
         isRunning.current = true
         const time = Date.now()
         const res = await split2(swapState.myState.signMessage)
-        // console.log('after split2', Date.now() - time)
-        // console.log('res2', res)
+        //console.log('after split2', Date.now() - time)
+        //console.log('res2', res)
         if (res) {
           const tempState = { ...swapState.myState, process: 3, ...res }
           setSwapState({ ...swapState, myState: tempState })
@@ -537,8 +537,8 @@ export default function Swap({ history }: RouteComponentProps) {
         await sleep(300)
         const time = Date.now()
         const res = await split3(swapState.myState.timeLockPuzzleParam, swapState.myState.timeLockPuzzleSnarkParam)
-        // console.log('after split3', Date.now() - time)
-        // console.log('res3', res)
+        //console.log('after split3', Date.now() - time)
+        //console.log('res3', res)
         const tempState = { ...swapState.myState, process: 4, ...res }
         setSwapState({ ...swapState, myState: tempState })
         isRunning.current = false
@@ -555,8 +555,8 @@ export default function Swap({ history }: RouteComponentProps) {
           swapState.myState.signMessage,
           swapState.myState.idPath
         )
-        // console.log('after split4', Date.now() - time)
-        // console.log('res4', res)
+        //console.log('after split4', Date.now() - time)
+        //console.log('res4', res)
         const tempState = { ...swapState.myState, process: 5, ...res }
         setSwapState({ ...swapState, myState: tempState })
         isRunning.current = false
@@ -577,8 +577,8 @@ export default function Swap({ history }: RouteComponentProps) {
         )
           .then(async (res) => {
             onUserInput(Field.INPUT, '')
-            // console.log('after split5', Date.now() - time)
-            // console.log('res5', res)
+            //console.log('after split5', Date.now() - time)
+            //console.log('res5', res)
             setSwapState({ ...swapState, myState: { process: 6 } })
             await sleep(10000)
             setSwapState({
@@ -594,7 +594,7 @@ export default function Swap({ history }: RouteComponentProps) {
           })
           .catch(async (e) => {
             console.error(e)
-            // console.log('after split5', Date.now() - time)
+            //console.log('after split5', Date.now() - time)
             onUserInput(Field.INPUT, '')
             setSwapState({
               ...swapState,
@@ -610,31 +610,31 @@ export default function Swap({ history }: RouteComponentProps) {
       }
     }
 
-    // console.log('run?')
+    //console.log('run?')
     if (swapState.myState.process === 1) {
-      // console.log('1', swapState.myState, func1)
+      //console.log('1', swapState.myState, func1)
       func1()
     }
     if (swapState.myState.process === 2) {
-      // console.log('2', swapState.myState, func2)
+      //console.log('2', swapState.myState, func2)
       func2()
     }
     if (swapState.myState.process === 3) {
-      // console.log('3', swapState.myState, func3)
+      //console.log('3', swapState.myState, func3)
       func3()
     }
     if (swapState.myState.process === 4) {
-      // console.log('4', swapState.myState, func4, split4)
+      //console.log('4', swapState.myState, func4, split4)
       func4()
     }
     if (swapState.myState.process === 5) {
-      // console.log('5', swapState.myState, func5, split5)
+      //console.log('5', swapState.myState, func5, split5)
       func5()
     }
   }, [swapState.myState.process, split1, split2, split3, split4, split5])
 
   // useEffect(() => {
-  //   // console.log('refresh split5')
+  //   //console.log('refresh split5')
   //   if (
   //     swapState.myState.dangle &&
   //     ((swapState.myState.process === 1 && split1) ||
@@ -643,7 +643,7 @@ export default function Swap({ history }: RouteComponentProps) {
   //       (swapState.myState.process === 4 && split4) ||
   //       (swapState.myState.process === 5 && split5))
   //   ) {
-  //     // console.log('dangle')
+  //     //console.log('dangle')
   //     setSwapState({
   //       ...swapState,
   //       myState: { ...swapState.myState, dangle: false, rerun: !swapState.myState.rerun },
@@ -662,7 +662,7 @@ export default function Swap({ history }: RouteComponentProps) {
   // }, [])
 
   const handleSwap = () => {
-    // console.log('handleSwap', swapState.myState)
+    //console.log('handleSwap', swapState.myState)
     if (swapState.myState.process === 0) {
       setSwapState({ ...swapState, myState: { process: 1 } })
     }
@@ -724,7 +724,7 @@ export default function Swap({ history }: RouteComponentProps) {
       })
       .catch(async (error) => {
         setTimeout(() => {
-          // console.log(error.message)
+          //console.log(error.message)
           setSwapState({
             ...swapState,
             attemptingTxn: false,
@@ -777,7 +777,7 @@ export default function Swap({ history }: RouteComponentProps) {
     !(priceImpactSeverity > 3 && !isExpertMode)
 
   const handleConfirmDismiss = useCallback(() => {
-    // console.log('on dismiss')
+    //console.log('on dismiss')
     setSwapState({
       ...swapState,
       showConfirm: false,
@@ -1165,7 +1165,7 @@ export default function Swap({ history }: RouteComponentProps) {
             ) : (
               <SwapButtonError
                 onClick={() => {
-                  // console.log('button click', isExpertMode, swapState.showConfirm, swapState.myState)
+                  //console.log('button click', isExpertMode, swapState.showConfirm, swapState.myState)
                   if (isExpertMode) {
                     handleSwap()
                   } else {
