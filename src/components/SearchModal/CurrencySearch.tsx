@@ -16,6 +16,7 @@ import { FixedSizeList } from 'react-window'
 import { Text } from 'rebass'
 import { useAllTokenBalances } from 'state/wallet/hooks'
 import styled from 'styled-components/macro'
+import magnifier from '../../assets/images/magnifier.png'
 
 import {
   useAllTokens,
@@ -33,12 +34,19 @@ import CommonBases from './CommonBases'
 import CurrencyList from './CurrencyList'
 import ImportRow from './ImportRow'
 import { PaddedColumn, SearchInput, Separator } from './styleds'
+import FrequentTokens from 'components/SearchV2/FrequentTokens'
 
 const ContentWrapper = styled(Column)`
+  height: 581px;
+  max-width: 500px;
   width: 100%;
-  flex: 1 1;
-  position: relative;
-  background-color: #272b3e; /*linear-gradient(180deg, #525e8d 0%, #3c3e64 48.96%, #2b3258 100%);*/
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #dde0ff;
+  box-shadow: 0px 4px 21px rgba(90, 18, 61, 0.1);
+  border-radius: 4px;
 `
 
 const Footer = styled.div`
@@ -49,6 +57,48 @@ const Footer = styled.div`
   border-top-right-radius: 0;
   background-color: ${({ theme }) => theme.bg1};
   border-top: 1px solid ${({ theme }) => theme.bg2};
+`
+
+export const Paddinger = styled.div`
+  padding: 20px 20px 0px 20px;
+  margin-bottom: 15px;
+  width: 100%;
+`
+
+export const Wrapper = styled.div`
+  display: flex;
+  gap: 16px;
+  width: 100%;
+  height: 46px;
+  align-items: center;
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid #dde0ff;
+  border-radius: 2px;
+`
+
+export const Input = styled.input`
+  display: block;
+  border: none;
+  background-color: transparent;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 134.84%;
+  color: #595959;
+`
+
+export const Search = styled.div`
+  display: flex;
+  align-items: center;
+  &:hover {
+    cursor: pointer;
+    transform: scale(1.1);
+    transition: 0.3s all;
+  }
 `
 
 interface CurrencySearchProps {
@@ -97,6 +147,7 @@ export function CurrencySearch({
   const aTokens = useATokens(bTokenAddress)
   const allTokens = useAllTokens()
 
+  // ALL TOKENS IS IMPORTANT
   useEffect(() => {
     if (aTokenAddress) {
       setAllToken(bTokens)
@@ -199,40 +250,25 @@ export function CurrencySearch({
 
   return (
     <ContentWrapper>
-      <PaddedColumn
-        gap="16px"
-        style={{
-          background: 'linear-gradient(0deg, #7079be33 0%, #636aae33 100%)',
-          alignItems: 'center',
-          width: '100%',
-        }}
-        justify="center"
-      >
-        <RowBetween style={{ width: '100%', display: 'flex', maxWidth: '440px' }} justify="stretch">
-          <div style={{ display: 'absolute', textAlign: 'center', width: '100%' }}>
-            <Text fontWeight={500} fontSize={20}>
-              <Trans>Select a token</Trans>
-            </Text>
-          </div>
-          <div>&nbsp;</div>
-          <CloseIcon onClick={onDismiss} />
-        </RowBetween>
-        <Row style={{ maxWidth: '560px' }} justify="stretch">
-          <SearchInput
+      <Paddinger>
+        <Wrapper>
+          <Search>
+            <img src={magnifier} width="14px" height="14px" alt="magnifier" />
+          </Search>
+          <Input
+            placeholder="Which token would you like to swap?"
+            autoFocus
             type="text"
             id="token-search-input"
-            placeholder={t`Search name or paste address`}
             autoComplete="off"
             value={searchQuery}
             ref={inputRef as RefObject<HTMLInputElement>}
             onChange={handleInput}
             onKeyDown={handleEnter}
           />
-        </Row>
-        {showCommonBases && (
-          <CommonBases chainId={chainId} onSelect={handleCurrencySelect} selectedCurrency={selectedCurrency} />
-        )}
-      </PaddedColumn>
+        </Wrapper>
+      </Paddinger>
+      <FrequentTokens />
       <Separator />
       {searchToken && !searchTokenIsAdded ? (
         <Column style={{ padding: '20px 0', height: '100%' }}>
@@ -264,20 +300,6 @@ export function CurrencySearch({
           </ThemedText.Main>
         </Column>
       )}
-      {/* <Footer>
-        <Row justify="center">
-          <ButtonText onClick={showManageView} color={theme.primary1} className="list-token-manage-button">
-            <RowFixed>
-              <IconWrapper size="16px" marginRight="6px" stroke={theme.primaryText1}>
-                <Edit />
-              </IconWrapper>
-              <ThemedText.Main color={theme.primaryText1}>
-                <Trans>Manage Token Lists</Trans>
-              </ThemedText.Main>
-            </RowFixed>
-          </ButtonText>
-        </Row>
-      </Footer> */}
     </ContentWrapper>
   )
 }

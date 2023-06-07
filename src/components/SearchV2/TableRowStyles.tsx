@@ -1,4 +1,4 @@
-import styled from 'styled-components'
+import styled from 'styled-components/macro'
 export const Wrapper = styled.div`
   padding: 19px 53px;
   display: flex;

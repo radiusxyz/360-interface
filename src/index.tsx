@@ -25,7 +25,6 @@ import UserUpdater from './state/user/updater'
 import ThemeProvider, { ThemedGlobalStyle } from './theme'
 import RadialGradientByChainUpdater from './theme/RadialGradientByChainUpdater'
 import getLibrary from './utils/getLibrary'
-import Search from './components/SearchV2/Search'
 
 const Web3ProviderNetwork = createWeb3ReactRoot(NetworkContextName)
 
@@ -60,7 +59,6 @@ ReactDOM.render(
                   <ThemeProvider>
                     <ThemedGlobalStyle />
                     <App />
-                    {/* <Search /> */}
                   </ThemeProvider>
                 </BlockNumberProvider>
               </Blocklist>
