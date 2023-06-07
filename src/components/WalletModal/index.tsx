@@ -146,16 +146,16 @@ export default function WalletModal({
   const { active, account, connector, activate, error } = useWeb3React()
 
   connector?.on('networkChanged', () => {
-    console.log('networkChanged')
+    //console.log('networkChanged')
   })
   connector?.on('chainChanged', () => {
-    console.log('chainChanged')
+    //console.log('chainChanged')
   })
   connector?.on('accountsChanged', () => {
-    console.log('accountsChanged')
+    //console.log('accountsChanged')
   })
 
-  // console.log('walletStatus', active, account, connector, activate, error)
+  // //console.log('walletStatus', active, account, connector, activate, error)
 
   const [walletView, setWalletView] = useState(WALLET_VIEWS.ACCOUNT)
   const previousWalletView = usePrevious(walletView)

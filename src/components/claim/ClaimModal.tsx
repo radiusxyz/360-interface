@@ -71,7 +71,7 @@ export default function ClaimModal() {
       // reset modal and log error
       .catch((error) => {
         setAttempting(false)
-        console.log(error)
+        //console.log(error)
       })
   }
 

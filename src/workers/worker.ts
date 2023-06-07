@@ -2,10 +2,10 @@
 const self = globalThis as unknown as DedicatedWorkerGlobalScope
 
 self.addEventListener('message', async (e) => {
-  console.log('raynear4', e.data)
+  //console.log('raynear4', e.data)
   if (e.data.target === 'encryptor') {
     const poseidon = await import('wasm-encryptor-zkp')
-    console.log('in encryptor', e, e.data)
+    //console.log('in encryptor', e, e.data)
     const data = await poseidon.encrypt_with_tx_hash(
       e.data.txInfoToHash,
       e.data.s2_string,
@@ -19,7 +19,7 @@ self.addEventListener('message', async (e) => {
   if (e.data.target === 'timeLockPuzzle') {
     const timeLockPuzzle = await import('wasm-time-lock-puzzle-zkp')
 
-    console.log('in timeLockPuzzle', e, e.data)
+    //console.log('in timeLockPuzzle', e, e.data)
     const data = await timeLockPuzzle.get_time_lock_puzzle_proof(
       e.data.timeLockPuzzleParam,
       e.data.timeLockPuzzleSnarkParam

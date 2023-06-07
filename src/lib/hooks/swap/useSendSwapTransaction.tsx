@@ -165,7 +165,7 @@ export default function useSendSwapTransaction(
         const signAddress = await signer.getAddress()
 
         const resolvedCalls = await swapCalls
-        console.log('resolvedCalls', resolvedCalls)
+        //console.log('resolvedCalls', resolvedCalls)
         const { deadline, availableFrom, amountIn, amountOut, path, idPath } = resolvedCalls[0]
 
         const contractNonce = nonce
@@ -174,10 +174,10 @@ export default function useSendSwapTransaction(
           `${process.env.REACT_APP_360_OPERATOR}/tx/pendingTxCnt?chainId=${chainId}&walletAddress=${account}`
         )
         const text = await operatorPendingTxCnt.text()
-        console.log('test', contractNonce, text)
+        //console.log('test', contractNonce, text)
 
         const txNonce = parseInt(contractNonce) + parseInt(text)
-        console.log('test2', txNonce)
+        //console.log('test2', txNonce)
 
         const signMessage = {
           txOwner: signAddress,
@@ -210,7 +210,7 @@ export default function useSendSwapTransaction(
         const now = Date.now()
 
         const sig = await signWithEIP712(library, signAddress, typedData).catch((e) => {
-          console.log(e)
+          //console.log(e)
           return null
         })
 
@@ -246,9 +246,9 @@ export default function useSendSwapTransaction(
         signMessage: any,
         idPath: string
       ): Promise<{ txHash: string; mimcHash: string; encryptedSwapTx: any }> {
-        console.log('signMessage', signMessage, signMessage.path.length)
-        console.log('timeLockPuzzleData', timeLockPuzzleData)
-        console.log('idPath', idPath)
+        //console.log('signMessage', signMessage, signMessage.path.length)
+        //console.log('timeLockPuzzleData', timeLockPuzzleData)
+        //console.log('idPath', idPath)
         const signer = library.getSigner()
         const signAddress = await signer.getAddress()
 
@@ -272,7 +272,7 @@ export default function useSendSwapTransaction(
           nonce: `${signMessage.nonce}`,
           path: pathToHash,
         }
-        console.log('🚀 ~ file: useSendSwapTransaction.tsx:511 ~ returnuseMemo ~ txInfoToHash', txInfoToHash)
+        //console.log('🚀 ~ file: useSendSwapTransaction.tsx:511 ~ returnuseMemo ~ txInfoToHash', txInfoToHash)
 
         const time = Date.now()
         const encryptData = await poseidonEncryptWithTxHash(
@@ -282,8 +282,8 @@ export default function useSendSwapTransaction(
           timeLockPuzzleData.commitment_hex,
           idPath
         )
-        console.log('encrypt time', Date.now() - time)
-        console.log('🚀 ~ file: useSendSwapTransaction.tsx:520 ~ returnuseMemo ~ encryptData', encryptData)
+        //console.log('encrypt time', Date.now() - time)
+        //console.log('🚀 ~ file: useSendSwapTransaction.tsx:520 ~ returnuseMemo ~ encryptData', encryptData)
 
         const encryptedPath = {
           message_length: encryptData.message_length,
@@ -299,7 +299,7 @@ export default function useSendSwapTransaction(
           encryption_proof: encryptData.proof,
         }
 
-        // console.log(sig)
+        // //console.log(sig)
 
         const txHash = typedDataEncoder.hash(domain(chainId), { Swap: SWAP_TYPE }, signMessage)
         const mimcHash = '0x' + encryptData.tx_id
@@ -329,7 +329,7 @@ export default function useSendSwapTransaction(
         sig: Signature,
         operatorAddress: string
       ): Promise<RadiusSwapResponse> {
-        console.log('run sendEncryptedTx', txHash, mimcHash, signMessage, encryptedSwapTx, sig, operatorAddress)
+        //console.log('run sendEncryptedTx', txHash, mimcHash, signMessage, encryptedSwapTx, sig, operatorAddress)
         let input = trade?.inputAmount?.numerator
         let output = trade?.outputAmount?.numerator
         input = !input ? JSBI.BigInt(0) : input
@@ -364,7 +364,7 @@ export default function useSendSwapTransaction(
           operatorAddress
         )
 
-        console.log(`popup add ${sendResponse.data.txOrderMsg.round}-${sendResponse.data.txOrderMsg.order}`)
+        //console.log(`popup add ${sendResponse.data.txOrderMsg.round}-${sendResponse.data.txOrderMsg.order}`)
         dispatch(
           addPopup({
             content: {
@@ -442,11 +442,11 @@ export async function sendEIP712Tx(
     10000
   )
     .then(async (res) => {
-      console.log('get Tx time', Date.now() - time)
+      //console.log('get Tx time', Date.now() - time)
       return res.json()
     })
     .then(async (res) => {
-      console.log('json response', res, res.txOrderMsg)
+      //console.log('json response', res, res.txOrderMsg)
 
       const msgHash = typedDataEncoder.hash(domain(chainId), { Claim: CLAIM_TYPE }, res.txOrderMsg)
 
@@ -458,8 +458,8 @@ export async function sendEIP712Tx(
         encryptedSwapTx.txHash === res.txOrderMsg.txHash &&
         encryptedSwapTx.mimcHash === res.txOrderMsg.mimcHash
       ) {
-        // console.log('clear disableTxHash tx')
-        console.log('txOrderMsg', res.txOrderMsg)
+        // //console.log('clear disableTxHash tx')
+        //console.log('txOrderMsg', res.txOrderMsg)
 
         await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
         const pendingTxId = await db.pushPendingTx(
@@ -492,7 +492,7 @@ export async function sendEIP712Tx(
           msg: "Successfully received tx's order and round",
         }
       } else {
-        console.log('operator sign verify error')
+        //console.log('operator sign verify error')
         // await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
         // const pendingTxId = await db.pushPendingTx(
         //   {
@@ -528,7 +528,7 @@ export async function sendEIP712Tx(
       }
     })
     .catch(async (error) => {
-      console.log(error)
+      //console.log(error)
       const _currentRound = parseInt((await recorderContract.currentRound()).toString())
       const doneRound = _currentRound === 0 ? 0 : _currentRound - 1
 

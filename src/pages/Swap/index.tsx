@@ -461,7 +461,7 @@ export default function Swap({ history }: RouteComponentProps) {
     if (!swapParams.timeLockPuzzleData && !isPuzzling.current) {
       isPuzzling.current = true
       getTimeLockPuzzleParam().then((res) => {
-        console.log('post to timeLockPuzzle', res)
+        //console.log('post to timeLockPuzzle', res)
         worker.postMessage({
           target: 'timeLockPuzzle',
           timeLockPuzzleParam: res.timeLockPuzzleParam,
@@ -484,7 +484,7 @@ export default function Swap({ history }: RouteComponentProps) {
       swapParams.signMessage
     ) {
       const encryptData = e.data.data
-      console.log('🚀 ~ file: useSendSwapTransaction.tsx:520 ~ returnuseMemo ~ encryptData', encryptData)
+      //console.log('🚀 ~ file: useSendSwapTransaction.tsx:520 ~ returnuseMemo ~ encryptData', encryptData)
 
       const encryptedPath = {
         message_length: encryptData.message_length,
@@ -500,7 +500,7 @@ export default function Swap({ history }: RouteComponentProps) {
         encryption_proof: encryptData.proof,
       }
 
-      // console.log(sig)
+      // //console.log(sig)
 
       const txHash = typedDataEncoder.hash(domain(chainId), { Swap: SWAP_TYPE }, swapParams.signMessage)
       const mimcHash = '0x' + encryptData.tx_id
@@ -532,23 +532,23 @@ export default function Swap({ history }: RouteComponentProps) {
       routerContract
         .nonces(account)
         .then(async (contractNonce: any) => {
-          console.log('after get nonce', Date.now() - time1)
+          //console.log('after get nonce', Date.now() - time1)
 
           const time2 = Date.now()
           routerContract
             .operator()
             .then(async (operatorAddress: any) => {
-              console.log('after get operator', Date.now() - time2)
+              //console.log('after get operator', Date.now() - time2)
 
               const time3 = Date.now()
               const res = await prepareSignMessage(swapState.backerIntegrity, contractNonce)
-              console.log('after prepareSignMessage', Date.now() - time3)
-              console.log('res1', res)
+              //console.log('after prepareSignMessage', Date.now() - time3)
+              //console.log('res1', res)
               setSwapParams({ ...swapParams, prepareDone: true, ...res, operatorAddress })
             })
             .catch(() => {
-              console.log('after get operator', Date.now() - time2)
-              console.log('failed to load operator')
+              //console.log('after get operator', Date.now() - time2)
+              //console.log('failed to load operator')
               setSwapParams({
                 ...swapParams,
                 start: false,
@@ -557,8 +557,8 @@ export default function Swap({ history }: RouteComponentProps) {
             })
         })
         .catch(() => {
-          console.log('after get nonce', Date.now() - time1)
-          console.log('failed to load nonce')
+          //console.log('after get nonce', Date.now() - time1)
+          //console.log('failed to load nonce')
           setSwapParams({
             ...swapParams,
             start: false,
@@ -590,7 +590,7 @@ export default function Swap({ history }: RouteComponentProps) {
         nonce: `${swapParams.signMessage.nonce}`,
         path: pathToHash,
       }
-      console.log('🚀 ~ file: useSendSwapTransaction.tsx:511 ~ returnuseMemo ~ txInfoToHash', txInfoToHash, swapParams)
+      //console.log('🚀 ~ file: useSendSwapTransaction.tsx:511 ~ returnuseMemo ~ txInfoToHash', txInfoToHash, swapParams)
 
       worker.postMessage({
         target: 'encryptor',
@@ -605,11 +605,11 @@ export default function Swap({ history }: RouteComponentProps) {
 
   const userSignFunc = useCallback(async () => {
     if (userSign) {
-      console.log('call userSign', swapParams)
+      //console.log('call userSign', swapParams)
       const time = Date.now()
       const res = await userSign(swapParams.signMessage)
-      console.log('after userSign', Date.now() - time)
-      console.log('res2', res)
+      //console.log('after userSign', Date.now() - time)
+      //console.log('res2', res)
       if (res) {
         setSwapParams({ ...swapParams, signingDone: true, ...res })
       } else {
@@ -632,8 +632,8 @@ export default function Swap({ history }: RouteComponentProps) {
       )
         .then(async (res) => {
           onUserInput(Field.INPUT, '')
-          console.log('after sendEncryptedTx', Date.now() - time)
-          console.log('res5', res)
+          //console.log('after sendEncryptedTx', Date.now() - time)
+          //console.log('res5', res)
           setSwapParams({ ...swapParams, sent: true })
 
           await sleep(10000)
@@ -647,7 +647,7 @@ export default function Swap({ history }: RouteComponentProps) {
         })
         .catch(async (e) => {
           console.error(e)
-          console.log('after sendEncryptedTx', Date.now() - time)
+          //console.log('after sendEncryptedTx', Date.now() - time)
           onUserInput(Field.INPUT, '')
           setSwapState({
             ...swapState,
@@ -681,7 +681,7 @@ export default function Swap({ history }: RouteComponentProps) {
       swapParams.prepareDone &&
       !swapParams.encryptorDone
     ) {
-      console.log('2', swapParams, createEncryptProofFunc, createEncryptProof)
+      //console.log('2', swapParams, createEncryptProofFunc, createEncryptProof)
       isEncrypting.current = true
       createEncryptProofFunc()
     }
@@ -701,7 +701,7 @@ export default function Swap({ history }: RouteComponentProps) {
 
   useEffect(() => {
     if (!isSending.current && swapParams.encryptorDone && swapParams.signingDone) {
-      console.log('4', swapParams, sendEncryptedTxFunc, sendEncryptedTx)
+      //console.log('4', swapParams, sendEncryptedTxFunc, sendEncryptedTx)
       isSending.current = true
       sendEncryptedTxFunc().then(() => {
         isSending.current = false
@@ -736,7 +736,7 @@ export default function Swap({ history }: RouteComponentProps) {
     !(priceImpactSeverity > 3 && !isExpertMode)
 
   const handleConfirmDismiss = useCallback(() => {
-    console.log('on dismiss')
+    //console.log('on dismiss')
     setSwapParams({
       start: false,
       timeLockPuzzleData: swapParams.timeLockPuzzleData,
@@ -1050,7 +1050,7 @@ export default function Swap({ history }: RouteComponentProps) {
             ) : (
               <SwapButtonError
                 onClick={() => {
-                  console.log('button click', isExpertMode, swapParams)
+                  //console.log('button click', isExpertMode, swapParams)
                   if (isExpertMode) {
                     handleSwap()
                   } else {

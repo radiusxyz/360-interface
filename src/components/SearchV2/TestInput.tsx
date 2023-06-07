@@ -10,10 +10,10 @@ const TestInput: React.FC<Props> = (props: Props) => {
 
   useEffect(() => {
     setTimeout(() => {
-      console.log('hello')
+      //console.log('hello')
     }, 500)
     return () => {
-      console.log('world')
+      //console.log('world')
     }
   }, [prompt])
 

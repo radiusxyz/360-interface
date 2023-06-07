@@ -196,9 +196,9 @@ export function HistoryModal({ isOpen, onDismiss }: { isOpen: boolean; onDismiss
         .limit(rowsPerPage)
 
       // await history.each(async (obj, cursor) => {
-      //   console.log(obj, cursor)
+      //   //console.log(obj, cursor)
       //   const a = await db.getTxHistoryWithPendingTxById(obj.id as number)
-      //   console.log(a)
+      //   //console.log(a)
       // })
       return history.toArray()
     }, [activePage])

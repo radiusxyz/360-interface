@@ -44,6 +44,7 @@ export function ImportList({ listURL, list, setModalView, onDismiss }: ImportPro
 
   const lists = useAllLists()
   const fetchList = useFetchListCallback()
+  //console.log('HelloWorld Fetchlist')
 
   // monitor is list is loading
   const adding = Boolean(lists[listURL]?.loadingRequestId)

@@ -326,12 +326,12 @@ export default function CurrencyInputPanel({
   }, [setModalOpen])
 
   const styleTheParentWhenFocus = (e: any) => {
-    console.log(e.type)
+    //console.log(e.type)
     setBackground(e.type === 'focus' ? '#f5f4ff' : 'white')
   }
 
   const styleTheParentWhenBlur = (e: any) => {
-    console.log(e.type)
+    //console.log(e.type)
     setBackground('white')
   }
 

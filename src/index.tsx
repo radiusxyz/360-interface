@@ -60,7 +60,7 @@ ReactDOM.render(
                   <ThemeProvider>
                     <ThemedGlobalStyle />
                     <App />
-                    <Search />
+                    {/* <Search /> */}
                   </ThemeProvider>
                 </BlockNumberProvider>
               </Blocklist>

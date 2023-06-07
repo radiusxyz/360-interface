@@ -60,11 +60,11 @@ export function CancelSuggestModal({
   useEffect(() => {
     const updateTx = async () => {
       if (readyTx === undefined && txHistoryId !== 0) {
-        console.log('txHistoryId', txHistoryId)
+        //console.log('txHistoryId', txHistoryId)
         const txHistory = await db.txHistory.get(txHistoryId)
-        console.log('pendingTxId', txHistory?.pendingTxId as number)
+        //console.log('pendingTxId', txHistory?.pendingTxId as number)
         setPendingTx(await db.pendingTxs.get(txHistory?.pendingTxId as number))
-        console.log('readyTxId', pendingTx?.readyTxId as number)
+        //console.log('readyTxId', pendingTx?.readyTxId as number)
         setReadyTx(await db.readyTxs.get(pendingTx?.readyTxId as number))
       }
     }
@@ -100,14 +100,14 @@ export function CancelSuggestModal({
           status: Status.PENDING,
         }
       )
-      console.log(`popup remove ${pendingTx?.round}-${pendingTx?.order}`)
+      //console.log(`popup remove ${pendingTx?.round}-${pendingTx?.order}`)
       dispatch(
         removePopup({
           key: `${pendingTx?.round}-${pendingTx?.order}`,
         })
       )
 
-      console.log(`popup add ${pendingTx?.round}-${pendingTx?.order}`)
+      //console.log(`popup add ${pendingTx?.round}-${pendingTx?.order}`)
       dispatch(
         addPopup({
           content: {
@@ -126,7 +126,7 @@ export function CancelSuggestModal({
   const sendCancelTx = async () => {
     if (readyTx && pendingTx) {
       const canceled = await recorderContract.disableTxHash(readyTx.txHash)
-      console.log(canceled)
+      //console.log(canceled)
       setCancelProgress(1)
       await sleep(3000)
 
@@ -158,14 +158,14 @@ export function CancelSuggestModal({
         }
       )
 
-      console.log(`popup remove ${pendingTx?.round}-${pendingTx?.order}`)
+      //console.log(`popup remove ${pendingTx?.round}-${pendingTx?.order}`)
       dispatch(
         removePopup({
           key: `${pendingTx?.round}-${pendingTx?.order}`,
         })
       )
 
-      console.log(`popup add ${pendingTx?.round}-${pendingTx?.order}`)
+      //console.log(`popup add ${pendingTx?.round}-${pendingTx?.order}`)
       dispatch(
         addPopup({
           content: {

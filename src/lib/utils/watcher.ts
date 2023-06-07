@@ -26,7 +26,7 @@ async function getTxId(
   } else {
     const isSaved = await recorder?.isSaved(round)
     const currentRound = await recorder?.currentRound()
-    console.log(`isSaved(${round}) ${isSaved}, currentRound: ${currentRound}`)
+    //console.log(`isSaved(${round}) ${isSaved}, currentRound: ${currentRound}`)
 
     if (isSaved || currentRound > round) {
       await fetch(
@@ -67,16 +67,16 @@ export async function CheckPendingTx({
     // 1. round에 해당하는 txId 받아오기
     const readyTx = await db.readyTxs.get(pendingTx.readyTxId)
 
-    console.log('get', pendingTx.round, pendingTx)
+    //console.log('get', pendingTx.round, pendingTx)
     const txHash = await getTxId(recorder, chainId, router?.address, pendingTx.round)
     if (txHash === null) continue
 
-    console.log('has txHash', txHash)
+    //console.log('has txHash', txHash)
     // 2. txId 실행되었는지 확인
     const txReceipt = await library?.getTransactionReceipt(txHash)
 
     if (txReceipt) {
-      console.log('has receipt', txReceipt)
+      //console.log('has receipt', txReceipt)
 
       const block = await library?.getBlock(txReceipt.blockNumber)
       const txTime = block?.timestamp as number
@@ -132,7 +132,7 @@ export async function CheckPendingTx({
                       break
                     }
                   }
-                  console.log('Success', from, to)
+                  //console.log('Success', from, to)
                   db.pushTxHistory(
                     { field: 'pendingTxId', value: pendingTx.id as number },
                     {
@@ -150,9 +150,9 @@ export async function CheckPendingTx({
                       order,
                     })
 
-                    console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
+                    //console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
                     dispatch(removePopup({ key: `${pendingTx.round}-${pendingTx.order}` }))
-                    console.log(`popup add ${round}-${order}`)
+                    //console.log(`popup add ${round}-${order}`)
                     dispatch(
                       addPopup({
                         content: {
@@ -169,7 +169,7 @@ export async function CheckPendingTx({
                 } else {
                   const isCanceled = await recorder?.useOfVeto(readyTx.txHash, readyTx.tx.txOwner)
                   if (isCanceled === true) {
-                    console.log('Canceled')
+                    //console.log('Canceled')
                     await db
                       .pushTxHistory(
                         { field: 'pendingTxId', value: pendingTx.id as number },
@@ -188,9 +188,9 @@ export async function CheckPendingTx({
                           round,
                           order,
                         })
-                        console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
+                        //console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
                         dispatch(removePopup({ key: `${pendingTx.round}-${pendingTx.order}` }))
-                        console.log(`popup add ${round}-${order}`)
+                        //console.log(`popup add ${round}-${order}`)
                         dispatch(
                           addPopup({
                             content: {
@@ -205,7 +205,7 @@ export async function CheckPendingTx({
                       })
                     continue
                   } else {
-                    console.log('Rejected')
+                    //console.log('Rejected')
                     db.pushTxHistory(
                       { field: 'pendingTxId', value: pendingTx.id as number },
                       {
@@ -217,9 +217,9 @@ export async function CheckPendingTx({
                     ).then(() => {
                       db.pendingTxs.update(pendingTx.id as number, { progressHere: 0, round, order })
 
-                      console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
+                      //console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
                       dispatch(removePopup({ key: `${pendingTx.round}-${pendingTx.order}` }))
-                      console.log(`popup add ${round}-${order}`)
+                      //console.log(`popup add ${round}-${order}`)
                       dispatch(
                         addPopup({
                           content: {
@@ -236,7 +236,7 @@ export async function CheckPendingTx({
                   }
                 }
               } else if (readyTx.tx.nonce < nonce) {
-                console.log(`Nonce already passed (expected: ${readyTx.tx.nonce} / real: ${nonce})`)
+                //console.log(`Nonce already passed (expected: ${readyTx.tx.nonce} / real: ${nonce})`)
                 await db.pendingTxs.update(pendingTx.id as number, { round: 0 })
                 throw Error(`Error: re scan from first`)
               }
@@ -246,12 +246,12 @@ export async function CheckPendingTx({
         }
 
         const currentRound = await recorder?.currentRound()
-        console.log(`currentRound: ${currentRound} ${pendingTx.round}`)
+        //console.log(`currentRound: ${currentRound} ${pendingTx.round}`)
         // doneRound까지 봤으면
         if (parseInt(currentRound) === pendingTx.round + 1) {
           const isCanceled = await recorder?.useOfVeto(readyTx?.txHash, readyTx?.tx.txOwner)
           if (isCanceled === true) {
-            console.log('Canceled')
+            //console.log('Canceled')
             await db
               .pushTxHistory(
                 { field: 'pendingTxId', value: pendingTx.id as number },
@@ -270,9 +270,9 @@ export async function CheckPendingTx({
                   round: pendingTx.round,
                   order: pendingTx.order,
                 })
-                console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
+                //console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
                 dispatch(removePopup({ key: `${pendingTx.round}-${pendingTx.order}` }))
-                console.log(`popup add ${pendingTx.round}-${pendingTx.order}`)
+                //console.log(`popup add ${pendingTx.round}-${pendingTx.order}`)
                 dispatch(
                   addPopup({
                     content: {
@@ -288,10 +288,10 @@ export async function CheckPendingTx({
           }
           continue
         }
-        console.log(`check next round: ${pendingTx.round + 1}`)
-        console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
+        //console.log(`check next round: ${pendingTx.round + 1}`)
+        //console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
         dispatch(removePopup({ key: `${pendingTx.round}-${pendingTx.order}` }))
-        console.log(`popup add ${pendingTx.round}-${pendingTx.order}`)
+        //console.log(`popup add ${pendingTx.round}-${pendingTx.order}`)
         dispatch(
           addPopup({
             content: {
@@ -315,7 +315,7 @@ export async function CheckPendingTx({
               const dataList: any = splitBy64(log.data)
               round = BigNumber.from(`0x${dataList[0]}`).toNumber()
               if (pendingTx.round !== round) {
-                console.log('Invalid round')
+                //console.log('Invalid round')
                 break
               }
               order = BigNumber.from(`0x${dataList[1]}`).toNumber()
@@ -329,7 +329,7 @@ export async function CheckPendingTx({
           }
         }
         const txHashes = await recorder?.getRoundTxHashes(pendingTx.round)
-        console.log('txHashes', txHashes)
+        //console.log('txHashes', txHashes)
 
         let hashChain = '0x0000000000000000000000000000000000000000000000000000000000000000'
         if (pendingTx.order + 1 <= txHashes.length) {
@@ -348,7 +348,7 @@ export async function CheckPendingTx({
         ) {
           // 스왑이 성공시
           if (success === true) {
-            console.log('Success', from, to)
+            //console.log('Success', from, to)
             for (const log of currentOrderLogs) {
               if (log.topics[0].toLowerCase() === EventLogHashTransfer && from === null) {
                 const token = new Contract(log.address, ERC20_ABI, library)
@@ -384,9 +384,9 @@ export async function CheckPendingTx({
             ).then(() => {
               db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
 
-              console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
+              //console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
               dispatch(removePopup({ key: `${pendingTx.round}-${pendingTx.order}` }))
-              console.log(`popup add ${pendingTx.round}-${pendingTx.order}`)
+              //console.log(`popup add ${pendingTx.round}-${pendingTx.order}`)
               dispatch(
                 addPopup({
                   content: {
@@ -404,7 +404,7 @@ export async function CheckPendingTx({
           } else {
             const isCanceled = await recorder?.useOfVeto(readyTx.txHash, readyTx.tx.txOwner)
             if (isCanceled === true) {
-              console.log('Canceled')
+              //console.log('Canceled')
               await db
                 .pushTxHistory(
                   { field: 'pendingTxId', value: pendingTx.id as number },
@@ -419,9 +419,9 @@ export async function CheckPendingTx({
                 )
                 .then(async () => {
                   await db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
-                  console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
+                  //console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
                   dispatch(removePopup({ key: `${pendingTx.round}-${pendingTx.order}` }))
-                  console.log(`popup add ${pendingTx.round}-${pendingTx.order}`)
+                  //console.log(`popup add ${pendingTx.round}-${pendingTx.order}`)
                   dispatch(
                     addPopup({
                       content: {
@@ -437,7 +437,7 @@ export async function CheckPendingTx({
 
               continue
             } else {
-              console.log('Rejected')
+              //console.log('Rejected')
               db.pushTxHistory(
                 { field: 'pendingTxId', value: pendingTx.id as number },
                 {
@@ -448,9 +448,9 @@ export async function CheckPendingTx({
                 }
               ).then(() => {
                 db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
-                console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
+                //console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
                 dispatch(removePopup({ key: `${pendingTx.round}-${pendingTx.order}` }))
-                console.log(`popup add ${pendingTx.round}-${pendingTx.order}`)
+                //console.log(`popup add ${pendingTx.round}-${pendingTx.order}`)
                 dispatch(
                   addPopup({
                     content: {
@@ -468,7 +468,7 @@ export async function CheckPendingTx({
             }
           }
         } else {
-          console.log('reimbursement')
+          //console.log('reimbursement')
           db.pushTxHistory(
             { field: 'pendingTxId', value: pendingTx.id as number },
             {
@@ -481,9 +481,9 @@ export async function CheckPendingTx({
             }
           ).then((txHistoryId) => {
             db.pendingTxs.update(pendingTx.id as number, { progressHere: 0 })
-            console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
+            //console.log(`popup remove ${pendingTx.round}-${pendingTx.order}`)
             dispatch(removePopup({ key: `${pendingTx.round}-${pendingTx.order}` }))
-            console.log(`popup add ${pendingTx.round}-${pendingTx.order}`)
+            //console.log(`popup add ${pendingTx.round}-${pendingTx.order}`)
             dispatch(
               addPopup({
                 content: {
@@ -497,10 +497,10 @@ export async function CheckPendingTx({
             )
           })
 
-          console.log(
-            `expected: walletAddress: ${readyTx?.tx.txOwner} / round - ${pendingTx.round} / order - ${pendingTx.order} / nonce - ${readyTx?.tx.nonce}`
-          )
-          console.log(`real: address: ${address} / round - ${round} / order - ${order} / nonce - ${nonce}`)
+          //console.log(
+          //   `expected: walletAddress: ${readyTx?.tx.txOwner} / round - ${pendingTx.round} / order - ${pendingTx.order} / nonce - ${readyTx?.tx.nonce}`
+          // )
+          //console.log(`real: address: ${address} / round - ${round} / order - ${order} / nonce - ${nonce}`)
           continue
         }
       }
@@ -529,7 +529,7 @@ export async function watcher_test(
   const txReceipt = await library?.getTransactionReceipt(txId)
 
   if (txReceipt) {
-    console.log('has receipt', txReceipt)
+    //console.log('has receipt', txReceipt)
     const Logs = txReceipt?.logs as Array<{ address: string; topics: Array<any>; data: string }>
 
     let from: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
@@ -571,7 +571,7 @@ export async function watcher_test(
       if (log.topics[0] === EventLogHashSwap) {
         const dataList = splitBy64(log.data)
 
-        console.log('dataList', dataList)
+        //console.log('dataList', dataList)
 
         if (
           dataList?.length === 5 &&
@@ -587,42 +587,42 @@ export async function watcher_test(
     }
 
     if (given.order === -1) {
-      console.log('pending tx order === -1', given, from, to)
+      //console.log('pending tx order === -1', given, from, to)
       if (flag) {
         // 내 nonce의 값을 찾았다.
         if (from.token !== '' && to.token !== '') {
-          console.log('right tx on log and success', from, to)
-          console.log('success')
+          //console.log('right tx on log and success', from, to)
+          //console.log('success')
         } else {
           const isCanceled = await recorder?.useOfVeto(given.txHash, account)
           if (isCanceled) {
-            console.log('canceled1')
+            //console.log('canceled1')
           } else {
-            console.log('right tx on log and rejected', from, to)
-            console.log('rejected')
+            //console.log('right tx on log and rejected', from, to)
+            //console.log('rejected')
           }
         }
       } else {
-        console.log('no tx on log')
+        //console.log('no tx on log')
         const isCanceled = await recorder?.useOfVeto(given.txHash, account)
         if (isCanceled) {
-          console.log('canceled2')
+          //console.log('canceled2')
           if (doneRound === given.round) {
-            console.log('doneRound is round')
-            console.log('canceled3')
+            //console.log('doneRound is round')
+            //console.log('canceled3')
           } else {
-            console.log('round++1')
+            //console.log('round++1')
           }
         } else {
-          console.log('proceed')
-          console.log('round++2')
+          //console.log('proceed')
+          //console.log('round++2')
         }
       }
     } else {
-      console.log('pending tx exist', given)
+      //console.log('pending tx exist', given)
       // 2.1 HashChain 검증
       const txHashes = await recorder?.getRoundTxHashes(given.round)
-      console.log('txHashes', txHashes)
+      //console.log('txHashes', txHashes)
 
       let hashChain = '0x0000000000000000000000000000000000000000000000000000000000000000'
       for (let i = 0; i < given.order; i++) {
@@ -630,23 +630,23 @@ export async function watcher_test(
       }
 
       // 2.2 Order 검증
-      console.log('2.2 Order verify', txHashes, given.order, given.txHash, hashChain, given.proofHash)
+      //console.log('2.2 Order verify', txHashes, given.order, given.txHash, hashChain, given.proofHash)
       if (
         txHashes.length > 0 && // doneRound >= pendingTx.round &&
         txHashes[given.order] === given.txHash &&
         hashChain === given.proofHash
       ) {
-        console.log('everything is alright')
+        //console.log('everything is alright')
         // 2.1.1 제대로 수행 되었다면 history에 넣음
-        console.log('from, to', from, to)
+        //console.log('from, to', from, to)
         if (from.token !== '' && to.token !== '') {
-          console.log('success2')
+          //console.log('success2')
         } else {
-          console.log('tx failed reject')
-          console.log('rejected2')
+          //console.log('tx failed reject')
+          //console.log('rejected2')
         }
       } else {
-        console.log('reimbursement')
+        //console.log('reimbursement')
         // 2.1.2 문제가 있다면 claim 할 수 있도록 진행
       }
     }
@@ -680,7 +680,7 @@ export async function watcher_test2(
   // 2. order는 모르고 있을때
   const txReceipt = await library?.getTransactionReceipt(txId)
   if (txReceipt) {
-    console.log('has receipt', txReceipt)
+    //console.log('has receipt', txReceipt)
     const Logs = txReceipt?.logs as Array<{ address: string; topics: Array<any>; data: string }>
     // let from: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
     // let to: TokenAmount = { token: '', amount: '', decimal: '1000000000000000000' }
@@ -734,20 +734,20 @@ export async function watcher_test2(
                     break
                   }
                 }
-                console.log('Success', from, to)
+                //console.log('Success', from, to)
                 return
               } else {
                 const isCanceled = await recorder?.useOfVeto(given.txHash, walletAddress)
                 if (isCanceled === true) {
-                  console.log('Canceled')
+                  //console.log('Canceled')
                   return
                 } else {
-                  console.log('Rejected')
+                  //console.log('Rejected')
                   return
                 }
               }
             } else if (given.nonce < nonce) {
-              console.log(`Nonce already passed (expected: ${given.nonce} / real: ${nonce})`)
+              //console.log(`Nonce already passed (expected: ${given.nonce} / real: ${nonce})`)
               return
             }
           }
@@ -755,10 +755,10 @@ export async function watcher_test2(
         }
       }
       if (given.round >= doneRound) {
-        console.log('Done check round - pending')
+        //console.log('Done check round - pending')
         return
       } else {
-        console.log(`Have to request - round check: ${given.round + 1}`)
+        //console.log(`Have to request - round check: ${given.round + 1}`)
         return
       }
     } else {
@@ -770,7 +770,7 @@ export async function watcher_test2(
             const dataList: any = splitBy64(log.data)
             round = BigNumber.from(`0x${dataList[0]}`).toNumber()
             if (given.round !== round) {
-              console.log('Invalid round')
+              //console.log('Invalid round')
               return
             }
             order = BigNumber.from(`0x${dataList[1]}`).toNumber()
@@ -784,7 +784,7 @@ export async function watcher_test2(
         }
       }
       const txHashes = await recorder?.getRoundTxHashes(given.round)
-      console.log('txHashes', txHashes)
+      //console.log('txHashes', txHashes)
 
       let hashChain = '0x0000000000000000000000000000000000000000000000000000000000000000'
       for (let i = 0; i < given.order; i++) {
@@ -821,24 +821,24 @@ export async function watcher_test2(
               break
             }
           }
-          console.log('Success', from, to)
+          //console.log('Success', from, to)
           return
         } else {
           const isCanceled = await recorder?.useOfVeto(given.txHash, walletAddress)
           if (isCanceled === true) {
-            console.log('Canceled')
+            //console.log('Canceled')
             return
           } else {
-            console.log('Rejected')
+            //console.log('Rejected')
             return
           }
         }
       } else {
-        console.log('reimbursement')
-        console.log(
-          `expected: walletAddress: ${walletAddress} / round - ${given.round} / order - ${given.order} / nonce - ${given.nonce}`
-        )
-        console.log(`real: address: ${address} / round - ${round} / order - ${order} / nonce - ${nonce}`)
+        //console.log('reimbursement')
+        //console.log(
+        //   `expected: walletAddress: ${walletAddress} / round - ${given.round} / order - ${given.order} / nonce - ${given.nonce}`
+        // )
+        //console.log(`real: address: ${address} / round - ${round} / order - ${order} / nonce - ${nonce}`)
         return
       }
     }
