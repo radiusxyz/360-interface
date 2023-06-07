@@ -65,6 +65,7 @@ import { LinkStyledButton, ThemedText } from '../../theme'
 import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { warningSeverity } from '../../utils/prices'
 import SwapSection from '../SwapSection'
+import SwapContext from 'contexts/swap-context'
 
 const MAXIMUM_PATH_LENGTH = 3
 const swapExactTokensForTokens = '0x73a2cff1'
@@ -830,12 +831,18 @@ export default function Swap({ history }: RouteComponentProps) {
   }, [isValid, routeIsSyncing, routeIsLoading, swapCallbackError, controls])
 
   // TODO: CLEAR CACHE 자동로딩
+
+  const SwapCTX = useContext(SwapContext)
+
   return (
     <InfoAndSwapWrapper>
-      <InfoSection>
-        <FerrisWheel />
-        <GreetingMessage>Welcome to 360°</GreetingMessage>
-      </InfoSection>
+      {SwapCTX.leftSection === 'welcome' && (
+        <InfoSection>
+          <FerrisWheel />
+          <GreetingMessage>Welcome to 360°</GreetingMessage>
+        </InfoSection>
+      )}
+
       <SwapSection maxWidth="372px">
         <>
           <SwapHeader allowedSlippage={allowedSlippage} />

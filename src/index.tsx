@@ -25,6 +25,7 @@ import UserUpdater from './state/user/updater'
 import ThemeProvider, { ThemedGlobalStyle } from './theme'
 import RadialGradientByChainUpdater from './theme/RadialGradientByChainUpdater'
 import getLibrary from './utils/getLibrary'
+import SwapProvider from 'contexts/SwapProvider'
 
 const Web3ProviderNetwork = createWeb3ReactRoot(NetworkContextName)
 
@@ -58,7 +59,9 @@ ReactDOM.render(
                   <Updaters />
                   <ThemeProvider>
                     <ThemedGlobalStyle />
-                    <App />
+                    <SwapProvider>
+                      <App />
+                    </SwapProvider>
                   </ThemeProvider>
                 </BlockNumberProvider>
               </Blocklist>

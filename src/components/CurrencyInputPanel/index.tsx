@@ -5,7 +5,7 @@ import { AutoColumn } from 'components/Column'
 import { loadingOpacityMixin } from 'components/Loader/styled'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { darken } from 'polished'
-import { ReactNode, useCallback, useState } from 'react'
+import { ReactNode, useCallback, useState, useContext } from 'react'
 import { Lock } from 'react-feather'
 import styled from 'styled-components/macro'
 import { formatCurrencyAmount } from 'utils/formatCurrencyAmount'
@@ -20,6 +20,7 @@ import DoubleCurrencyLogo from '../DoubleLogo'
 import { Input as NumericalInput } from '../NumericalInput'
 import { RowBetween, RowFixed } from '../Row'
 import CurrencySearchModal from '../SearchModal/CurrencySearchModal'
+import SwapContext from 'contexts/swap-context'
 
 const InputPanel = styled.div<{ hideInput?: boolean }>`
   ${({ theme }) => theme.flexColumnNoWrap}
@@ -270,6 +271,7 @@ interface CurrencyInputPanelProps {
   onUserInput: (value: string) => void
   onMax?: () => void
   onHalf?: () => void
+  handleLeftSection?: (value: string) => void
   showMaxButton: boolean
   label?: ReactNode
   onCurrencySelect?: (currency: Currency | null) => void
@@ -312,6 +314,7 @@ export default function CurrencyInputPanel({
   hideInput = false,
   locked = false,
   loading = false,
+
   ...rest
 }: CurrencyInputPanelProps) {
   const [modalOpen, setModalOpen] = useState(false)
@@ -334,6 +337,8 @@ export default function CurrencyInputPanel({
     //console.log(e.type)
     setBackground('white')
   }
+
+  const SwapCTX = useContext(SwapContext)
 
   return (
     <InputPanel id={id} hideInput={hideInput} {...rest}>
@@ -378,6 +383,8 @@ export default function CurrencyInputPanel({
             hideInput={hideInput}
             className="open-currency-select-button"
             onClick={() => {
+              SwapCTX.handleLeftSection('search-table')
+
               if (onCurrencySelect) {
                 setModalOpen(true)
               }
