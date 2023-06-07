@@ -19,7 +19,6 @@ interface CurrencySearchModalProps {
   otherSelectedCurrency?: Currency | null
   aTokenAddress?: string | null
   bTokenAddress?: string | null
-  showCommonBases?: boolean
   showCurrencyAmount?: boolean
   disableNonToken?: boolean
 }
@@ -39,7 +38,6 @@ export default function CurrencySearchModal({
   otherSelectedCurrency,
   aTokenAddress,
   bTokenAddress,
-  showCommonBases = false,
   showCurrencyAmount = true,
   disableNonToken = false,
 }: CurrencySearchModalProps) {
@@ -89,7 +87,6 @@ export default function CurrencySearchModal({
           onCurrencySelect={handleCurrencySelect}
           selectedCurrency={selectedCurrency}
           otherSelectedCurrency={otherSelectedCurrency}
-          showCommonBases={showCommonBases}
           showCurrencyAmount={showCurrencyAmount}
           disableNonToken={disableNonToken}
           aTokenAddress={aTokenAddress}

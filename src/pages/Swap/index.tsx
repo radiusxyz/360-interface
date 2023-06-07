@@ -902,7 +902,6 @@ export default function Swap({ history }: RouteComponentProps) {
                   onCurrencySelect={handleInputSelect}
                   otherCurrency={currencies[Field.OUTPUT]}
                   isA={true}
-                  showCommonBases={false}
                   id="swap-currency-input"
                   loading={independentField === Field.OUTPUT && routeIsSyncing}
                 />
@@ -935,7 +934,6 @@ export default function Swap({ history }: RouteComponentProps) {
                   onCurrencySelect={handleOutputSelect}
                   otherCurrency={currencies[Field.INPUT]}
                   isA={false}
-                  showCommonBases={false}
                   id="swap-currency-output"
                   loading={independentField === Field.INPUT && routeIsSyncing}
                 />

@@ -283,7 +283,6 @@ interface CurrencyInputPanelProps {
   fiatValue?: CurrencyAmount<Token> | null
   priceImpact?: Percent
   id: string
-  showCommonBases?: boolean
   showCurrencyAmount?: boolean
   disableNonToken?: boolean
   renderBalance?: (amount: CurrencyAmount<Currency>) => ReactNode
@@ -302,7 +301,6 @@ export default function CurrencyInputPanel({
   currency,
   otherCurrency,
   id,
-  showCommonBases,
   showCurrencyAmount,
   disableNonToken,
   renderBalance,
@@ -493,7 +491,6 @@ export default function CurrencyInputPanel({
                   : '0x0000000000000000000000000000000000000000'
                 : null
             }
-            showCommonBases={showCommonBases}
             showCurrencyAmount={showCurrencyAmount}
             disableNonToken={disableNonToken}
           />
@@ -504,7 +501,6 @@ export default function CurrencyInputPanel({
             onCurrencySelect={onCurrencySelect}
             selectedCurrency={currency}
             otherSelectedCurrency={otherCurrency}
-            showCommonBases={showCommonBases}
             showCurrencyAmount={showCurrencyAmount}
             disableNonToken={disableNonToken}
           />

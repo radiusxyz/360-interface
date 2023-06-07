@@ -109,7 +109,6 @@ interface CurrencySearchProps {
   otherSelectedCurrency?: Currency | null
   aTokenAddress?: string | null
   bTokenAddress?: string | null
-  showCommonBases?: boolean
   showCurrencyAmount?: boolean
   disableNonToken?: boolean
   showManageView: () => void
@@ -121,7 +120,6 @@ export function CurrencySearch({
   selectedCurrency,
   onCurrencySelect,
   otherSelectedCurrency,
-  showCommonBases,
   showCurrencyAmount,
   disableNonToken,
   aTokenAddress,
