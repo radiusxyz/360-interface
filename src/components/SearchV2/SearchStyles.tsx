@@ -1,7 +1,7 @@
 import styled from 'styled-components/macro'
 
 export const TableWrapper = styled.div`
-  height: 581px;
+  max-height: 554px;
   max-width: 500px;
   width: 100%;
   display: flex;

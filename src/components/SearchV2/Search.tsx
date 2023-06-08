@@ -3,6 +3,7 @@ import Table from './Table'
 import FrequentTokens from './FrequentTokens'
 import { tokens, Tokens } from '../../assets/data'
 import { TableWrapper } from './SearchStyles'
+import InputSearch from './InputSearch'
 
 const Search: React.FC = () => {
   const [tokensState, setTokensState] = useState(tokens)
@@ -13,6 +14,7 @@ const Search: React.FC = () => {
 
   return (
     <TableWrapper>
+      <InputSearch handler={handleTokensState} />
       <FrequentTokens />
       <Table tokens={tokensState} />
     </TableWrapper>

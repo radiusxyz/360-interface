@@ -66,6 +66,7 @@ import { maxAmountSpend } from '../../utils/maxAmountSpend'
 import { warningSeverity } from '../../utils/prices'
 import SwapSection from '../SwapSection'
 import SwapContext from 'contexts/swap-context'
+import Search from 'components/SearchV2/Search'
 
 const MAXIMUM_PATH_LENGTH = 3
 const swapExactTokensForTokens = '0x73a2cff1'
@@ -73,10 +74,11 @@ const swapExactTokensForTokens = '0x73a2cff1'
 const InfoAndSwapWrapper = styled.div`
   display: flex;
   justify-content: center;
-  max-height: 381px;
+  height: auto;
   gap: 12px;
   width: 100%;
   height: 100%;
+  align-items: start;
 `
 
 const InfoSection = styled.div`
@@ -91,6 +93,7 @@ const InfoSection = styled.div`
   box-shadow: 0px 4px 21px rgba(90, 18, 61, 0.1);
   width: 100%;
   max-width: 500px;
+  min-height: 381px;
 `
 
 const FerrisWheel = styled.img.attrs(() => ({
@@ -842,6 +845,7 @@ export default function Swap({ history }: RouteComponentProps) {
           <GreetingMessage>Welcome to 360°</GreetingMessage>
         </InfoSection>
       )}
+      {SwapCTX.leftSection === 'search-table' && <Search />}
 
       <SwapSection maxWidth="372px">
         <>

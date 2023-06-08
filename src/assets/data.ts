@@ -33,19 +33,19 @@ export const tokens: Tokens = [
     balanceInUSD: 15584.15,
   },
   {
-    title: 'WETH',
+    title: 'DETH',
     description: 'Polygon Matic',
     balance: 15578252.121,
     balanceInUSD: 15584.15,
   },
   {
-    title: 'DAI',
+    title: 'RAI',
     description: 'Polygon Matic',
     balance: 15578252.121,
     balanceInUSD: 15584.15,
   },
   {
-    title: 'WETH',
+    title: 'NETH',
     description: 'Polygon Matic',
     balance: 15578252.121,
     balanceInUSD: 15584.15,
@@ -63,13 +63,13 @@ export const tokens: Tokens = [
     balanceInUSD: 15584.15,
   },
   {
-    title: 'WETH',
+    title: 'KETH',
     description: 'Polygon Matic',
     balance: 15578252.121,
     balanceInUSD: 15584.15,
   },
   {
-    title: 'BTC',
+    title: 'BBTC',
     description: 'Polygon Matic',
     balance: 15578252.121,
     balanceInUSD: 15584.15,

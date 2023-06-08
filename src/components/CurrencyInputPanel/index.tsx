@@ -5,7 +5,7 @@ import { AutoColumn } from 'components/Column'
 import { loadingOpacityMixin } from 'components/Loader/styled'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { darken } from 'polished'
-import { ReactNode, useCallback, useState, useContext } from 'react'
+import { ReactNode, useCallback, useState, useContext, useEffect } from 'react'
 import { Lock } from 'react-feather'
 import styled from 'styled-components/macro'
 import { formatCurrencyAmount } from 'utils/formatCurrencyAmount'
@@ -473,7 +473,7 @@ export default function CurrencyInputPanel({
           </RowBetween>
         </FiatRow> */}
       </Container>
-      {onCurrencySelect &&
+      {/* {onCurrencySelect &&
         (isA === false || isA === true ? (
           <CurrencySearchModal
             isOpen={modalOpen}
@@ -504,7 +504,7 @@ export default function CurrencyInputPanel({
             showCurrencyAmount={showCurrencyAmount}
             disableNonToken={disableNonToken}
           />
-        ))}
+        ))} */}
     </InputPanel>
   )
 }
