@@ -7,7 +7,7 @@
 
 html,
 body {
-  width: 100%;
+  min-width: fit-content;
   height: 100%;
   background: radial-gradient(60.37% 60.37% at 50% 1.11%, #e9e9ff 0%, #ffffff 100%);
 }
