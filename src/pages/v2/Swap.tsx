@@ -1,6 +1,8 @@
 import styled from 'styled-components/macro'
 import ferris_wheel from '../../assets/v2/images/ferris_wheel.png'
 import cog from '../../assets/v2/images/cog.png'
+import { PrimaryButton, SelectTokenButton } from 'components/v2/UI/Buttons'
+import { NumericInput } from 'components/v2/UI/Inputs'
 
 const Wrapper = styled.div`
   display: flex;
@@ -70,23 +72,34 @@ const HeaderTitle = styled.span`
 const Cog = styled.img.attrs({ src: cog, width: 20 })``
 
 const TopTokenRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   max-height: 118px;
   height: 100%;
   border-bottom: 1px solid #dde0ff;
+  padding: 0 24px;
 `
 
 const BottomTokenRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   max-height: 100px;
   height: 100%;
   border-bottom: 1px solid #dde0ff;
+  padding: 0 24px;
 `
 
 const ButtonRow = styled.div`
   max-height: 116px;
   height: 100%;
+  display: flex;
+  align-items: end;
+  padding: 0px 24px 24px 24px;
 `
 
-const Swap = () => {
+export const Swap = () => {
   return (
     <Wrapper>
       <LeftSection>
@@ -98,9 +111,17 @@ const Swap = () => {
           <HeaderTitle>Swap</HeaderTitle>
           <Cog />
         </Header>
-        <TopTokenRow></TopTokenRow>
-        <BottomTokenRow></BottomTokenRow>
-        <ButtonRow></ButtonRow>
+        <TopTokenRow>
+          <SelectTokenButton>Select Token</SelectTokenButton>
+          <NumericInput />
+        </TopTokenRow>
+        <BottomTokenRow>
+          <SelectTokenButton>Select Token</SelectTokenButton>
+          <NumericInput />
+        </BottomTokenRow>
+        <ButtonRow>
+          <PrimaryButton>Connect Wallet</PrimaryButton>
+        </ButtonRow>
       </RightSection>
     </Wrapper>
   )
