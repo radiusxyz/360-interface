@@ -72,7 +72,6 @@ export const NumericInput = (props: NumericInputProps) => {
   return (
     <InputWrapper parentStyles={parentStyles} {...props}>
       <Input
-        autoFocus
         inputMode="decimal"
         pattern="^[0-9]*[.,]?[0-9]*$"
         placeholder="0.00"

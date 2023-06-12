@@ -3,10 +3,15 @@ import ferris_wheel from '../../assets/v2/images/ferris_wheel.png'
 import cog from '../../assets/v2/images/cog.png'
 import { PrimaryButton, SelectTokenButton } from 'components/v2/UI/Buttons'
 import { NumericInput } from 'components/v2/UI/Inputs'
+import { useState } from 'react'
+import Search from 'components/v2/Search/Search'
+import Preview from 'components/v2/Preview/Preview'
+import AlmostThere from 'components/v2/AlmostThere/AlmostThere'
 
 const Wrapper = styled.div`
   display: flex;
   justify-content: center;
+  align-items: start;
   height: auto;
   gap: 12px;
   width: 100%;
@@ -44,6 +49,8 @@ const GreetingMessage = styled.p`
 `
 
 const RightSection = styled.div`
+  display: flex;
+  flex-direction: column;
   background: #ffffff;
   border: 1px solid #dde0ff;
   box-shadow: 0px 4px 21px rgba(90, 18, 61, 0.1);
@@ -59,6 +66,7 @@ const Header = styled.div`
   padding: 12px 24px;
   align-items: center;
   border-bottom: 1px solid #dde0ff;
+  max-height: 44px;
 `
 
 const HeaderTitle = styled.span`
@@ -74,53 +82,100 @@ const Cog = styled.img.attrs({ src: cog, width: 20 })``
 const TopTokenRow = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  max-height: 118px;
+  min-height: 118px;
   height: 100%;
   border-bottom: 1px solid #dde0ff;
   padding: 0 24px;
+  gap: 8px;
+  position: relative;
+`
+
+const Aligner = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 8px;
+`
+
+const Circle = styled.div`
+  border-radius: 50%;
+  width: 31px;
+  height: 31px;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  border: 1px solid #dde0ff;
+  transform: translate(-50%, -50%);
+  background: #ffffff;
+  cursor: pointer;
 `
 
 const BottomTokenRow = styled.div`
   display: flex;
-  align-items: center;
+  align-items: start;
+  flex-grow: 1;
   justify-content: space-between;
-  max-height: 100px;
+  min-height: 75px;
   height: 100%;
   border-bottom: 1px solid #dde0ff;
   padding: 0 24px;
+  gap: 8px;
+  margin-top: 25px;
 `
 
 const ButtonRow = styled.div`
-  max-height: 116px;
-  height: 100%;
   display: flex;
+  height: 100%;
   align-items: end;
-  padding: 0px 24px 24px 24px;
+  min-height: 116px;
+  padding: 0 24px 24px 24px;
 `
 
 export const Swap = () => {
+  const [leftSection, setLeftSection] = useState('welcome')
+  const handleClickSelect = (e: React.MouseEvent<HTMLElement>) => {
+    const target = e.target as HTMLButtonElement
+
+    if (target.textContent === 'Select Token') setLeftSection('search-table')
+    if (target.textContent === 'Connect Wallet') setLeftSection('preview')
+    if (target.textContent === '') setLeftSection('almost-there')
+  }
+
   return (
     <Wrapper>
-      <LeftSection>
-        <FerrisWheel />
-        <GreetingMessage>Welcome to 360</GreetingMessage>
-      </LeftSection>
+      {(leftSection === 'welcome' && (
+        <LeftSection>
+          <FerrisWheel />
+          <GreetingMessage>Welcome to 360</GreetingMessage>
+        </LeftSection>
+      )) ||
+        (leftSection === 'search-table' && <Search />) ||
+        (leftSection === 'preview' && <Preview />) ||
+        (leftSection === 'almost-there' && <AlmostThere />)}
       <RightSection>
         <Header>
           <HeaderTitle>Swap</HeaderTitle>
           <Cog />
         </Header>
         <TopTokenRow>
-          <SelectTokenButton>Select Token</SelectTokenButton>
-          <NumericInput />
+          <Aligner>
+            <SelectTokenButton mrgn="6px 0px 0px 0px" onClick={handleClickSelect}>
+              Select Token
+            </SelectTokenButton>
+            <NumericInput />
+          </Aligner>
+          <Circle onClick={handleClickSelect} />
         </TopTokenRow>
         <BottomTokenRow>
-          <SelectTokenButton>Select Token</SelectTokenButton>
-          <NumericInput />
+          <Aligner>
+            <SelectTokenButton mrgn="6px 0px 0px 0px" onClick={handleClickSelect}>
+              Select Token
+            </SelectTokenButton>
+            <NumericInput />
+          </Aligner>
         </BottomTokenRow>
         <ButtonRow>
-          <PrimaryButton>Connect Wallet</PrimaryButton>
+          <PrimaryButton onClick={handleClickSelect}>Connect Wallet</PrimaryButton>
         </ButtonRow>
       </RightSection>
     </Wrapper>
