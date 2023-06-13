@@ -25,6 +25,13 @@ const Circle = styled.div<{ on: boolean }>`
   width: 18px;
   height: 18px;
   background: ${(props) => (props.on && '#ffffff') || '#6b11ff'};
+  transition: transform 0.8s ease; /* Add transition for transform property */
+  transform: translateX(${(props) => (props.on ? '0' : '-40px')});
+`
+
+const MovingSpan = styled.span<{ on: boolean }>`
+  transition: transform 0.8s ease; /* Add transition for transform property */
+  transform: translateX(${(props) => (props.on ? '0px' : '27px')});
 `
 
 const Switch = () => {
@@ -35,9 +42,8 @@ const Switch = () => {
 
   return (
     <Wrapper on={on}>
-      {on && <span>ON</span>}
+      <MovingSpan on={on}>{on ? 'ON' : 'OFF'}</MovingSpan>
       <Circle onClick={handleSwitch} on={on} />
-      {!on && <span>OFF</span>}
     </Wrapper>
   )
 }
