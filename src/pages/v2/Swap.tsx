@@ -7,6 +7,7 @@ import { useState } from 'react'
 import Search from 'components/v2/Search/Search'
 import Preview from 'components/v2/Preview/Preview'
 import AlmostThere from 'components/v2/AlmostThere/AlmostThere'
+import React from 'react'
 
 const Wrapper = styled.div`
   display: flex;
@@ -16,6 +17,10 @@ const Wrapper = styled.div`
   gap: 12px;
   width: 100%;
   height: 100%;
+  @media (max-width: 634px) {
+    flex-direction: column;
+    align-items: center;
+  }
 `
 
 const LeftSection = styled.div`

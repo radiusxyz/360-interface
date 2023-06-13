@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom'
-import AppBar from '../../components/v2/AppBar'
+import AppBar from '../../components/v2/AppBar/AppBar'
 import styled from 'styled-components/macro'
 
 const Wrapper = styled.div`
