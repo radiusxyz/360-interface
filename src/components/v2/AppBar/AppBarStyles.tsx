@@ -47,7 +47,7 @@ export const LinkList = styled.ul`
     gap: 0px;
     background: white;
     position: absolute;
-    z-index: 1;
+    z-index: 2;
   }
 `
 export const StyledNavLink = styled(NavLink)`
@@ -96,10 +96,11 @@ export const MenuIcon = styled.svg.attrs({
 
 export const Backdrop = styled.div`
   width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
   position: absolute;
   top: 58px;
   left: 0;
   background: black;
   opacity: 0.5;
+  z-index: 1;
 `

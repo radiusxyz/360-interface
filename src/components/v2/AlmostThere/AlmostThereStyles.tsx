@@ -11,7 +11,8 @@ export const Wrapper = styled.div`
   border-radius: 4px;
   justify-content: center;
   align-items: center;
-  max-width: 600px;
+  width: 100%;
+  max-width: 500px;
 `
 
 export const FoxImg = styled.img.attrs({
