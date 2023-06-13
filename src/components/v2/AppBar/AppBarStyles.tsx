@@ -1,6 +1,11 @@
 import styled from 'styled-components/macro'
 import { NavLink } from 'react-router-dom'
 
+export const MainWrapper = styled.div`
+  width: 100%;
+  position: relative;
+`
+
 export const Wrapper = styled.nav`
   width: 100%;
   display: flex;
@@ -30,6 +35,23 @@ export const LinkList = styled.ul`
   flex-grow: 0;
   list-style: none;
   gap: 59px;
+  transition: 0.5s all ease-in-out;
+  @media (max-width: 635px) {
+    flex-direction: column;
+    width: 100%;
+    align-items: start;
+    justify-content: start;
+    gap: 0px;
+    background: white;
+    position: absolute;
+    z-index: 1;
+  }
+`
+export const StyledNavLink = styled(NavLink)`
+  text-decoration: none;
+  @media (max-width: 635px) {
+    width: 100%;
+  }
 `
 export const Item = styled.li`
   font-style: normal;
@@ -39,10 +61,14 @@ export const Item = styled.li`
   color: #333333;
   text-decoration: none;
   white-space: nowrap;
-`
-
-export const StyledNavLink = styled(NavLink)`
-  text-decoration: none;
+  @media (max-width: 635px) {
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 21px;
+    color: #333333;
+    padding: 20px 40px 19px 40px;
+    width: 100%;
+  }
 `
 
 export const Button = styled.button`
@@ -64,3 +90,13 @@ export const MenuIcon = styled.svg.attrs({
   width: 22,
   height: 20,
 })``
+
+export const Backdrop = styled.div`
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  top: 58px;
+  left: 0;
+  background: black;
+  opacity: 0.5;
+`
