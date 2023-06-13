@@ -17,6 +17,7 @@ const Wrapper = styled.div<{ on: boolean }>`
   gap: 12px;
   align-items: center;
   padding: 6px;
+  transition: all 1s ease;
 `
 
 const Circle = styled.div<{ on: boolean }>`
