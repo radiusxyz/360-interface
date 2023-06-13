@@ -8,7 +8,6 @@ import Search from 'components/v2/Search/Search'
 import Preview from 'components/v2/Preview/Preview'
 import AlmostThere from 'components/v2/AlmostThere/AlmostThere'
 import React from 'react'
-import Switch from '../../components/v2/UI/Switch'
 
 const Wrapper = styled.div`
   display: flex;
@@ -149,7 +148,6 @@ export const Swap = () => {
 
   return (
     <Wrapper>
-      <Switch />
       {(leftSection === 'welcome' && (
         <LeftSection>
           <FerrisWheel />
