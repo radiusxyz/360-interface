@@ -15,6 +15,9 @@ export const Wrapper = styled.nav`
   align-items: center;
   min-height: 54px;
   padding: 10px 30px;
+  @media (max-width: 634px) {
+    padding: 10px 30px 10px 40px;
+  }
 `
 
 export const Span360 = styled.span`
@@ -36,7 +39,7 @@ export const LinkList = styled.ul`
   list-style: none;
   gap: 59px;
   transition: 0.5s all ease-in-out;
-  @media (max-width: 635px) {
+  @media (max-width: 634px) {
     flex-direction: column;
     width: 100%;
     align-items: start;
@@ -49,7 +52,7 @@ export const LinkList = styled.ul`
 `
 export const StyledNavLink = styled(NavLink)`
   text-decoration: none;
-  @media (max-width: 635px) {
+  @media (max-width: 634px) {
     width: 100%;
   }
 `
@@ -61,7 +64,7 @@ export const Item = styled.li`
   color: #333333;
   text-decoration: none;
   white-space: nowrap;
-  @media (max-width: 635px) {
+  @media (max-width: 634px) {
     font-weight: 500;
     font-size: 18px;
     line-height: 21px;
