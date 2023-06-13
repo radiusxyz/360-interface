@@ -8,6 +8,8 @@ export const Wrapper = styled.nav`
   background: #ffffff;
   border: 1px solid #dde0ff;
   align-items: center;
+  min-height: 54px;
+  padding: 10px 30px;
 `
 
 export const Span360 = styled.span`
@@ -18,21 +20,18 @@ export const Span360 = styled.span`
   line-height: 33px;
   letter-spacing: -0.02em;
   color: #2f0093;
-  margin-left: 28px;
 `
 
 export const LinkList = styled.ul`
   display: flex;
   justify-content: space-between;
-  flex-shrink: 1;
+  align-items: center;
+  width: auto;
+  flex-grow: 0;
   list-style: none;
-  max-width: 398px;
-  width: 100%;
-  padding: 0 10px;
-  gap: 10px;
+  gap: 59px;
 `
 export const Item = styled.li`
-  padding: 21px 0px 20px 0px;
   font-style: normal;
   font-weight: 500;
   font-size: 16px;
@@ -58,3 +57,10 @@ export const Button = styled.button`
   line-height: 17px;
   color: #ffffff;
 `
+
+export const MenuIcon = styled.svg.attrs({
+  viewbox: '0 0 22 20',
+  fill: 'none',
+  width: 22,
+  height: 20,
+})``
