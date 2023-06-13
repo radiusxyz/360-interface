@@ -149,7 +149,6 @@ export const Swap = () => {
 
   return (
     <Wrapper>
-      <Switch />
       {(leftSection === 'welcome' && (
         <LeftSection>
           <FerrisWheel />
