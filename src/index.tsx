@@ -1,3 +1,8 @@
+import App from 'pages/v2/App'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import './index.css'
+
 // import '@reach/dialog/styles.css'
 // import 'inter-ui'
 // import 'polyfills'
@@ -75,18 +80,10 @@
 //   serviceWorkerRegistration.register()
 // }
 
-import App from 'pages/v2/App'
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import './index.css'
+const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 
-const rootCheck = document.getElementById('root')
-
-if (rootCheck) {
-  const root = ReactDOM.createRoot(rootCheck)
-  root.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  )
-}
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+)

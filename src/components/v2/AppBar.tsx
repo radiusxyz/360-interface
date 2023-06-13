@@ -3,7 +3,8 @@ import { NavLink } from 'react-router-dom'
 
 const Wrapper = styled.nav`
   width: 100%;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   justify-content: space-between;
   background: #ffffff;
   border: 1px solid #dde0ff;
@@ -25,8 +26,12 @@ const LinkList = styled.ul`
   display: flex;
   justify-content: space-between;
   flex-shrink: 1;
-  gap: 59px;
   list-style: none;
+  max-width: 398px;
+  width: 100%;
+  justify-self: center;
+  padding: 0 10px;
+  gap: 10px;
 `
 const Item = styled.li`
   padding: 21px 0px 20px 0px;
@@ -36,6 +41,7 @@ const Item = styled.li`
   line-height: 19px;
   color: #333333;
   text-decoration: none;
+  white-space: nowrap;
 `
 
 const StyledNavLink = styled(NavLink)`
@@ -45,8 +51,17 @@ const StyledNavLink = styled(NavLink)`
 const RightSide = styled.div`
   display: flex;
   flex-grow: 1;
-  gap: 47px;
   max-width: 477px;
+  width: 100%;
+  justify-self: end;
+  justify-content: start;
+`
+
+const ChainAndButton = styled.div`
+  display: flex;
+  max-width: 309px;
+  width: 100%;
+  justify-content: space-between;
 `
 
 const Chain = styled.div`
@@ -79,6 +94,7 @@ const Button = styled.button`
   max-width: 175px;
   padding-top: 12px;
   padding-bottom: 11px;
+  min-width: 65px;
 `
 
 const AppBar = () => {
@@ -100,11 +116,13 @@ const AppBar = () => {
         </StyledNavLink>
       </LinkList>
       <RightSide>
-        <Chain>
-          <Status />
-          <Title>Polygon</Title>
-        </Chain>
-        <Button>Connect</Button>
+        <ChainAndButton>
+          <Chain>
+            <Status />
+            <Title>Polygon</Title>
+          </Chain>
+          <Button>Connect</Button>
+        </ChainAndButton>
       </RightSide>
     </Wrapper>
   )

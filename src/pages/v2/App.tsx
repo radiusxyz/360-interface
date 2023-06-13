@@ -1,9 +1,9 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import Swap from './Swap'
-import Root from './Root'
 import About from './About'
 import History from './History'
 import MyProfit from './MyProfit'
+import Root from './Root'
+import Swap from './Swap'
 
 const router = createBrowserRouter([
   {

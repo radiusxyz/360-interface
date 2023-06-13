@@ -26,6 +26,14 @@
     "types": ["react-spring", "jest"],
     "useUnknownInCatchVariables": false
   },
-  "include": ["wasm", "src/components/v2", "src/components/v2", "src/index.tsx", "src/assets/v2"],
+  "include": [
+    "wasm",
+    "src/components/v2",
+    "src/components/v2",
+    "src/index.tsx",
+    "src/assets/v2",
+    "src/pages/v2",
+    "src/react-app-env.d.ts"
+  ],
   "exclude": ["node_modules", "cypress"]
 }
