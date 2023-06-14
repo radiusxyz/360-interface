@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { darken } from 'polished'
 import { ReactNode } from 'react'
 import styled from 'styled-components/macro'

@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { Fraction } from '@uniswap/sdk-core'
 import { Connector } from '@web3-react/types'
 import launchLinkImage from 'assets/images/launch-link-open-thin.png'

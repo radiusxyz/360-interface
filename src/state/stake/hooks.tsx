@@ -1,5 +1,5 @@
 import { Interface } from '@ethersproject/abi'
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { abi as STAKING_REWARDS_ABI } from '@uniswap/liquidity-staker/build/StakingRewards.json'
 import { CurrencyAmount, Token } from '@uniswap/sdk-core'
 import { Pair } from '@uniswap/v2-sdk'

@@ -1,5 +1,5 @@
 import { TransactionResponse } from '@ethersproject/providers'
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import StakingRewardsJson from '@uniswap/liquidity-staker/build/StakingRewards.json'
 import { CurrencyAmount, Token } from '@uniswap/sdk-core'
 import { Pair } from '@uniswap/v2-sdk'

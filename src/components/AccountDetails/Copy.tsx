@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import copyDuplicateImage from 'assets/images/copy-duplicate.png'
 import useCopyClipboard from 'hooks/useCopyClipboard'
 import React, { useCallback } from 'react'

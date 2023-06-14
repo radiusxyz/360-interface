@@ -1,5 +1,5 @@
 import { TransactionResponse } from '@ethersproject/providers'
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import StakingRewardsJson from '@uniswap/liquidity-staker/build/StakingRewards.json'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { ReactNode, useState } from 'react'

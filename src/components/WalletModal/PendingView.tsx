@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { ButtonEmpty, ButtonPrimary } from 'components/Button'
 import styled from 'styled-components/macro'
 import { ThemedText } from 'theme'

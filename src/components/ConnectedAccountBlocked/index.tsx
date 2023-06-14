@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import CopyHelper from 'components/AccountDetails/Copy'
 import Column from 'components/Column'
 import useTheme from 'hooks/useTheme'

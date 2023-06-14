@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { Connector } from '@web3-react/types'
 import { useMemo } from 'react'
 import { Activity } from 'react-feather'

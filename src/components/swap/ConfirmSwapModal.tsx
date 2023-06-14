@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, Fraction, Percent, TradeType } from '@uniswap/sdk-core'
 import blockImage from 'assets/images/gif_block_200.gif'

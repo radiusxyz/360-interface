@@ -1,6 +1,6 @@
 import { Contract } from '@ethersproject/contracts'
 import { _TypedDataEncoder as typedDataEncoder } from '@ethersproject/hash'
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { Trade } from '@uniswap/router-sdk'
 import { Currency, CurrencyAmount, TradeType } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'

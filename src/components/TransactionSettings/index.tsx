@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { Percent } from '@uniswap/sdk-core'
 import { MouseoverTooltip } from 'components/Tooltip'
 import { DEFAULT_DEADLINE_FROM_NOW } from 'constants/misc'

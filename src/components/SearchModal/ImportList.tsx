@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { TokenList } from '@uniswap/token-lists'
 import { ButtonPrimary } from 'components/Button'
 import Card from 'components/Card'
