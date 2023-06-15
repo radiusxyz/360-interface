@@ -72,7 +72,7 @@
           {
             "name": "@lingui/macro",
             "importNames": ["t"],
-            "message": "Please use <Trans> instead of t."
+            "message": "Please use  instead of t."
           }
         ],
         "patterns": [

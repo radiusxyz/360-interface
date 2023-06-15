@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
 import Card, { OutlineCard } from 'components/Card'
 import { AutoColumn } from 'components/Column'

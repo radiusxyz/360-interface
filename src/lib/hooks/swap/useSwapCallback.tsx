@@ -2,7 +2,7 @@
 import { BigNumber } from '@ethersproject/bignumber'
 import { Signature } from '@ethersproject/bytes'
 // import { TransactionResponse } from '@ethersproject/providers'
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { Percent } from '@uniswap/sdk-core'
 import { FeeOptions } from '@uniswap/v3-sdk'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'

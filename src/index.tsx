@@ -8,11 +8,11 @@ import './index.css'
 // import 'polyfills'
 // import 'components/analytics'
 
-// import { BlockNumberProvider } from 'lib/hooks/useBlockNumber'
+import { BlockNumberProvider } from 'lib/hooks/useBlockNumber'
 // import { MulticallUpdater } from 'lib/state/multicall'
 // import { StrictMode } from 'react'
 // import ReactDOM from 'react-dom'
-// import { Provider } from 'react-redux'
+import { Provider } from 'react-redux'
 // import { HashRouter } from 'react-router-dom'
 // import { createWeb3ReactRoot, Web3ReactProvider } from 'web3-react-core'
 
@@ -21,7 +21,7 @@ import './index.css'
 // import { LanguageProvider } from './i18n'
 // import App from './pages/App'
 // import * as serviceWorkerRegistration from './serviceWorkerRegistration'
-// import store from './state'
+import store from './state'
 // import ApplicationUpdater from './state/application/updater'
 // import ListsUpdater from './state/lists/updater'
 // import LogsUpdater from './state/logs/updater'
@@ -84,6 +84,10 @@ const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 
 root.render(
   <React.StrictMode>
-    <App />
+    <Provider store={store}>
+      <BlockNumberProvider>
+        <App />
+      </BlockNumberProvider>
+    </Provider>
   </React.StrictMode>
 )

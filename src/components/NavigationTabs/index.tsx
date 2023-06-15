@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { Percent } from '@uniswap/sdk-core'
 import useTheme from 'hooks/useTheme'
 import { darken } from 'polished'

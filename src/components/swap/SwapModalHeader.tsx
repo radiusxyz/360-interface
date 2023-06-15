@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
 import { useContext, useState } from 'react'
 import { AlertTriangle, ArrowRight } from 'react-feather'

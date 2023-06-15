@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { Currency, TradeType } from '@uniswap/sdk-core'
 import Badge from 'components/Badge'
 import { CHAIN_INFO } from 'constants/chainInfo'

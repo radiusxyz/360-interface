@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import styled from 'styled-components/macro'
 
 import { ThemedText } from '../../theme'
