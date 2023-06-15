@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import React, { ReactNode } from 'react'
 import styled, { keyframes } from 'styled-components/macro'
 import loading_icon from '../../../assets/v2/images/loading_icon.png'
 
@@ -24,6 +24,7 @@ type PrimaryButtonProps = {
   disabled?: boolean
   children?: ReactNode
   onClick?: (e: React.MouseEvent<HTMLElement>) => void
+  mrgn?: string
 }
 
 const StyledPrimaryButton = styled.button<PrimaryButtonProps>`
@@ -33,6 +34,7 @@ const StyledPrimaryButton = styled.button<PrimaryButtonProps>`
   width: 100%;
   border: none;
   padding: 13px;
+  margin: ${({ mrgn }) => mrgn && mrgn};
   font-style: normal;
   font-weight: 500;
   font-size: 18px;
@@ -63,17 +65,19 @@ type SelectTokenButtonProps = {
   mr?: string
   mb?: string
   ml?: string
+  isSelected?: boolean
   onClick?: (e: React.MouseEvent<HTMLElement>) => void
 }
 
 const StyledSelectTokenButton = styled.button<SelectTokenButtonProps>`
   display: flex;
-  margin: ${(props) => props.mrgn && props.mrgn};
+  white-space: nowrap;
+  margin: ${({ isSelected }) => (isSelected && '4px 0px 0px 0px') || '5px 0px 0px 0px'};
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  gap: 6px;
-  max-width: 146px;
+  gap: ${({ isSelected }) => !isSelected && '6px'};
+  max-width: ${({ isSelected }) => (isSelected && '129px') || '146px'};
   border-radius: 31px;
   background: transparent;
   color: #000000;
@@ -81,7 +85,7 @@ const StyledSelectTokenButton = styled.button<SelectTokenButtonProps>`
   font-weight: 500;
   font-size: 18px;
   line-height: 26.01px;
-  padding: 3px 8px 3px 14px;
+  padding: ${({ isSelected }) => (isSelected && '4px 2px 3px 3px') || '3px 8px 3px 14px'}};
   border: none;
   &:hover {
     background: #f5f4ff;

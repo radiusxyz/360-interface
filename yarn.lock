@@ -4125,21 +4125,6 @@
   resolved "https://registry.npmjs.org/@protobufjs/utf8/-/utf8-1.1.0.tgz"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
-"@radiusxyz/threesixty-contracts-mumbai@0.0.6":
-  version "0.0.6"
-  resolved "https://npm.pkg.github.com/download/@radiusxyz/threesixty-contracts-mumbai/0.0.6/ea24b7cf5a43e360b230c1a70e09ad3da56a0fd5#ea24b7cf5a43e360b230c1a70e09ad3da56a0fd5"
-  integrity sha512-pYuD/6maauQ3eg68jo2Ws+vOoXBqwlLrXtv/aIN2Fk6CmPaCfLPpnspZNMKz9YfZZkK390typ/SN5KsA5pQJCw==
-
-"@radiusxyz/threesixty-contracts-polygon@0.0.8":
-  version "0.0.8"
-  resolved "https://npm.pkg.github.com/download/@radiusxyz/threesixty-contracts-polygon/0.0.8/3cdf1e350fdfb84e20d462ff4c00842f6ff38492#3cdf1e350fdfb84e20d462ff4c00842f6ff38492"
-  integrity sha512-/mgEx3S1C8sEQx58QEIoplXT5tYWPJo3Gi0cW2g9m+2pN0KZwAosG4fOjowTPjyWJ++77iec8qd4KUZgdrF1fg==
-
-"@radiusxyz/threesixty-contracts@^0.1.16":
-  version "0.1.16"
-  resolved "https://npm.pkg.github.com/download/@radiusxyz/threesixty-contracts/0.1.16/87392d1f36a5b7f148222fd198b3170f35519268#87392d1f36a5b7f148222fd198b3170f35519268"
-  integrity sha512-BP3Rr5gaDH3J3JYI288kbdalsqy4gIrqF4Mtn4sbZzqxIiTkoHdnZKCPz4YeAm+QEnugz8rTAxpfsodqBplfUw==
-
 "@ramonak/react-progress-bar@^4.4.0":
   version "4.4.0"
   resolved "https://registry.npmjs.org/@ramonak/react-progress-bar/-/react-progress-bar-4.4.0.tgz"

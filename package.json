@@ -33,7 +33,6 @@
     "@babel/preset-typescript": "^7.22.5",
     "@ethersproject/experimental": "^5.7.0",
     "@gnosis.pm/safe-apps-web3-react": "^0.6.0",
-    "@graphql-codegen/cli": "4.0.1",
     "@graphql-codegen/typescript": "4.0.0",
     "@graphql-codegen/typescript-operations": "^4.0.0",
     "@graphql-codegen/typescript-rtk-query": "^2.4.1",
