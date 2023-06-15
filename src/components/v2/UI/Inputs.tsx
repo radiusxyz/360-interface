@@ -1,21 +1,25 @@
-import { FocusEvent, ReactNode, useState } from 'react'
+import React, { FocusEvent, ReactNode, useState } from 'react'
 import styled from 'styled-components/macro'
 
 const InputWrapper = styled.div<NumericInputProps>`
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: flex-end;
   max-width: 190px;
   width: 100%;
   height: 60px;
-  padding: 6px;
+  padding: 5px;
   border-radius: 2px;
-  outline: ${({ error, parentStyles }) => (error && '1px solid #FF9C9C') || parentStyles?.outline};
+  border: ${({ error, parentStyles }) => (error && '1px solid #FF9C9C') || parentStyles?.border};
   color: ${({ error, parentStyles }) => (error && '#FF9C9C') || parentStyles?.color};
   background: ${({ error, parentStyles }) => (error && '#FFF4F4') || parentStyles?.background};
   &: hover {
     background: ${({ error }) => (error && '#FFF4F4') || '#F5F4FF'};
-    outline: ${({ error }) => (error && '1px solid #FF9C9C') || '1px solid #DDE0FF'};
+    border: ${({ error }) => (error && '1px solid #FF9C9C') || '1px solid #DDE0FF'};
   }
+  background: #f5f4ff;
+  color: #6b11ff;
+  border: 1px solid #dde0ff;
 `
 
 const Input = styled.input`
@@ -25,7 +29,6 @@ const Input = styled.input`
   font-size: 22px;
   line-height: 144.52%;
   width: 100%;
-  height: 32px;
   border: none;
   outline: none;
   background: inherit;
@@ -44,28 +47,37 @@ const Input = styled.input`
   }
 `
 
+const BalanceUSD = styled.span`
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 144.52%;
+  text-align: right;
+  color: inherit;
+`
+
 type NumericInputProps = {
   error?: boolean
   children?: ReactNode
   parentStyles?: Styles
+  isSelected?: boolean
 }
 
 type Styles = {
   background: string
   color: string
-  outline: string
+  border: string
 }
 
 export const NumericInput = (props: NumericInputProps) => {
-  const [parentStyles, setParentStyles] = useState({ background: 'transparent', color: '#D0B2FF', outline: 'none' })
+  const [parentStyles, setParentStyles] = useState({ background: 'transparent', color: '#D0B2FF', border: 'none' })
 
   const handleParentStyles = (e: FocusEvent<HTMLInputElement>) => {
     if (e.type === 'focus') {
-      setParentStyles({ background: '#F5F4FF', color: '#6B11FF', outline: '1px solid #DDE0FF' })
+      setParentStyles({ background: '#F5F4FF', color: '#6B11FF', border: '1px solid #DDE0FF' })
     }
 
     if (e.type === 'blur') {
-      setParentStyles({ background: 'transparent', color: '#6B11FF', outline: 'none' })
+      setParentStyles({ background: 'transparent', color: '#6B11FF', border: 'none' })
     }
   }
 
@@ -82,6 +94,7 @@ export const NumericInput = (props: NumericInputProps) => {
         onFocus={handleParentStyles}
         onBlur={handleParentStyles}
       />
+      {props.isSelected && <BalanceUSD>$0.00</BalanceUSD>}
     </InputWrapper>
   )
 }
