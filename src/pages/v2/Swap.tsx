@@ -63,7 +63,6 @@ function sleep(ms: number) {
 }
 
 export const Swap = () => {
-
   const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
 
   const [swapState, setSwapState] = useState<{
@@ -626,11 +625,12 @@ export const Swap = () => {
 
   const swapIsUnsupported = useIsSwapUnsupported(currencies[Field.INPUT], currencies[Field.OUTPUT])
 
-  return  <Wrapper>
-<LeftSection/>
-<RightSection/>
+  return (
+    <Wrapper>
+      <LeftSection />
+      <RightSection />
     </Wrapper>
-  
+  )
 }
 
 export default Swap
