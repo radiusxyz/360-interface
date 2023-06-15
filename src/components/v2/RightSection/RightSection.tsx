@@ -57,7 +57,7 @@ import { maxAmountSpend } from 'utils/maxAmountSpend'
 import { warningSeverity } from 'utils/prices'
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
-import Worker from 'worker-loader!../../workers/worker'
+import Worker from 'worker-loader!workers/worker'
 
 const MAXIMUM_PATH_LENGTH = 3
 const swapExactTokensForTokens = '0x73a2cff1'
@@ -67,8 +67,6 @@ function sleep(ms: number) {
 }
 
 export const RightSection = () => {
-  const [isSelected, setIsSelected] = useState(true)
-
   const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
 
   // TODO: add this to check account in whitelist
@@ -487,6 +485,7 @@ export const RightSection = () => {
     },
     [onCurrencySelection]
   )
+  const [isSelected, setIsSelected] = useState(false)
 
   return (
     <MainWrapper>
@@ -511,7 +510,7 @@ export const RightSection = () => {
                   <TokenName>WMATIC</TokenName>
                 </TokenWrapper>
               ) : (
-                'Select Token'
+                'Select'
               )}
             </SelectTokenButton>
             {isSelected && <Balance>Balance : 0.00225</Balance>}
@@ -530,7 +529,7 @@ export const RightSection = () => {
                   <TokenName>DAI</TokenName>
                 </TokenWrapper>
               ) : (
-                'Select Token'
+                'Select'
               )}
             </SelectTokenButton>
             {isSelected && <Balance>Balance : 0.00225</Balance>}

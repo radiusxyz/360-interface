@@ -72,12 +72,12 @@ type SelectTokenButtonProps = {
 const StyledSelectTokenButton = styled.button<SelectTokenButtonProps>`
   display: flex;
   white-space: nowrap;
-  margin: ${({ isSelected }) => (isSelected && '4px 0px 0px 0px') || '5px 0px 0px 0px'};
+  margin: ${({ isSelected }) => (isSelected && '4px 0px 0px 0px') || '5px 0px 0px 3px'};
   justify-content: space-between;
   align-items: center;
   width: 100%;
   gap: ${({ isSelected }) => !isSelected && '6px'};
-  max-width: ${({ isSelected }) => (isSelected && '129px') || '146px'};
+  max-width: ${({ isSelected }) => (isSelected && '129px') || '129px'};
   border-radius: 31px;
   background: transparent;
   color: #000000;
