@@ -6,7 +6,7 @@ self.addEventListener('message', async (e) => {
   if (e.data.target === 'encryptor') {
     const poseidon = await import('wasm-encryptor-zkp')
     console.log('in encryptor', e, e.data)
-    const data = await poseidon.encrypt_with_tx_hash(
+    const data = await poseidon.encrypt_threesixty_tx(
       e.data.txInfoToHash,
       e.data.s2_string,
       e.data.s2_field_hex,
