@@ -41,9 +41,9 @@ const Switch = () => {
   }
 
   return (
-    <Wrapper on={on}>
+    <Wrapper onClick={handleSwitch} on={on}>
       <MovingSpan on={on}>{on === 'true' ? 'ON' : 'OFF'}</MovingSpan>
-      <Circle onClick={handleSwitch} on={on} />
+      <Circle on={on} />
     </Wrapper>
   )
 }

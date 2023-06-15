@@ -29,7 +29,12 @@ export const HeaderTitle = styled.span`
   color: #000000;
 `
 
-export const Cog = styled.img.attrs({ src: cog, width: 20 })``
+export const Cog = styled.img.attrs({ src: cog, width: 20 })`
+  &: hover {
+    filter: brightness(30%);
+    cursor: pointer;
+  }
+`
 
 export const SlippageOptions = styled.div`
   display: flex;
