@@ -13,7 +13,6 @@ import { SwapCall } from 'hooks/useSwapCallArguments'
 import JSBI from 'jsbi'
 import localForage from 'localforage'
 import { useMemo } from 'react'
-import { addPopup } from 'state/application/reducer'
 import { useAppDispatch } from 'state/hooks'
 import { useCancelManager } from 'state/modal/hooks'
 import { fetchTimeLockPuzzleParam, fetchTimeLockPuzzleSnarkParam } from 'state/parameters/fetch'
@@ -146,7 +145,6 @@ export default function useSendSwapTransaction(
   const routerContract = useV2RouterContract() as Contract
   const recorderContract = useRecorderContract() as Contract
   const [cancel, setCancel] = useCancelManager()
-  // const progress = useProgress()
 
   return useMemo(() => {
     if (!trade || !library || !account || !chainId) {
@@ -363,20 +361,6 @@ export default function useSendSwapTransaction(
           setCancel,
           operatorAddress
         )
-
-        console.log(`popup add ${sendResponse.data.txOrderMsg.round}-${sendResponse.data.txOrderMsg.order}`)
-        dispatch(
-          addPopup({
-            content: {
-              title: 'Transaction pending',
-              status: 'pending',
-              data: { readyTxId },
-            },
-            key: `${sendResponse.data.txOrderMsg.round}-${sendResponse.data.txOrderMsg.order}`,
-            removeAfterMs: 31536000000,
-          })
-        )
-
         return sendResponse
       },
     }
@@ -567,8 +551,4 @@ export async function sendEIP712Tx(
     })
 
   return sendResponse
-}
-
-function sleep(ms: number) {
-  return new Promise((r) => setTimeout(r, ms))
 }
