@@ -9,7 +9,7 @@ const Wrapper = styled.div`
   flex-direction: column;
   gap: 12px;
   align-items: flex-start;
-  margin-top: 18px;
+  padding: 18px 0px;
 `
 
 const History = () => {
