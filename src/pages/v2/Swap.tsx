@@ -4,6 +4,7 @@ import RightSection from '../../components/v2/RightSection/RightSection'
 import LeftSection from '../../components/v2/LeftSection/LeftSection'
 
 const Wrapper = styled.div`
+  margin-top: 40px;
   display: flex;
   justify-content: center;
   align-items: start;
