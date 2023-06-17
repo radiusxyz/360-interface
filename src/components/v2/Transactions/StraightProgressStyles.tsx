@@ -9,7 +9,6 @@ export const Wrapper = styled.div`
   width: 100%;
   min-height: 190px;
   background-color: #f5f4ff;
-  margin: 18px 0px 12px 0px;
 `
 
 export const ProgressBarWithStatuses = styled.div`

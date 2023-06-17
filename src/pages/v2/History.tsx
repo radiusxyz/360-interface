@@ -1,7 +1,7 @@
 import Tabs from 'components/v2/Transactions/Tabs'
 import TransactionList from 'components/v2/Transactions/TransactionList'
 import cuid from 'cuid'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import styled from 'styled-components/macro'
 
 const Wrapper = styled.div`
@@ -55,14 +55,26 @@ const data = [
 const History = () => {
   const [txs, setTxs] = useState(data)
 
+  const handleTabClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const target = event.target as HTMLButtonElement
+    setActiveTab(target.textContent as string)
+  }
+
+  const [activeTab, setActiveTab] = useState('In Progress')
+
   const handleTXlist = (activeTab: string) => {
     if (activeTab === 'In Progress') setTxs(() => data.filter((tx) => tx.status === 'Pending'))
     else setTxs(() => data.filter((tx) => tx.status !== 'Pending'))
   }
+
+  useEffect(() => {
+    handleTXlist(activeTab)
+  }, [activeTab])
+
   return (
     <Wrapper>
-      <Tabs handleTXlist={handleTXlist} />
-      <TransactionList txs={txs} />
+      <Tabs handleTabClick={handleTabClick} activeTab={activeTab} />
+      <TransactionList txs={txs} status={activeTab} />
     </Wrapper>
   )
 }
