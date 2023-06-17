@@ -28,4 +28,8 @@ export const BottomRowSpan = styled.span`
   font-size: 12px;
   line-height: 14px;
   color: #8d95d7;
+  &:hover {
+    cursor: pointer;
+    text-decoration: underline;
+  }
 `
