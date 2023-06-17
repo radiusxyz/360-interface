@@ -19,22 +19,22 @@ import {
   ValueTop,
 } from './ReimbursementModalStyles'
 import { Note } from './StraightProgressStyles'
-import ProcessingModal from './ProcessingModal'
+import ProcessingPopup from './ProcessingPopup'
 
 type Props = {
   handleModal: () => void
 }
 
 const ReimbursementModal = ({ handleModal }: Props) => {
-  const [showProcessingModal, setShowProcessingModal] = useState(false)
-  const handleProcessingModal = () => {
-    setShowProcessingModal((showProcessingModal) => !showProcessingModal)
+  const [showProcessingPopup, setShowProcessingPopup] = useState(false)
+  const handleProcessingPopup = () => {
+    setShowProcessingPopup((showProcessingPopup) => !showProcessingPopup)
   }
   return (
     <Positioner>
       <Backdrop onClick={handleModal} />
-      {showProcessingModal ? (
-        <ProcessingModal handleProcessingModal={handleProcessingModal} />
+      {showProcessingPopup ? (
+        <ProcessingPopup handleProcessingPopup={handleProcessingPopup} handleModal={handleModal} />
       ) : (
         <Modal>
           <CloseButtonWrapper>
@@ -68,7 +68,7 @@ const ReimbursementModal = ({ handleModal }: Props) => {
               <ValueBottom>0xCCc379b88...Bdd8941b6e</ValueBottom>
             </Item>
           </Details>
-          <PrimaryButton onClick={handleProcessingModal}>Confirm</PrimaryButton>
+          <PrimaryButton onClick={handleProcessingPopup}>Confirm</PrimaryButton>
           <Note>
             If you would like to receive the reimbursement now, <br />
             click <DarkBold>Confirm Reimbursement</DarkBold>.<BlueSpan>Learn more</BlueSpan>
