@@ -28,6 +28,7 @@ const data = [
     date: '18 April 2023 - 5:18 PM',
     from: '0.001 WMATIC',
     to: '0.000000557497 ETH',
+    reimbursed: true,
   },
   {
     id: cuid(),
@@ -38,10 +39,11 @@ const data = [
   },
   {
     id: cuid(),
-    status: 'Completed',
+    status: 'failed',
     date: '18 April 2023 - 5:18 PM',
     from: '0.001 WMATIC',
     to: '0.000000557497 ETH',
+    reimbursed: false,
   },
   {
     id: cuid(),

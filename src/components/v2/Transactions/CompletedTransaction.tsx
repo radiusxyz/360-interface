@@ -8,14 +8,20 @@ import {
 } from './CompletedTransactionStyles'
 import { Dash, TXDateTime, TXDateTimeAndAmount, TXDetails, TXStatus } from './PendingTransactionStyles'
 import ReimbursementModal from './ReimbursementModal'
+import ReimbursementDetailsModal from './ReimbursementDetailsModal'
 
-type Props = { id: string; status: string; date: string; from: string; to: string }
+type Props = { tx: { id: string; status: string; date: string; from: string; to: string; reimbused?: boolean } }
 
-const CompletedTransaction = ({ status, date, from, to }: Props) => {
-  const [showModal, setShowModal] = useState(false)
+const CompletedTransaction = ({ tx: { status, date, from, to, reimbused } }: Props) => {
+  const [showReimbursementModal, setShowReimbursementModal] = useState(false)
+  const [showReimbursementDetailsModal, setShowReimbursementDetailsModal] = useState(false)
 
-  const handleModal = () => {
-    setShowModal((showModal) => !showModal)
+  const handleReimbursementModal = () => {
+    setShowReimbursementModal((showModal) => !showModal)
+  }
+
+  const handleReimbursementDetailsModal = () => {
+    setShowReimbursementDetailsModal((showModal) => !showModal)
   }
 
   return (
@@ -33,11 +39,14 @@ const CompletedTransaction = ({ status, date, from, to }: Props) => {
           </TXDetails>
         </TXPreviewCompleted>
         <TXBottomRow>
-          <BottomRowSpan onClick={handleModal}>Reimbursement</BottomRowSpan>
-          <BottomRowSpan>Transaction Detail</BottomRowSpan>
+          <BottomRowSpan onClick={handleReimbursementModal}>
+            {reimbused ? 'Reimbursement details' : 'Reimbursement'}
+          </BottomRowSpan>
+          <BottomRowSpan onClick={handleReimbursementDetailsModal}>Transaction Detail</BottomRowSpan>
         </TXBottomRow>
       </TxCompleted>
-      {showModal && <ReimbursementModal handleModal={handleModal} />}
+      {showReimbursementModal && <ReimbursementModal handleModal={handleReimbursementModal} />}
+      {showReimbursementDetailsModal && <ReimbursementDetailsModal handleModal={handleReimbursementDetailsModal} />}
     </>
   )
 }

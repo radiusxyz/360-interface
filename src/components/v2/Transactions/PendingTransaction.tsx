@@ -13,9 +13,9 @@ import {
 } from './PendingTransactionStyles'
 import Progress from '../Progress/Progress'
 
-type Props = { id: string; status: string; date: string; from: string; to: string }
+type Props = { tx: { id: string; status: string; date: string; from: string; to: string; reimbursed?: boolean } }
 
-const PendingTransaction = ({ status, date, from, to }: Props) => {
+const PendingTransaction = ({ tx: { status, date, from, to } }: Props) => {
   const [isExpanded, setIsExpand] = useState(false)
   const handleExpand = () => {
     setIsExpand((state: boolean) => !state)

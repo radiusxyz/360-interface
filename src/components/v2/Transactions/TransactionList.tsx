@@ -16,18 +16,14 @@ type Props = {
     date: string
     from: string
     to: string
+    reimbursed?: boolean
   }[]
 }
 
 const TransactionList = ({ txs, status }: Props) => (
   <Wrapper>
-    {(status === 'In Progress' &&
-      txs.map((tx) => (
-        <PendingTransaction key={tx.id} id={tx.id} status={tx.status} date={tx.date} from={tx.from} to={tx.to} />
-      ))) ||
-      txs.map((tx) => (
-        <CompletedTransaction key={tx.id} id={tx.id} status={tx.status} date={tx.date} from={tx.from} to={tx.to} />
-      ))}
+    {(status === 'In Progress' && txs.map((tx) => <PendingTransaction key={tx.id} tx={tx} />)) ||
+      txs.map((tx) => <CompletedTransaction key={tx.id} tx={tx} />)}
   </Wrapper>
 )
 
