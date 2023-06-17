@@ -15,8 +15,7 @@ export const Backdrop = styled.div`
   display: flex;
   justify-content: center;
   align-items: start;
-  background: black;
-  opacity: 0.3;
+  backdrop-filter: blur(4px);
   position: relative;
   top: 0;
   left: 0;
@@ -34,9 +33,9 @@ export const Modal = styled.div`
   border-radius: 4px;
   flex-direction: column;
   position: absolute;
-  top: 50%;
+  top: 100px;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
 `
 
 export const CloseButtonWrapper = styled.div`
