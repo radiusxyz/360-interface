@@ -1,6 +1,9 @@
 import styled from 'styled-components/macro'
 import close_reimburse_modal from '../../../assets/v2/images/close_reimburse_modal.svg'
 
+// Important !!!
+// Variables here are being used as the base in other components. Be careful when editing them.
+
 export const Positioner = styled.div`
   width: 100vw;
   height: 100vh;
