@@ -1,5 +1,6 @@
 import styled from 'styled-components/macro'
-import Transaction from './Transaction'
+import PendingTransaction from './PendingTransaction'
+import CompletedTransaction from './CompletedTransaction'
 
 const Wrapper = styled.div`
   display: flex;
@@ -8,6 +9,7 @@ const Wrapper = styled.div`
   width: 100%;
 `
 type Props = {
+  status: string
   txs: {
     id: string
     status: string
@@ -17,11 +19,15 @@ type Props = {
   }[]
 }
 
-const TransactionList = ({ txs }: Props) => (
+const TransactionList = ({ txs, status }: Props) => (
   <Wrapper>
-    {txs.map((tx) => (
-      <Transaction key={tx.id} id={tx.id} status={tx.status} date={tx.date} from={tx.from} to={tx.to} />
-    ))}
+    {(status === 'In Progress' &&
+      txs.map((tx) => (
+        <PendingTransaction key={tx.id} id={tx.id} status={tx.status} date={tx.date} from={tx.from} to={tx.to} />
+      ))) ||
+      txs.map((tx) => (
+        <CompletedTransaction key={tx.id} id={tx.id} status={tx.status} date={tx.date} from={tx.from} to={tx.to} />
+      ))}
   </Wrapper>
 )
 
