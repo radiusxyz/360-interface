@@ -73,6 +73,6 @@ export const Dash = styled.span`
 
 export const Expand = styled.img.attrs({
   src: expand,
-})<{ rotate: boolean | undefined }>`
+})<{ rotate: number }>`
   transform: ${({ rotate }) => rotate && 'rotate(180deg)'};
 `

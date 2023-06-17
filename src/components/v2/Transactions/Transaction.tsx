@@ -31,7 +31,7 @@ const Transaction = ({ status, date, from, to }: Props) => {
             </TXAmount>
           </TXDateTimeAndAmount>
         </TXDetails>
-        <Expand rotate={isExpanded ? isExpanded : undefined} onClick={handleExpand} />
+        <Expand rotate={isExpanded ? 1 : 0} onClick={handleExpand} />
       </TXPreview>
       {isExpanded && <Progress page="history" />}
     </TX>

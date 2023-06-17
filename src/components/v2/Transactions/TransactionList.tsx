@@ -1,5 +1,4 @@
 import styled from 'styled-components/macro'
-import cuid from 'cuid'
 import Transaction from './Transaction'
 
 const Wrapper = styled.div`
@@ -8,48 +7,19 @@ const Wrapper = styled.div`
   gap: 4px;
   width: 100%;
 `
+type Props = {
+  txs: {
+    id: string
+    status: string
+    date: string
+    from: string
+    to: string
+  }[]
+}
 
-const data = [
-  {
-    id: cuid(),
-    status: 'Pending',
-    date: '18 April 2023 - 5:18 PM',
-    from: '0.001 WMATIC',
-    to: '0.000000557497 ETH',
-  },
-  {
-    id: cuid(),
-    status: 'Failed',
-    date: '18 April 2023 - 5:18 PM',
-    from: '0.001 WMATIC',
-    to: '0.000000557497 ETH',
-  },
-  {
-    id: cuid(),
-    status: 'Completed',
-    date: '18 April 2023 - 5:18 PM',
-    from: '0.001 WMATIC',
-    to: '0.000000557497 ETH',
-  },
-  {
-    id: cuid(),
-    status: 'Completed',
-    date: '18 April 2023 - 5:18 PM',
-    from: '0.001 WMATIC',
-    to: '0.000000557497 ETH',
-  },
-  {
-    id: cuid(),
-    status: 'Pending',
-    date: '18 April 2023 - 5:18 PM',
-    from: '0.001 WMATIC',
-    to: '0.000000557497 ETH',
-  },
-]
-
-const TransactionList = () => (
+const TransactionList = ({ txs }: Props) => (
   <Wrapper>
-    {data.map((tx) => (
+    {txs.map((tx) => (
       <Transaction key={tx.id} id={tx.id} status={tx.status} date={tx.date} from={tx.from} to={tx.to} />
     ))}
   </Wrapper>
