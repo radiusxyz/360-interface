@@ -39,7 +39,7 @@ const data = [
   },
   {
     id: cuid(),
-    status: 'failed',
+    status: 'Failed',
     date: '18 April 2023 - 5:18 PM',
     from: '0.001 WMATIC',
     to: '0.000000557497 ETH',
