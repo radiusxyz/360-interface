@@ -10,9 +10,9 @@ import { Dash, TXDateTime, TXDateTimeAndAmount, TXDetails, TXStatus } from './Pe
 import ReimbursementModal from './ReimbursementModal'
 import ReimbursementDetailsModal from './ReimbursementDetailsModal'
 
-type Props = { tx: { id: string; status: string; date: string; from: string; to: string; reimbused?: boolean } }
+type Props = { tx: { id: string; status: string; date: string; from: string; to: string; reimbursed?: boolean } }
 
-const CompletedTransaction = ({ tx: { status, date, from, to, reimbused } }: Props) => {
+const CompletedTransaction = ({ tx: { status, date, from, to, reimbursed } }: Props) => {
   const [showReimbursementModal, setShowReimbursementModal] = useState(false)
   const [showReimbursementDetailsModal, setShowReimbursementDetailsModal] = useState(false)
 
@@ -39,10 +39,12 @@ const CompletedTransaction = ({ tx: { status, date, from, to, reimbused } }: Pro
           </TXDetails>
         </TXPreviewCompleted>
         <TXBottomRow>
-          <BottomRowSpan onClick={handleReimbursementModal}>
-            {reimbused ? 'Reimbursement details' : 'Reimbursement'}
-          </BottomRowSpan>
-          <BottomRowSpan onClick={handleReimbursementDetailsModal}>Transaction Detail</BottomRowSpan>
+          {reimbursed ? (
+            <BottomRowSpan onClick={handleReimbursementDetailsModal}>Reimbursement details</BottomRowSpan>
+          ) : (
+            <BottomRowSpan onClick={handleReimbursementModal}>Reimburse</BottomRowSpan>
+          )}
+          <BottomRowSpan>Transaction Detail</BottomRowSpan>
         </TXBottomRow>
       </TxCompleted>
       {showReimbursementModal && <ReimbursementModal handleModal={handleReimbursementModal} />}

@@ -18,7 +18,7 @@ export const Backdrop = styled.div`
   display: flex;
   justify-content: center;
   align-items: start;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(7px);
   position: relative;
   top: 0;
   left: 0;
