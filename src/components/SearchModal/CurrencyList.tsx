@@ -218,7 +218,7 @@ export default function CurrencyList({
   }, [currencies, otherListTokens])
 
   const Row = useCallback(
-    function TokenRow({ data, index, style }) {
+    function TokenRow({ data, index, style }: any) {
       const row: Currency | BreakLine = data[index]
 
       if (isBreakLine(row)) {
@@ -289,7 +289,7 @@ export default function CurrencyList({
         selected={false}
         maxWidth="560px"
       >
-        <CurrencyLogo currency={null} size={'40px'} style={{ marginLeft: '20px' }} />
+        {/* <CurrencyLogo currency={null} size={'40px'} style={{ marginLeft: '20px' }} /> */}
         <Column>
           <Text title={'empty'} fontWeight={600} fontSize={20}>
             {'None'}
