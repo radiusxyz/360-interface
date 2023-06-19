@@ -8,9 +8,10 @@ import { useRecorderContract, useV2RouterContract } from 'hooks/useContract'
 import { CheckPendingTx } from 'lib/utils/watcher'
 
 const Wrapper = styled.div`
+  display: flex;
+  justify-content: center;
   width: 100%;
   height: 100%;
-  padding-top: 40px;
 `
 
 const Root = () => {

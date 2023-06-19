@@ -4,7 +4,6 @@ import History from './History'
 import MyProfit from './MyProfit'
 import Root from './Root'
 import Swap from './Swap'
-import React from 'react'
 
 const router = createBrowserRouter([
   {
