@@ -23,7 +23,7 @@ import {
   TimeLockPuzzleParam,
 } from 'state/parameters/reducer'
 import { swapErrorToUserReadableMessage } from 'utils/swapErrorToUserReadableMessage'
-import { poseidonEncryptWithTxHash } from 'wasm/encrypt'
+import { poseidonEncrypt } from 'wasm/encrypt'
 import { getTimeLockPuzzleProof } from 'wasm/timeLockPuzzle'
 
 import { useRecorderContract, useV2RouterContract } from '../../../hooks/useContract'
@@ -273,7 +273,7 @@ export default function useSendSwapTransaction(
         console.log('🚀 ~ file: useSendSwapTransaction.tsx:511 ~ returnuseMemo ~ txInfoToHash', txInfoToHash)
 
         const time = Date.now()
-        const encryptData = await poseidonEncryptWithTxHash(
+        const encryptData = await poseidonEncrypt(
           txInfoToHash,
           timeLockPuzzleData.s2_string,
           timeLockPuzzleData.s2_field_hex,
