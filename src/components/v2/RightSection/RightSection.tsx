@@ -40,7 +40,7 @@ import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useSwapCallback } from 'hooks/useSwapCallback'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import localForage from 'localforage'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { MouseEventHandler, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAppDispatch } from 'state/hooks'
 import { fetchTimeLockPuzzleParam, fetchTimeLockPuzzleSnarkParam } from 'state/parameters/fetch'
 import { useParameters } from 'state/parameters/hooks'
@@ -57,7 +57,8 @@ import { maxAmountSpend } from 'utils/maxAmountSpend'
 import { warningSeverity } from 'utils/prices'
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
-import Worker from 'worker-loader!../../workers/worker'
+import Worker from 'worker-loader!workers/worker'
+import Settings from '../Settings/Settings'
 
 const MAXIMUM_PATH_LENGTH = 3
 const swapExactTokensForTokens = '0x73a2cff1'
@@ -67,8 +68,6 @@ function sleep(ms: number) {
 }
 
 export const RightSection = () => {
-  const [isSelected, setIsSelected] = useState(true)
-
   const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
 
   // TODO: add this to check account in whitelist
@@ -487,12 +486,18 @@ export const RightSection = () => {
     },
     [onCurrencySelection]
   )
+  const [isSelected, setIsSelected] = useState(false)
+  const [showSettings, setShowSettings] = useState(true)
 
-  return (
+  const handleShowSettings: MouseEventHandler<SVGSVGElement | HTMLImageElement> = () => {
+    setShowSettings((prevState) => !prevState)
+  }
+
+  return !showSettings ? (
     <MainWrapper>
       <Header>
         <HeaderTitle>Swap</HeaderTitle>
-        <Cog />
+        <Cog onClick={handleShowSettings} />
       </Header>
       <TopTokenRow>
         {isSelected && (
@@ -511,7 +516,7 @@ export const RightSection = () => {
                   <TokenName>WMATIC</TokenName>
                 </TokenWrapper>
               ) : (
-                'Select Token'
+                'Select'
               )}
             </SelectTokenButton>
             {isSelected && <Balance>Balance : 0.00225</Balance>}
@@ -530,7 +535,7 @@ export const RightSection = () => {
                   <TokenName>DAI</TokenName>
                 </TokenWrapper>
               ) : (
-                'Select Token'
+                'Select'
               )}
             </SelectTokenButton>
             {isSelected && <Balance>Balance : 0.00225</Balance>}
@@ -579,6 +584,8 @@ export const RightSection = () => {
         )}
       </ButtonRow>
     </MainWrapper>
+  ) : (
+    <Settings handleShowSettings={handleShowSettings} isSelected={isSelected} />
   )
 }
 

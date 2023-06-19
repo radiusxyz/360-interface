@@ -29,7 +29,12 @@ export const HeaderTitle = styled.span`
   color: #000000;
 `
 
-export const Cog = styled.img.attrs({ src: cog, width: 20 })``
+export const Cog = styled.img.attrs({ src: cog, width: 20 })`
+  &: hover {
+    filter: brightness(30%);
+    cursor: pointer;
+  }
+`
 
 export const SlippageOptions = styled.div`
   display: flex;
@@ -60,7 +65,7 @@ export const TopTokenRow = styled.div`
   flex-direction: column;
   height: 118px;
   border-bottom: 1px solid #dde0ff;
-  padding: 0 24px 20px 24px;
+  padding: 0 24px 20px 21px;
   position: relative;
 `
 
@@ -93,7 +98,7 @@ export const BottomTokenRow = styled.div`
   min-height: 100px;
   height: 100%;
   border-bottom: 1px solid #dde0ff;
-  padding: 0 24px 20px 24px;
+  padding: 0 24px 20px 21px;
 `
 
 export const ButtonRow = styled.div`
@@ -110,6 +115,8 @@ export const ButtonAndBalanceWrapper = styled.div`
   flex-direction: column;
   gap: 0px;
   align-items: start;
+  width: 100%;
+  max-width: 129px;
 `
 
 export const Balance = styled.span`
