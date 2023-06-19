@@ -55,9 +55,10 @@ import { Field } from 'state/swap/actions'
 import { useDerivedSwapInfo, useSwapActionHandlers, useSwapState } from 'state/swap/hooks'
 import { maxAmountSpend } from 'utils/maxAmountSpend'
 import { warningSeverity } from 'utils/prices'
+import { useAllLists } from 'state/lists/hooks'
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
-import Worker from 'worker-loader!../../workers/worker'
+import Worker from 'worker-loader!workers/worker'
 
 const MAXIMUM_PATH_LENGTH = 3
 const swapExactTokensForTokens = '0x73a2cff1'
@@ -80,13 +81,15 @@ export const RightSection = () => {
 
   const [swapParams, setSwapParams] = useState<any>({ start: false })
 
+  const lists = useAllLists()
+
   // TODO:
   const backerIntegrity = true
 
   // swap state
   const { independentField, typedValue, recipient } = useSwapState()
   const {
-    trade: { state: tradeState, trade },
+    trade: { trade },
     allowedSlippage,
     currencyBalances,
     parsedAmount,

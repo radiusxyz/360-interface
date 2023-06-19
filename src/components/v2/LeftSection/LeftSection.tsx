@@ -6,7 +6,7 @@ import AlmostThere from '../../../components/v2/AlmostThere/AlmostThere'
 import { FerrisWheel, GreetingMessage, Wrapper } from './LeftSectionStyles'
 
 export const LeftSection = () => {
-  const [leftSection, setLeftSection] = useState('TEST')
+  const [leftSection, setLeftSection] = useState('search-table')
   const handleClickSelect = (e: React.MouseEvent<HTMLElement>) => {
     const target = e.target as HTMLButtonElement
 
