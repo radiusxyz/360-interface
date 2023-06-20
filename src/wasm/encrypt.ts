@@ -21,7 +21,7 @@ export async function poseidonEncrypt(
   commitment: string,
   plainText: string
 ): Promise<EncryptResponseWithTxId> {
-  const poseidon = await import('wasm-encryptor-zkp')
+  const poseidon = await import('@radiusxyz/wasm-encryptor-zkp')
   const data = await poseidon
     .encrypt_threesixty_tx(tx_info, s2_string, s2_field_hex, commitment, plainText)
     .then((res) => {
