@@ -490,7 +490,7 @@ export const RightSection = () => {
     [onCurrencySelection]
   )
   const [isSelected, setIsSelected] = useState(false)
-  const [showSettings, setShowSettings] = useState(true)
+  const [showSettings, setShowSettings] = useState(false)
 
   const handleShowSettings: MouseEventHandler<SVGSVGElement | HTMLImageElement> = () => {
     setShowSettings((prevState) => !prevState)
