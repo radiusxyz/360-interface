@@ -16,7 +16,7 @@ export async function getTimeLockPuzzleProof(
   timeLockPuzzleParam: TimeLockPuzzleParam,
   timeLockPuzzleSnarkParam: string
 ): Promise<TimeLockPuzzleResponse> {
-  const timeLockPuzzle = await import('wasm-time-lock-puzzle-zkp')
+  const timeLockPuzzle = await import('@radiusxyz/wasm-time-lock-puzzle-zkp')
   const data = await timeLockPuzzle
     .get_time_lock_puzzle_proof(timeLockPuzzleParam, timeLockPuzzleSnarkParam)
     .then((res) => {
