@@ -62,6 +62,7 @@ import styled from 'styled-components/macro'
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import Worker from 'worker-loader!workers/worker'
 import Settings from '../Settings/Settings'
+import NumericInput from '../UI/Inputs'
 
 const StyledNumericalInput = styled(NumericalInput)<{ $loading: boolean }>`
   ${loadingOpacityMixin};
@@ -575,13 +576,7 @@ export const RightSection = () => {
             </SelectTokenButton>
             {isSelected && <Balance>Balance : 0.00225</Balance>}
           </ButtonAndBalanceWrapper>
-          {/* <NumericInput isSelected={isSelected} /> */}
-          <StyledNumericalInput
-            className="token-amount-input"
-            value={formattedAmounts[Field.INPUT]}
-            onUserInput={handleTypeInput}
-            $loading={false}
-          />
+          <NumericInput value={formattedAmounts[Field.INPUT]} onUserInput={handleTypeInput} isSelected={isSelected} />
         </Aligner>
         <Circle />
       </TopTokenRow>
@@ -600,13 +595,7 @@ export const RightSection = () => {
             </SelectTokenButton>
             {isSelected && <Balance>Balance : 0.00225</Balance>}
           </ButtonAndBalanceWrapper>
-          {/* <NumericInput isSelected={isSelected} /> */}
-          <StyledNumericalInput
-            className="token-amount-input"
-            value={formattedAmounts[Field.OUTPUT]}
-            onUserInput={handleTypeOutput}
-            $loading={false}
-          />
+          <NumericInput value={formattedAmounts[Field.INPUT]} onUserInput={handleTypeInput} isSelected={isSelected} />
         </Aligner>
       </BottomTokenRow>
       <ButtonRow>
