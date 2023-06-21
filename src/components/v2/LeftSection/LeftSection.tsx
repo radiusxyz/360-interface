@@ -3,6 +3,7 @@ import { useState } from 'react'
 import Search from '../../../components/v2/Search/Search'
 import Preview from '../../../components/v2/Preview/Preview'
 import AlmostThere from '../../../components/v2/AlmostThere/AlmostThere'
+import { useSwapActionHandlers } from 'state/swap/hooks'
 import { FerrisWheel, GreetingMessage, Wrapper } from './LeftSectionStyles'
 
 export const LeftSection = () => {
@@ -15,6 +16,8 @@ export const LeftSection = () => {
     if (target.textContent === '') setLeftSection('almost-there')
   }
 
+  const { onCurrencySelection } = useSwapActionHandlers()
+
   return (
     <>
       {(leftSection === 'welcome' && (
@@ -23,7 +26,7 @@ export const LeftSection = () => {
           <GreetingMessage>Welcome to 360</GreetingMessage>
         </Wrapper>
       )) ||
-        (leftSection === 'search-table' && <Search />) ||
+        (leftSection === 'search-table' && <Search onCurrencySelection={onCurrencySelection} />) ||
         (leftSection === 'preview' && <Preview />) ||
         (leftSection === 'almost-there' && <AlmostThere />)}
     </>

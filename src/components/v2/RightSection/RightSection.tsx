@@ -60,7 +60,6 @@ import { useAllLists } from 'state/lists/hooks'
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import Worker from 'worker-loader!workers/worker'
 import Settings from '../Settings/Settings'
-import NumericInput from '../UI/Inputs'
 
 const MAXIMUM_PATH_LENGTH = 3
 const swapExactTokensForTokens = '0x73a2cff1'
@@ -87,7 +86,8 @@ export const RightSection = () => {
   const backerIntegrity = true
 
   // swap state
-  const { independentField, typedValue, recipient } = useSwapState()
+  const { independentField, typedValue, recipient, INPUT, OUTPUT } = useSwapState()
+
   const {
     trade: { trade },
     allowedSlippage,
@@ -95,6 +95,8 @@ export const RightSection = () => {
     parsedAmount,
     currencies,
   } = useDerivedSwapInfo()
+
+  console.log('trade', trade, INPUT, OUTPUT)
 
   const minimum = trade?.minimumAmountOut(allowedSlippage).toSignificant(6).toString()
 
@@ -113,6 +115,13 @@ export const RightSection = () => {
   const handleTypeInput = useCallback(
     (value: string) => {
       onUserInput(Field.INPUT, value)
+    },
+    [onUserInput]
+  )
+
+  const handleTypeOutput = useCallback(
+    (value: string) => {
+      onUserInput(Field.OUTPUT, value)
     },
     [onUserInput]
   )
@@ -490,11 +499,27 @@ export const RightSection = () => {
     },
     [onCurrencySelection]
   )
-  const [isSelected, setIsSelected] = useState(false)
+
+  const handleOutputSelect = useCallback(
+    (outputCurrency: any) => {
+      setApprovalSubmitted(false) // reset 2 step UI for approvals
+      onCurrencySelection(Field.OUTPUT, outputCurrency)
+    },
+    [onCurrencySelection]
+  )
+  const [isSelected, setIsSelected] = useState(true)
   const [showSettings, setShowSettings] = useState(false)
 
   const handleShowSettings: MouseEventHandler<SVGSVGElement | HTMLImageElement> = () => {
     setShowSettings((prevState) => !prevState)
+  }
+
+  const openIntputTokenSelect = () => {
+    return true
+  }
+
+  const openOutputTokenSelect = () => {
+    return true
   }
 
   return !showSettings ? (
@@ -513,11 +538,11 @@ export const RightSection = () => {
         )}
         <Aligner>
           <ButtonAndBalanceWrapper>
-            <SelectTokenButton isSelected={isSelected}>
+            <SelectTokenButton isSelected={isSelected} onClick={() => openInputTokenSelect}>
               {isSelected ? (
                 <TokenWrapper>
                   <Logo />
-                  <TokenName>WMATIC</TokenName>
+                  <TokenName>{INPUT.currencyId}</TokenName>
                 </TokenWrapper>
               ) : (
                 'Select'
@@ -532,11 +557,11 @@ export const RightSection = () => {
       <BottomTokenRow>
         <Aligner>
           <ButtonAndBalanceWrapper>
-            <SelectTokenButton isSelected={isSelected}>
+            <SelectTokenButton isSelected={isSelected} onClick={() => openOutputTokenSelect}>
               {isSelected ? (
                 <TokenWrapper>
                   <Logo />
-                  <TokenName>DAI</TokenName>
+                  <TokenName>{OUTPUT.currencyId}</TokenName>
                 </TokenWrapper>
               ) : (
                 'Select'
@@ -544,7 +569,7 @@ export const RightSection = () => {
             </SelectTokenButton>
             {isSelected && <Balance>Balance : 0.00225</Balance>}
           </ButtonAndBalanceWrapper>
-          <NumericInput value={formattedAmounts[Field.INPUT]} onUserInput={handleTypeInput} isSelected={isSelected} />
+          <NumericInput value={formattedAmounts[Field.OUTPUT]} onUserInput={handleTypeOutput} isSelected={isSelected} />
         </Aligner>
       </BottomTokenRow>
       <ButtonRow>

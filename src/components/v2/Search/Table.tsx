@@ -24,7 +24,7 @@ const Table = ({
   currencies: Currency[]
   otherListTokens?: WrappedTokenInfo[]
   selectedCurrency?: Currency | null
-  onCurrencySelect: (currency: Currency | null) => void
+  onCurrencySelect: (field: any, currency: Currency | null) => void
   otherCurrency?: Currency | null
   fixedListRef?: MutableRefObject<FixedSizeList | undefined>
   showImportView: () => void

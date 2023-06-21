@@ -28,7 +28,7 @@ import Table from './Table'
 
 // import CurrencyList from 'components/SearchModal/CurrencyList'
 
-const Search: React.FC = () => {
+const Search = ({ onCurrencySelection }: any) => {
   const [tokensState, setTokensState] = useState(tokens)
 
   const handleTokensState = (handler: () => Tokens): void => {
@@ -113,10 +113,6 @@ const Search: React.FC = () => {
     filteredTokens.length === 0 || (debouncedQuery.length > 2 && !isAddressSearch) ? debouncedQuery : undefined
   )
 
-  const onCurrencySelect = () => {
-    console.log('onCurrencySelect')
-  }
-
   const showImportView = () => {
     console.log('showImportView')
   }
@@ -144,7 +140,7 @@ const Search: React.FC = () => {
       <Table
         currencies={filteredSortedTokens}
         otherListTokens={filteredInactiveTokens}
-        onCurrencySelect={onCurrencySelect}
+        onCurrencySelect={onCurrencySelection}
         otherCurrency={null}
         selectedCurrency={null}
         fixedListRef={fixedList}

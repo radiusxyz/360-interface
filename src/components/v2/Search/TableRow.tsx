@@ -7,6 +7,7 @@ import { useIsUserAddedToken } from '../../../hooks/Tokens'
 import { useCurrencyBalance } from '../../../state/wallet/hooks'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { Loading } from '../UI/Buttons'
+import { Field } from 'state/swap/actions'
 
 const TableRow = ({
   currency,
@@ -18,12 +19,12 @@ const TableRow = ({
   currency: Currency
   selectedCurrency?: Currency | null
   otherCurrency?: Currency | null
-  onCurrencySelect: (currency: Currency | null) => void
+  onCurrencySelect: (field: any, currency: Currency | null) => void
   showCurrencyAmount?: boolean
 }) => {
   const otherSelected = Boolean(currency && otherCurrency && otherCurrency.equals(currency))
   const isSelected = Boolean(currency && selectedCurrency && selectedCurrency.equals(currency))
-  const handleSelect = () => currency && onCurrencySelect(currency)
+  const handleSelect = () => currency && onCurrencySelect(Field.INPUT, currency)
 
   const { account } = useActiveWeb3React()
   const selectedTokenList = useCombinedActiveList()
