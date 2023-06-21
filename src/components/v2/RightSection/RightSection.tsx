@@ -1,4 +1,5 @@
 import { PrimaryButton, SelectTokenButton } from '../UI/Buttons'
+import { NumericInput } from '../UI/Inputs'
 
 import {
   Header,
@@ -29,8 +30,6 @@ import {
   ExchangeRate,
 } from './RightSectionStyles'
 
-import { loadingOpacityMixin } from 'components/Loader/styled'
-import { Input as NumericalInput } from 'components/NumericalInput'
 import { Contract } from '@ethersproject/contracts'
 import { _TypedDataEncoder as typedDataEncoder } from '@ethersproject/hash'
 import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
@@ -57,54 +56,11 @@ import { useDerivedSwapInfo, useSwapActionHandlers, useSwapState } from 'state/s
 import { maxAmountSpend } from 'utils/maxAmountSpend'
 import { warningSeverity } from 'utils/prices'
 import { useAllLists } from 'state/lists/hooks'
-import styled from 'styled-components/macro'
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import Worker from 'worker-loader!workers/worker'
 import Settings from '../Settings/Settings'
 import NumericInput from '../UI/Inputs'
-
-const StyledNumericalInput = styled(NumericalInput)<{ $loading: boolean }>`
-  ${loadingOpacityMixin};
-  text-align: right;
-  font-style: normal;
-  font-weight: 500;
-  font-size: 22px;
-  line-height: 144.52%;
-  height: 60px;
-  width: 100%;
-  border: 1px solid #dde0ff;
-  outline: none;
-  background: inherit;
-  color: inherit;
-  vertical-align: text-top;
-  ::placeholder {
-    color: #d0b2ff;
-  }
-  &::-webkit-inner-spin-button,
-  &::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-  &:hover {
-    background: #f5f4ff;
-    color: #6b11ff;
-    border: 1px solid #dde0ff;
-  }
-  &:focus {
-    background: #f5f4ff;
-    color: #6b11ff;
-    border: 1px solid #dde0ff;
-  }
-
-  &[type='number'] {
-    -moz-appearance: textfield;
-  }
-  color: #d0b2ff;
-  background: #f5f4ff;
-  border-radius: 0px;
-  text-align: right;
-`
 
 const MAXIMUM_PATH_LENGTH = 3
 const swapExactTokensForTokens = '0x73a2cff1'
@@ -157,13 +113,6 @@ export const RightSection = () => {
   const handleTypeInput = useCallback(
     (value: string) => {
       onUserInput(Field.INPUT, value)
-    },
-    [onUserInput]
-  )
-
-  const handleTypeOutput = useCallback(
-    (value: string) => {
-      onUserInput(Field.OUTPUT, value)
     },
     [onUserInput]
   )
@@ -542,7 +491,7 @@ export const RightSection = () => {
     [onCurrencySelection]
   )
   const [isSelected, setIsSelected] = useState(false)
-  const [showSettings, setShowSettings] = useState(true)
+  const [showSettings, setShowSettings] = useState(false)
 
   const handleShowSettings: MouseEventHandler<SVGSVGElement | HTMLImageElement> = () => {
     setShowSettings((prevState) => !prevState)

@@ -24,8 +24,9 @@ import {
   useToken,
 } from 'hooks/Tokens'
 import { isAddress } from 'utils'
+import Table from './Table'
 
-import CurrencyList from 'components/SearchModal/CurrencyList'
+// import CurrencyList from 'components/SearchModal/CurrencyList'
 
 const Search: React.FC = () => {
   const [tokensState, setTokensState] = useState(tokens)
@@ -128,7 +129,7 @@ const Search: React.FC = () => {
     <TableWrapper>
       <InputSearch handler={handleTokensState} />
       <FrequentTokens />
-      <CurrencyList
+      {/* <CurrencyList
         height={filteredSortedTokens.length * 80}
         currencies={filteredSortedTokens}
         otherListTokens={filteredInactiveTokens}
@@ -139,8 +140,18 @@ const Search: React.FC = () => {
         showImportView={showImportView}
         setImportToken={setImportToken}
         showCurrencyAmount={true}
+      /> */}
+      <Table
+        currencies={filteredSortedTokens}
+        otherListTokens={filteredInactiveTokens}
+        onCurrencySelect={onCurrencySelect}
+        otherCurrency={null}
+        selectedCurrency={null}
+        fixedListRef={fixedList}
+        showImportView={showImportView}
+        setImportToken={setImportToken}
+        showCurrencyAmount={true}
       />
-      {/* <Table tokens={tokensState} /> */}
     </TableWrapper>
   )
 }
