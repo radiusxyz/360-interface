@@ -1,7 +1,8 @@
 import React, { FocusEvent, ReactNode, useState } from 'react'
 import styled from 'styled-components/macro'
+import { escapeRegExp } from '../../../utils'
 
-const InputWrapper = styled.div<NumericInputProps>`
+const InputWrapper = styled.div<{ error?: boolean; children?: ReactNode; parentStyles?: Styles; isSelected?: boolean }>`
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -55,46 +56,89 @@ const BalanceUSD = styled.span`
   color: inherit;
 `
 
-type NumericInputProps = {
-  error?: boolean
-  children?: ReactNode
-  parentStyles?: Styles
-  isSelected?: boolean
-}
-
 type Styles = {
   background: string
   color: string
   border: string
 }
 
-export const NumericInput = (props: NumericInputProps) => {
+const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d*$`) // match escaped "." characters via in a non-capturing group
+
+export const NumericInput = React.memo(function InnerInput({
+  value,
+  onUserInput,
+  placeholder,
+  prependSymbol,
+  isSelected,
+  ...rest
+}: {
+  children?: ReactNode
+  parentStyles?: Styles
+  value: string | number
+  isSelected: boolean
+  onUserInput: (input: string) => void
+  error?: boolean
+  fontSize?: string
+  align?: 'right' | 'left'
+  prependSymbol?: string | undefined
+} & Omit<React.HTMLProps<HTMLInputElement>, 'ref' | 'onChange' | 'as'>) {
   const [parentStyles, setParentStyles] = useState({ background: 'transparent', color: '#D0B2FF', border: 'none' })
+  const [placeHolder, setPlaceHolder] = useState<string | undefined>(placeholder)
 
   const handleParentStyles = (e: FocusEvent<HTMLInputElement>) => {
     if (e.type === 'focus') {
+      setPlaceHolder('')
       setParentStyles({ background: '#F5F4FF', color: '#6B11FF', border: '1px solid #DDE0FF' })
     }
 
     if (e.type === 'blur') {
+      setPlaceHolder(placeholder)
       setParentStyles({ background: 'transparent', color: '#6B11FF', border: 'none' })
     }
   }
 
+  const enforcer = (nextUserInput: string) => {
+    if (nextUserInput === '' || inputRegex.test(escapeRegExp(nextUserInput))) {
+      onUserInput(nextUserInput)
+    }
+  }
+
   return (
-    <InputWrapper parentStyles={parentStyles} {...props}>
+    <InputWrapper parentStyles={parentStyles} {...rest}>
       <Input
-        inputMode="decimal"
-        pattern="^[0-9]*[.,]?[0-9]*$"
-        placeholder="0.00"
-        minLength={1}
-        maxLength={79}
-        type="number"
-        spellCheck="false"
+        value={prependSymbol && value ? prependSymbol + value : value}
         onFocus={handleParentStyles}
         onBlur={handleParentStyles}
+        onChange={(event) => {
+          if (prependSymbol) {
+            const value = event.target.value
+
+            // cut off prepended symbol
+            const formattedValue = value.toString().includes(prependSymbol)
+              ? value.toString().slice(1, value.toString().length + 1)
+              : value
+
+            // replace commas with periods, because uniswap exclusively uses period as the decimal separator
+            enforcer(formattedValue.replace(/,/g, '.'))
+          } else {
+            enforcer(event.target.value.replace(/,/g, '.'))
+          }
+        }}
+        // universal input options
+        inputMode="decimal"
+        autoComplete="off"
+        autoCorrect="off"
+        // text-specific options
+        type="text"
+        pattern="^[0-9]*[.,]?[0-9]*$"
+        placeholder={placeHolder === '' ? '' : '0.0'}
+        minLength={1}
+        maxLength={79}
+        spellCheck="false"
       />
-      {props.isSelected && <BalanceUSD>$0.00</BalanceUSD>}
+      {isSelected && <BalanceUSD>$0.00</BalanceUSD>}
     </InputWrapper>
   )
-}
+})
+
+export default NumericInput

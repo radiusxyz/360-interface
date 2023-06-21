@@ -60,6 +60,7 @@ import { useAllLists } from 'state/lists/hooks'
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import Worker from 'worker-loader!workers/worker'
 import Settings from '../Settings/Settings'
+import NumericInput from '../UI/Inputs'
 
 const MAXIMUM_PATH_LENGTH = 3
 const swapExactTokensForTokens = '0x73a2cff1'
@@ -524,7 +525,7 @@ export const RightSection = () => {
             </SelectTokenButton>
             {isSelected && <Balance>Balance : 0.00225</Balance>}
           </ButtonAndBalanceWrapper>
-          <NumericInput isSelected={isSelected} />
+          <NumericInput value={formattedAmounts[Field.INPUT]} onUserInput={handleTypeInput} isSelected={isSelected} />
         </Aligner>
         <Circle />
       </TopTokenRow>
@@ -543,7 +544,7 @@ export const RightSection = () => {
             </SelectTokenButton>
             {isSelected && <Balance>Balance : 0.00225</Balance>}
           </ButtonAndBalanceWrapper>
-          <NumericInput isSelected={isSelected} />
+          <NumericInput value={formattedAmounts[Field.INPUT]} onUserInput={handleTypeInput} isSelected={isSelected} />
         </Aligner>
       </BottomTokenRow>
       <ButtonRow>
