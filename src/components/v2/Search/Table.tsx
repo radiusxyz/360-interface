@@ -6,6 +6,10 @@ import { WrappedTokenInfo } from 'state/lists/wrappedTokenInfo'
 import { Currency, Token } from '@uniswap/sdk-core'
 import { FixedSizeList } from 'react-window'
 
+export function currencyKey(currency: Currency): string {
+  return currency.isToken ? currency.address : 'ETHER'
+}
+
 const Table = ({
   currencies,
   otherListTokens,
@@ -29,8 +33,15 @@ const Table = ({
 }) => {
   return (
     <Wrapper>
-      {currencies.map((token) => (
-        <TableRow key={cuid()} token={token} />
+      {currencies.map((currency) => (
+        <TableRow
+          key={cuid()}
+          currency={currency}
+          selectedCurrency={selectedCurrency}
+          otherCurrency={otherCurrency}
+          onCurrencySelect={onCurrencySelect}
+          showCurrencyAmount={showCurrencyAmount}
+        />
       ))}
     </Wrapper>
   )

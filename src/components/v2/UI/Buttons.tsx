@@ -11,7 +11,7 @@ to {
 }
 `
 
-const Loading = styled.img.attrs((props) => ({
+export const Loading = styled.img.attrs((props) => ({
   src: loading_icon,
   width: '12px',
   height: '12px',
