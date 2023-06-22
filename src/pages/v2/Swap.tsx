@@ -2,6 +2,7 @@ import styled from 'styled-components/macro'
 
 import RightSection from '../../components/v2/RightSection/RightSection'
 import LeftSection from '../../components/v2/LeftSection/LeftSection'
+import SwapProvider from '../../store/SwapProvider'
 
 const Wrapper = styled.div`
   margin-top: 40px;
@@ -20,10 +21,12 @@ const Wrapper = styled.div`
 
 export const Swap = () => {
   return (
-    <Wrapper>
-      <LeftSection />
-      <RightSection />
-    </Wrapper>
+    <SwapProvider>
+      <Wrapper>
+        <LeftSection />
+        <RightSection />
+      </Wrapper>
+    </SwapProvider>
   )
 }
 

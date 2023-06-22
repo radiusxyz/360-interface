@@ -56,6 +56,9 @@ import { useDerivedSwapInfo, useSwapActionHandlers, useSwapState } from 'state/s
 import { maxAmountSpend } from 'utils/maxAmountSpend'
 import { warningSeverity } from 'utils/prices'
 import { useAllLists } from 'state/lists/hooks'
+import { useCurrency } from 'hooks/Tokens'
+import { useContext } from 'react'
+import SwapContext from 'store/swap-context'
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import Worker from 'worker-loader!workers/worker'
@@ -69,6 +72,7 @@ function sleep(ms: number) {
 }
 
 export const RightSection = () => {
+  const swapCTX = useContext(SwapContext)
   const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
 
   // TODO: add this to check account in whitelist
@@ -87,6 +91,9 @@ export const RightSection = () => {
 
   // swap state
   const { independentField, typedValue, recipient, INPUT, OUTPUT } = useSwapState()
+
+  const inputCurrency = useCurrency(INPUT.currencyId)
+  const outputCurrency = useCurrency(OUTPUT.currencyId)
 
   const {
     trade: { trade },
@@ -514,13 +521,21 @@ export const RightSection = () => {
     setShowSettings((prevState) => !prevState)
   }
 
-  const openIntputTokenSelect = () => {
-    return true
+  const openInputTokenSelect = () => {
+    swapCTX.handleSetIsBtokenSelectionActive(false)
+    swapCTX.handleSetIsAtokenSelectionActive(true)
   }
 
   const openOutputTokenSelect = () => {
-    return true
+    swapCTX.handleSetIsAtokenSelectionActive(false)
+    swapCTX.handleSetIsBtokenSelectionActive(true)
   }
+
+  useEffect(() => {
+    if (swapCTX.isAtokenSelectionActive || swapCTX.isBtokenSelectionActive) {
+      swapCTX.handleLeftSection('search-table')
+    }
+  }, [swapCTX.isAtokenSelectionActive, swapCTX.isBtokenSelectionActive, swapCTX.handleLeftSection])
 
   return !showSettings ? (
     <MainWrapper>
@@ -529,7 +544,7 @@ export const RightSection = () => {
         <Cog onClick={handleShowSettings} />
       </Header>
       <TopTokenRow>
-        {isSelected && (
+        {swapCTX.isAtokenSelected && (
           <SlippageOptions>
             <SlippageOption>MAX</SlippageOption>
             <SlippageOption>50%</SlippageOption>
@@ -538,42 +553,50 @@ export const RightSection = () => {
         )}
         <Aligner>
           <ButtonAndBalanceWrapper>
-            <SelectTokenButton isSelected={isSelected} onClick={() => openInputTokenSelect}>
-              {isSelected ? (
+            <SelectTokenButton isSelected={swapCTX.isAtokenSelected} onClick={openInputTokenSelect}>
+              {swapCTX.isAtokenSelected ? (
                 <TokenWrapper>
                   <Logo />
-                  <TokenName>{INPUT.currencyId}</TokenName>
+                  <TokenName>{inputCurrency?.symbol}</TokenName>
                 </TokenWrapper>
               ) : (
                 'Select'
               )}
             </SelectTokenButton>
-            {isSelected && <Balance>Balance : 0.00225</Balance>}
+            {swapCTX.isAtokenSelected && <Balance>Balance : 0.00225</Balance>}
           </ButtonAndBalanceWrapper>
-          <NumericInput value={formattedAmounts[Field.INPUT]} onUserInput={handleTypeInput} isSelected={isSelected} />
+          <NumericInput
+            value={formattedAmounts[Field.INPUT]}
+            onUserInput={handleTypeInput}
+            isSelected={swapCTX.isAtokenSelected}
+          />
         </Aligner>
         <Circle />
       </TopTokenRow>
       <BottomTokenRow>
         <Aligner>
           <ButtonAndBalanceWrapper>
-            <SelectTokenButton isSelected={isSelected} onClick={() => openOutputTokenSelect}>
-              {isSelected ? (
+            <SelectTokenButton isSelected={swapCTX.isBtokenSelected} onClick={openOutputTokenSelect}>
+              {swapCTX.isBtokenSelected ? (
                 <TokenWrapper>
                   <Logo />
-                  <TokenName>{OUTPUT.currencyId}</TokenName>
+                  <TokenName>{outputCurrency?.symbol}</TokenName>
                 </TokenWrapper>
               ) : (
                 'Select'
               )}
             </SelectTokenButton>
-            {isSelected && <Balance>Balance : 0.00225</Balance>}
+            {swapCTX.isBtokenSelected && <Balance>Balance : 0.00225</Balance>}
           </ButtonAndBalanceWrapper>
-          <NumericInput value={formattedAmounts[Field.OUTPUT]} onUserInput={handleTypeOutput} isSelected={isSelected} />
+          <NumericInput
+            value={formattedAmounts[Field.OUTPUT]}
+            onUserInput={handleTypeOutput}
+            isSelected={swapCTX.isBtokenSelected}
+          />
         </Aligner>
       </BottomTokenRow>
       <ButtonRow>
-        {isSelected && (
+        {swapCTX.isBtokenSelected && (
           <InfoMainWrapper>
             <InfoRowWrapper>
               <Description>You receive minimum</Description>
@@ -601,7 +624,7 @@ export const RightSection = () => {
           </InfoMainWrapper>
         )}
         <PrimaryButton mrgn="0px 0px 12px 0px">Preview Swap</PrimaryButton>
-        {isSelected && (
+        {swapCTX.isBtokenSelected && (
           <ExchangeRateWrapper>
             <ExchangeIcon>
               <circle cx="8.5" cy="8.5" r="8.5" fill="#F5F4FF" />
@@ -614,7 +637,7 @@ export const RightSection = () => {
       </ButtonRow>
     </MainWrapper>
   ) : (
-    <Settings handleShowSettings={handleShowSettings} isSelected={isSelected} />
+    <Settings handleShowSettings={handleShowSettings} isSelected={false} />
   )
 }
 
