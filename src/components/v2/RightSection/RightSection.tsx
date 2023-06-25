@@ -103,8 +103,6 @@ export const RightSection = () => {
     currencies,
   } = useDerivedSwapInfo()
 
-  console.log('trade', trade, INPUT, OUTPUT)
-
   const minimum = trade?.minimumAmountOut(allowedSlippage).toSignificant(6).toString()
 
   const parsedAmounts = {
@@ -590,8 +588,10 @@ export const RightSection = () => {
           </ButtonAndBalanceWrapper>
           <NumericInput
             value={formattedAmounts[Field.OUTPUT]}
-            onUserInput={handleTypeOutput}
-            isSelected={swapCTX.isBtokenSelected}
+            onUserInput={() => {
+              return
+            }}
+            isSelected={swapCTX.isAtokenSelected}
           />
         </Aligner>
       </BottomTokenRow>
