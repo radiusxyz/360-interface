@@ -16,11 +16,12 @@ export default function Updater() {
 
   const dispatch = useAppDispatch()
   const onCheck = useCallback(
-    ({ chainId, hash, blockNumber }) => dispatch(checkedTransaction({ chainId, hash, blockNumber })),
+    ({ chainId, hash, blockNumber }: { chainId: any; hash: any; blockNumber: any }) =>
+      dispatch(checkedTransaction({ chainId, hash, blockNumber })),
     [dispatch]
   )
   const onReceipt = useCallback(
-    ({ chainId, hash, receipt }) => {
+    ({ chainId, hash, receipt }: { chainId: any; hash: any; receipt: any }) => {
       dispatch(
         finalizeTransaction({
           chainId,

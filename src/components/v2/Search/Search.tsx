@@ -51,8 +51,8 @@ const Search = ({ onCurrencySelection }: any) => {
 
   const [allToken, setAllToken] = useState<{ [address: string]: Token }>({})
 
-  const aTokenAddress = ''
-  const bTokenAddress = ''
+  const aTokenAddress = INPUT.currencyId
+  const bTokenAddress = OUTPUT.currencyId
 
   const bTokens = useBTokens(aTokenAddress)
   const aTokens = useATokens(bTokenAddress)
