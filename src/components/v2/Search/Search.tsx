@@ -10,7 +10,7 @@ import { useOnClickOutside } from 'hooks/useOnClickOutside'
 import useToggle from 'hooks/useToggle'
 import { getTokenFilter } from 'lib/hooks/useTokenList/filtering'
 import { tokenComparator, useSortTokensByQuery } from 'lib/hooks/useTokenList/sorting'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import ReactGA from 'react-ga4'
 import { FixedSizeList } from 'react-window'
 import { useAllTokenBalances } from 'state/wallet/hooks'
@@ -25,10 +25,15 @@ import {
 } from 'hooks/Tokens'
 import { isAddress } from 'utils'
 import Table from './Table'
+import SwapContext from 'store/swap-context'
+import { useSwapState } from 'state/swap/hooks'
 
 // import CurrencyList from 'components/SearchModal/CurrencyList'
 
 const Search = ({ onCurrencySelection }: any) => {
+  const { INPUT, OUTPUT } = useSwapState()
+
+  const swapCTX = useContext(SwapContext)
   const [tokensState, setTokensState] = useState(tokens)
 
   const handleTokensState = (handler: () => Tokens): void => {

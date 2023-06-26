@@ -8,6 +8,8 @@ import { useCurrencyBalance } from '../../../state/wallet/hooks'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { Loading } from '../UI/Buttons'
 import { Field } from 'state/swap/actions'
+import SwapContext from 'store/swap-context'
+import { useContext } from 'react'
 
 const TableRow = ({
   currency,
@@ -22,9 +24,23 @@ const TableRow = ({
   onCurrencySelect: (field: any, currency: Currency | null) => void
   showCurrencyAmount?: boolean
 }) => {
+  const swapCTX = useContext(SwapContext)
   const otherSelected = Boolean(currency && otherCurrency && otherCurrency.equals(currency))
   const isSelected = Boolean(currency && selectedCurrency && selectedCurrency.equals(currency))
-  const handleSelect = () => currency && onCurrencySelect(Field.INPUT, currency)
+  const handleSelect = () => {
+    if (currency && swapCTX.isAtokenSelectionActive) {
+      onCurrencySelect(Field.INPUT, currency)
+      swapCTX.handleSetIsAtokenSelected()
+      swapCTX.handleSetIsAtokenSelectionActive(false)
+      swapCTX.handleLeftSection('welcome')
+    }
+    if (currency && swapCTX.isBtokenSelectionActive) {
+      onCurrencySelect(Field.OUTPUT, currency)
+      swapCTX.handleSetIsBtokenSelected()
+      swapCTX.handleSetIsBtokenSelectionActive(false)
+      swapCTX.handleLeftSection('welcome')
+    }
+  }
 
   const { account } = useActiveWeb3React()
   const selectedTokenList = useCombinedActiveList()
