@@ -1,9 +1,8 @@
 import { DialogContent, DialogOverlay } from '@reach/dialog'
-import { transparentize } from 'polished'
 import React from 'react'
 import { animated, useSpring, useTransition } from 'react-spring'
 import { useGesture } from 'react-use-gesture'
-import styled, { css } from 'styled-components/macro'
+import styled from 'styled-components/macro'
 
 import { isMobile } from '../../utils/userAgent'
 
@@ -36,35 +35,14 @@ const StyledDialogContent = styled(({ minHeight, maxHeight, mobile, isOpen, widt
 
   &[data-reach-dialog-content] {
     margin: 0 0 2rem 0;
-    /*background-color: ${({ theme }) => theme.bg0};*/
     background: rgba(44, 47, 63);
-    border: 1px solid ${({ theme }) => theme.bg1};
-    box-shadow: 0 4px 8px 0 ${({ theme }) => transparentize(0.95, theme.shadow1)};
     padding: 0px;
     overflow-y: auto;
     overflow-x: hidden;
 
-    align-self: ${({ mobile }) => (mobile ? 'flex-end' : 'center')};
-
-    max-width: 840px;
-    ${({ maxHeight }) =>
-      maxHeight &&
-      css`
-        max-height: ${maxHeight}vh;
-      `}
-    ${({ minHeight }) =>
-      minHeight &&
-      css`
-        min-height: ${minHeight}vh;
-      `}
+    max-width: 1040px;
     display: flex;
     border-radius: 6px;
-
-    ${({ width }) =>
-      width &&
-      css`
-        width: ${width}px;
-      `}
   }
 `
 
