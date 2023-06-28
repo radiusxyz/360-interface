@@ -337,6 +337,7 @@ export const RightSection = () => {
               setSwapParams({ ...swapParams, prepareDone: true, ...res, operatorAddress })
             })
             .catch(() => {
+              swapCTX.handleLeftSection('welcome')
               setSwapParams({
                 ...swapParams,
                 start: false,
@@ -345,6 +346,7 @@ export const RightSection = () => {
             })
         })
         .catch(() => {
+          swapCTX.handleLeftSection('welcome')
           setSwapParams({
             ...swapParams,
             start: false,
@@ -415,11 +417,13 @@ export const RightSection = () => {
 
           await sleep(10000)
           // set swapResponse: res,
+          swapCTX.handleLeftSection('welcome')
           setSwapParams({ start: false })
         })
         .catch(async (e) => {
           console.error(e)
           onUserInput(Field.INPUT, '')
+          swapCTX.handleLeftSection('welcome')
           setSwapParams({ start: false })
         })
     }
@@ -456,6 +460,7 @@ export const RightSection = () => {
   useEffect(() => {
     if (!isSigning.current && swapParams.prepareDone && swapParams.confirm && !swapParams.signingDone) {
       isSigning.current = true
+      swapCTX.handleLeftSection('almost-there')
       userSignFunc().then(() => {
         isSigning.current = false
       })
@@ -485,6 +490,7 @@ export const RightSection = () => {
   }, [priceImpact, trade])
 
   const handleConfirmDismiss = useCallback(() => {
+    swapCTX.handleLeftSection('welcome')
     setSwapParams({
       start: false,
       timeLockPuzzleData: swapParams.timeLockPuzzleData,
@@ -623,7 +629,22 @@ export const RightSection = () => {
             </InfoRowWrapper>
           </InfoMainWrapper>
         )}
-        <PrimaryButton mrgn="0px 0px 12px 0px">Preview Swap</PrimaryButton>
+        {swapParams.start && (
+          <PrimaryButton mrgn="0px 0px 12px 0px" onClick={() => setSwapParams({ ...swapParams, confirm: true })}>
+            Swap
+          </PrimaryButton>
+        )}
+        {!swapParams.start && (
+          <PrimaryButton
+            mrgn="0px 0px 12px 0px"
+            onClick={() => {
+              setSwapParams({ ...swapParams, start: true })
+              swapCTX.handleLeftSection('preview')
+            }}
+          >
+            Preview Swap
+          </PrimaryButton>
+        )}
         {swapCTX.isBtokenSelected && (
           <ExchangeRateWrapper>
             <ExchangeIcon>
