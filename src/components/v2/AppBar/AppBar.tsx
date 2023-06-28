@@ -1,15 +1,6 @@
 import React, { useState } from 'react'
-import {
-  Item,
-  LinkList,
-  Span360,
-  StyledNavLink,
-  Wrapper,
-  Button,
-  MenuIcon,
-  MainWrapper,
-  Backdrop,
-} from './AppBarStyles'
+import { Item, LinkList, Span360, StyledNavLink, Wrapper, MenuIcon, MainWrapper, Backdrop } from './AppBarStyles'
+import Web3Status from 'components/Web3Status'
 
 const AppBar = () => {
   const [displayMenu, setDisplayMenu] = useState(false)
@@ -39,7 +30,7 @@ const AppBar = () => {
           </LinkList>
         )}
 
-        <Button>Connect</Button>
+        <Web3Status />
 
         {window.innerWidth <= 634 && (
           <MenuIcon onClick={handleMenu}>
