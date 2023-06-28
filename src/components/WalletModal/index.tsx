@@ -1,8 +1,7 @@
 import { Trans } from 'utils/trans'
 import { AutoColumn } from 'components/Column'
-import { PrivacyPolicy } from 'components/PrivacyPolicy'
-import Row, { AutoRow } from 'components/Row'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { AutoRow } from 'components/Row'
+import { useCallback, useEffect, useState } from 'react'
 import { ArrowLeft } from 'react-feather'
 import ReactGA from 'react-ga4'
 import styled from 'styled-components/macro'
@@ -21,7 +20,6 @@ import { ApplicationModal } from '../../state/application/reducer'
 import { ExternalLink, ThemedText } from '../../theme'
 import { isMobile } from '../../utils/userAgent'
 import AccountDetails from '../AccountDetails'
-import Card from '../Card'
 import Modal from '../Modal'
 import Option from './Option'
 import PendingView from './PendingView'
@@ -38,7 +36,7 @@ const CloseIcon = styled.div`
 
 const CloseColor = styled(Close)`
   path {
-    stroke: ${({ theme }) => theme.text4};
+    stroke: #000000;
   }
 `
 
@@ -55,20 +53,13 @@ const HeaderRow = styled.div`
   padding: 1rem 1rem;
   background: rgba(44, 47, 63);
   font-weight: 500;
-  /*color: ${(props) => (props.color === 'blue' ? ({ theme }) => theme.primary1 : 'inherit')};
-  ${({ theme }) => theme.mediaWidth.upToMedium`
-    padding: 1rem;
-  `};*/
 `
 
 const ContentWrapper = styled.div`
-  /*background-color: ${({ theme }) => theme.bg0};*/
   background: rgba(44, 47, 63);
   padding: 1rem 1rem 3rem 1rem;
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
-
-  /* ${({ theme }) => theme.mediaWidth.upToMedium`padding: 0 1rem 1rem 1rem`}; */
 `
 
 const UpperSection = styled.div`
@@ -98,15 +89,11 @@ const OptionGrid = styled.div`
   justify-content: center;
   align-items: center;
   grid-gap: 10px;
-  /* ${({ theme }) => theme.mediaWidth.upToMedium`
-    grid-template-columns: 1fr;
-    grid-gap: 10px;
-  `}; */
 `
 
 const HoverText = styled.div`
   text-decoration: none;
-  color: ${({ theme }) => theme.text1};
+  color: red;
   display: flex;
   align-items: center;
 
@@ -115,22 +102,10 @@ const HoverText = styled.div`
   }
 `
 
-const LinkCard = styled(Card)`
-  background-color: ${({ theme }) => theme.bg1};
-  color: ${({ theme }) => theme.text3};
-
-  :hover {
-    cursor: pointer;
-    filter: brightness(0.9);
-  }
-`
-
 const WALLET_VIEWS = {
   OPTIONS: 'options',
-  OPTIONS_SECONDARY: 'options_secondary',
   ACCOUNT: 'account',
   PENDING: 'pending',
-  LEGAL: 'legal',
 }
 
 export default function WalletModal({
@@ -158,12 +133,10 @@ export default function WalletModal({
   // console.log('walletStatus', active, account, connector, activate, error)
 
   const [walletView, setWalletView] = useState(WALLET_VIEWS.ACCOUNT)
-  const previousWalletView = usePrevious(walletView)
 
   const [pendingWallet, setPendingWallet] = useState<AbstractConnector | undefined>()
 
   const [pendingError, setPendingError] = useState<boolean>()
-  const ref = useRef()
 
   const walletModalOpen = useModalOpen(ApplicationModal.WALLET)
   const toggleWalletModal = useWalletModalToggle()
@@ -349,33 +322,6 @@ export default function WalletModal({
         ),
       }
     }
-    if (walletView === WALLET_VIEWS.LEGAL) {
-      return {
-        width: 560,
-        content: (
-          <UpperSection>
-            <HeaderRow>
-              <HoverText
-                onClick={() => {
-                  setWalletView(
-                    (previousWalletView === WALLET_VIEWS.LEGAL ? WALLET_VIEWS.ACCOUNT : previousWalletView) ??
-                      WALLET_VIEWS.ACCOUNT
-                  )
-                }}
-              >
-                <ArrowLeft />
-              </HoverText>
-              <Row justify="center">
-                <ThemedText.MediumHeader>
-                  <Trans>Legal & Privacy</Trans>
-                </ThemedText.MediumHeader>
-              </Row>
-            </HeaderRow>
-            <PrivacyPolicy />
-          </UpperSection>
-        ),
-      }
-    }
     if (account && walletView === WALLET_VIEWS.ACCOUNT) {
       return {
         width: 540,
@@ -437,30 +383,7 @@ export default function WalletModal({
                   resetAccountView={resetAccountView}
                 />
               )}
-              {walletView !== WALLET_VIEWS.PENDING && (
-                <>
-                  <OptionGrid>{getOptions()}</OptionGrid>
-                  {/* <LinkCard padding=".5rem" $borderRadius=".75rem" onClick={() => setWalletView(WALLET_VIEWS.LEGAL)}>
-                  <RowBetween>
-                    <AutoRow gap="4px">
-                      <Info size={20} />
-                      <ThemedText.Label fontSize={14}>
-                        <Trans>How this app uses APIs</Trans>
-                      </ThemedText.Label>
-                    </AutoRow>
-                    <ArrowRight size={16} />
-                  </RowBetween>
-                </LinkCard>
-                <ThemedText.Black fontSize={14}>
-                  <ExternalLink href="https://help.uniswap.org/en/articles/5391525-what-is-a-wallet">
-                    <Row justify="center" alignItems="center">
-                      <Trans>Learn more about wallets</Trans>
-                      <ArrowRight size={16} />
-                    </Row>
-                  </ExternalLink>
-                </ThemedText.Black> */}
-                </>
-              )}
+              {walletView !== WALLET_VIEWS.PENDING && <OptionGrid>{getOptions()}</OptionGrid>}
               {!pendingError && (
                 <div style={{ display: 'flex', width: '100%', justifyContent: 'center' }}>
                   <div style={{ width: '90%' }}>
