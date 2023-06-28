@@ -183,12 +183,12 @@ export const MinimumAmount = styled.span`
   color: #000000;
 `
 
-export const ImpactAmount = styled.span`
+export const ImpactAmount = styled.span<{ priceImpactTooHigh: number }>`
   font-weight: 400;
   font-size: 14px;
   line-height: 144.52%;
   text-align: right;
-  color: #000000;
+  color: ${({ priceImpactTooHigh }) => (priceImpactTooHigh ? '#FF0000' : '#000000')};
 `
 
 export const InfoIcon = styled.svg.attrs({
