@@ -1,9 +1,9 @@
 import { AbstractConnector } from 'web3-react-abstract-connector'
 
 import INJECTED_ICON_URL from '../assets/images/arrow-right.svg'
-import COINBASE_ICON_URL from '../assets/images/coinbaseWalletIcon.svg'
-import METAMASK_ICON_URL from '../assets/images/metamask.png'
-import WALLETCONNECT_ICON_URL from '../assets/images/walletConnectIcon.svg'
+import COINBASE_ICON_URL from '../assets/v2/images/coinbase.svg'
+import METAMASK_ICON_URL from '../assets/v2/images/metamask.svg'
+import WALLETCONNECT_ICON_URL from '../assets/v2/images/wallet_connect.svg'
 import { injected, walletconnect, walletlink } from '../connectors'
 
 interface WalletInfo {
