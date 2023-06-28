@@ -607,11 +607,7 @@ export const RightSection = () => {
               <Description>You receive minimum</Description>
               <ValueAndIconWrapper>
                 <MinimumAmount> {minimum && minimum + ' ' + trade?.outputAmount.currency.symbol}</MinimumAmount>
-                <InfoIcon>
-                  <circle cx="8" cy="8" r="7.5" stroke="#9B9B9B" />
-                  <rect x="7.27271" y="7.27271" width="1.45455" height="4.36364" fill="#9B9B9B" />
-                  <rect x="7.27271" y="4.36365" width="1.45455" height="1.45455" fill="#9B9B9B" />
-                </InfoIcon>
+                <InfoIcon />
               </ValueAndIconWrapper>
             </InfoRowWrapper>
             <Divider />
@@ -621,11 +617,7 @@ export const RightSection = () => {
                 <ImpactAmount priceImpactTooHigh={priceImpactTooHigh ? 1 : 0}>
                   {priceImpact?.toSignificant(3) + ' %' + `${priceImpactTooHigh ? ' (Too High)' : ''}`}
                 </ImpactAmount>
-                <InfoIcon>
-                  <circle cx="8" cy="8" r="7.5" stroke="#9B9B9B" />
-                  <rect x="7.27271" y="7.27271" width="1.45455" height="4.36364" fill="#9B9B9B" />
-                  <rect x="7.27271" y="4.36365" width="1.45455" height="1.45455" fill="#9B9B9B" />
-                </InfoIcon>
+                <InfoIcon />
               </ValueAndIconWrapper>
             </InfoRowWrapper>
           </InfoMainWrapper>
