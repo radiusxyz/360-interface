@@ -1,44 +1,14 @@
-import { PrimaryButton, SelectTokenButton } from '../UI/Buttons'
-import { NumericInput } from '../UI/Inputs'
-
-import {
-  Header,
-  Aligner,
-  ButtonAndBalanceWrapper,
-  Cog,
-  HeaderTitle,
-  MainWrapper,
-  SlippageOption,
-  SlippageOptions,
-  TokenName,
-  TokenWrapper,
-  TopTokenRow,
-  Logo,
-  Balance,
-  Circle,
-  BottomTokenRow,
-  ButtonRow,
-  InfoMainWrapper,
-  InfoRowWrapper,
-  Description,
-  ValueAndIconWrapper,
-  ImpactAmount,
-  InfoIcon,
-  Divider,
-  MinimumAmount,
-} from './RightSectionStyles'
+import { MainWrapper } from './RightSectionStyles'
 
 import { Contract } from '@ethersproject/contracts'
 import { _TypedDataEncoder as typedDataEncoder } from '@ethersproject/hash'
-import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
-import { Trade as V2Trade } from '@uniswap/v2-sdk'
-import { Trade as V3Trade } from '@uniswap/v3-sdk'
+
 import { domain, SWAP_TYPE } from 'constants/eip712'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useSwapCallback } from 'hooks/useSwapCallback'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import localForage from 'localforage'
-import { MouseEventHandler, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useAppDispatch } from 'state/hooks'
 import { fetchTimeLockPuzzleParam, fetchTimeLockPuzzleSnarkParam } from 'state/parameters/fetch'
 import { useParameters } from 'state/parameters/hooks'
@@ -46,32 +16,22 @@ import { setTimeLockPuzzleParam, setTimeLockPuzzleSnarkParam, TimeLockPuzzlePara
 
 import { ApprovalState, useApprovalOptimizedTrade, useApproveCallbackFromTrade } from 'hooks/useApproveCallback'
 import { useV2RouterContract } from 'hooks/useContract'
-import { useERC20PermitFromTrade, UseERC20PermitState } from 'hooks/useERC20Permit'
-import { useUSDCValue } from 'hooks/useUSDCPrice'
+import { useERC20PermitFromTrade } from 'hooks/useERC20Permit'
 import { EncryptedSwapTx, TxInfo } from 'lib/hooks/swap/useSendSwapTransaction'
 import { Field } from 'state/swap/actions'
 import { useDerivedSwapInfo, useSwapActionHandlers, useSwapState } from 'state/swap/hooks'
-import { maxAmountSpend } from 'utils/maxAmountSpend'
-import { warningSeverity } from 'utils/prices'
-import { useAllLists } from 'state/lists/hooks'
-import { useCurrency } from 'hooks/Tokens'
+
 import { useContext } from 'react'
 import SwapContext from 'store/swap-context'
-import TradePrice from '../../../components/swap/TradePrice'
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import Worker from 'worker-loader!workers/worker'
-import Settings from '../Settings/Settings'
-import { useExpertModeManager } from 'state/user/hooks'
 
 const MAXIMUM_PATH_LENGTH = 3
 const swapExactTokensForTokens = '0x73a2cff1'
 
-function sleep(ms: number) {
-  return new Promise((r) => setTimeout(r, ms))
-}
-
 export const RightSection = () => {
+  console.log('hello')
   const swapCTX = useContext(SwapContext)
   const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
 
@@ -84,101 +44,28 @@ export const RightSection = () => {
 
   // const [swapParams, setSwapParams] = useState<any>({ start: false })
 
-  const lists = useAllLists()
-
   // TODO:
   const backerIntegrity = true
 
   // swap state
-  const { independentField, typedValue, recipient, INPUT, OUTPUT } = useSwapState()
-
-  const inputCurrency = useCurrency(INPUT.currencyId)
-  const outputCurrency = useCurrency(OUTPUT.currencyId)
+  const { recipient } = useSwapState()
 
   const {
     trade: { trade },
     allowedSlippage,
-    currencyBalances,
-    parsedAmount,
-    currencies,
   } = useDerivedSwapInfo()
 
-  const minimum = trade?.minimumAmountOut(allowedSlippage).toSignificant(6).toString()
-
-  const parsedAmounts = {
-    [Field.INPUT]: independentField === Field.INPUT ? parsedAmount : trade?.inputAmount,
-    [Field.OUTPUT]: independentField === Field.OUTPUT ? parsedAmount : trade?.outputAmount,
-  }
-
-  const fiatValueInput = useUSDCValue(trade?.inputAmount)
-  const fiatValueOutput = useUSDCValue(trade?.outputAmount)
-  const priceImpact = trade?.priceImpact
-
-  const { onCurrencySelection, onUserInput, onChangeRecipient } = useSwapActionHandlers()
-  const dependentField: Field = independentField === Field.INPUT ? Field.OUTPUT : Field.INPUT
-
-  const handleTypeInput = useCallback(
-    (value: string) => {
-      onUserInput(Field.INPUT, value)
-    },
-    [onUserInput]
-  )
-
-  const handleTypeOutput = useCallback(
-    (value: string) => {
-      onUserInput(Field.OUTPUT, value)
-    },
-    [onUserInput]
-  )
-
-  const formattedAmounts = useMemo(
-    () => ({
-      [independentField]: typedValue,
-      [dependentField]: parsedAmounts[dependentField]?.toSignificant(6) ?? '',
-    }),
-    [dependentField, independentField, parsedAmounts, typedValue]
-  )
+  const { onUserInput } = useSwapActionHandlers()
 
   ///////////////////////////////
   // approve
   ///////////////////////////////
   const approvalOptimizedTrade = useApprovalOptimizedTrade(trade, allowedSlippage)
-  const approvalOptimizedTradeString =
-    approvalOptimizedTrade instanceof V2Trade
-      ? 'V2SwapRouter'
-      : approvalOptimizedTrade instanceof V3Trade
-      ? 'V3SwapRouter'
-      : 'SwapRouter'
 
   // check whether the user has approved the router on the input token
   const [approvalState, approveCallback] = useApproveCallbackFromTrade(approvalOptimizedTrade, allowedSlippage)
   const transactionDeadline = useTransactionDeadline()
-  const {
-    state: signatureState,
-    signatureData,
-    gatherPermitSignature,
-  } = useERC20PermitFromTrade(approvalOptimizedTrade, allowedSlippage, transactionDeadline)
-
-  const handleApprove = useCallback(async () => {
-    if (signatureState === UseERC20PermitState.NOT_SIGNED && gatherPermitSignature) {
-      try {
-        await gatherPermitSignature()
-      } catch (error) {
-        // try to approve if gatherPermitSignature failed for any reason other than the user rejecting it
-        if (error?.code !== 4001) {
-          await approveCallback()
-        }
-      }
-    } else {
-      await approveCallback()
-    }
-  }, [
-    signatureState,
-    gatherPermitSignature,
-    approveCallback,
-    approvalOptimizedTradeString,
-    approvalOptimizedTrade?.inputAmount?.currency.symbol,
-  ])
+  const { signatureData } = useERC20PermitFromTrade(approvalOptimizedTrade, allowedSlippage, transactionDeadline)
 
   ///////////////////////////////
   // Check Account in Whitelist
@@ -202,11 +89,6 @@ export const RightSection = () => {
     }
   }, [approvalState, approvalSubmitted])
 
-  const maxInputAmount: CurrencyAmount<Currency> | undefined = useMemo(
-    () => maxAmountSpend(currencyBalances[Field.INPUT]),
-    [currencyBalances]
-  )
-
   // the callback to execute the swap
   const {
     error: swapCallbackError,
@@ -223,9 +105,6 @@ export const RightSection = () => {
     parameters
   )
 
-  const handleSwap = () => {
-    swapCTX.updateSwapParams({ confirm: true })
-  }
   const dispatch = useAppDispatch()
 
   ///////////////////////////////
@@ -485,67 +364,7 @@ export const RightSection = () => {
     }
   }, [swapCTX.swapParams, sendEncryptedTxFunc])
 
-  const [isExpertMode] = useExpertModeManager()
-
   // TODO: price impact dangerous level
-  const priceImpactSeverity = useMemo(() => {
-    const executionPriceImpact = trade?.priceImpact
-    return warningSeverity(
-      executionPriceImpact && priceImpact
-        ? executionPriceImpact.greaterThan(priceImpact)
-          ? executionPriceImpact
-          : priceImpact
-        : executionPriceImpact ?? priceImpact
-    )
-  }, [priceImpact, trade])
-
-  const priceImpactTooHigh = priceImpactSeverity > 3 && !isExpertMode
-
-  const handleConfirmDismiss = useCallback(() => {
-    swapCTX.handleLeftSection('welcome')
-    swapCTX.handleSwapParams({
-      start: false,
-      timeLockPuzzleData: swapCTX.swapParams.timeLockPuzzleData,
-      timeLockPuzzleDone: swapCTX.swapParams.timeLockPuzzleDone,
-    })
-
-    // if there was a tx hash, we want to clear the input
-    // if (txHash) {
-    //   onUserInput(Field.INPUT, '')
-    // }
-  }, [onUserInput, swapCTX.swapParams])
-
-  const handleInputSelect = useCallback(
-    (inputCurrency: any) => {
-      setApprovalSubmitted(false) // reset 2 step UI for approvals
-      onCurrencySelection(Field.INPUT, inputCurrency)
-    },
-    [onCurrencySelection]
-  )
-
-  const handleOutputSelect = useCallback(
-    (outputCurrency: any) => {
-      setApprovalSubmitted(false) // reset 2 step UI for approvals
-      onCurrencySelection(Field.OUTPUT, outputCurrency)
-    },
-    [onCurrencySelection]
-  )
-  const [showSettings, setShowSettings] = useState(false)
-  const [showInverted, setShowInverted] = useState<boolean>(false)
-
-  const handleShowSettings: MouseEventHandler<SVGSVGElement | HTMLImageElement> = () => {
-    setShowSettings((prevState) => !prevState)
-  }
-
-  const openInputTokenSelect = () => {
-    swapCTX.handleSetIsBtokenSelectionActive(false)
-    swapCTX.handleSetIsAtokenSelectionActive(true)
-  }
-
-  const openOutputTokenSelect = () => {
-    swapCTX.handleSetIsAtokenSelectionActive(false)
-    swapCTX.handleSetIsBtokenSelectionActive(true)
-  }
 
   useEffect(() => {
     if (swapCTX.isAtokenSelectionActive || swapCTX.isBtokenSelectionActive) {
@@ -553,120 +372,7 @@ export const RightSection = () => {
     }
   }, [swapCTX.isAtokenSelectionActive, swapCTX.isBtokenSelectionActive, swapCTX.handleLeftSection])
 
-  return swapCTX.leftSection === 'progress' ? (
-    <></>
-  ) : !showSettings ? (
-    <MainWrapper>
-      <Header>
-        <HeaderTitle>Swap</HeaderTitle>
-        <Cog onClick={handleShowSettings} />
-      </Header>
-      <TopTokenRow>
-        {swapCTX.isAtokenSelected && (
-          <SlippageOptions>
-            <SlippageOption>MAX</SlippageOption>
-            <SlippageOption>50%</SlippageOption>
-            <SlippageOption>Clear</SlippageOption>
-          </SlippageOptions>
-        )}
-        <Aligner>
-          <ButtonAndBalanceWrapper>
-            <SelectTokenButton isSelected={swapCTX.isAtokenSelected} onClick={openInputTokenSelect}>
-              {swapCTX.isAtokenSelected ? (
-                <TokenWrapper>
-                  <Logo />
-                  <TokenName>{inputCurrency?.symbol}</TokenName>
-                </TokenWrapper>
-              ) : (
-                'Select'
-              )}
-            </SelectTokenButton>
-            {swapCTX.isAtokenSelected && <Balance>Balance : 0.00225</Balance>}
-          </ButtonAndBalanceWrapper>
-          <NumericInput
-            value={formattedAmounts[Field.INPUT]}
-            onUserInput={handleTypeInput}
-            isSelected={swapCTX.isAtokenSelected}
-          />
-        </Aligner>
-        <Circle />
-      </TopTokenRow>
-      <BottomTokenRow>
-        <Aligner>
-          <ButtonAndBalanceWrapper>
-            <SelectTokenButton isSelected={swapCTX.isBtokenSelected} onClick={openOutputTokenSelect}>
-              {swapCTX.isBtokenSelected ? (
-                <TokenWrapper>
-                  <Logo />
-                  <TokenName>{outputCurrency?.symbol}</TokenName>
-                </TokenWrapper>
-              ) : (
-                'Select'
-              )}
-            </SelectTokenButton>
-            {swapCTX.isBtokenSelected && <Balance>Balance : 0.00225</Balance>}
-          </ButtonAndBalanceWrapper>
-          <NumericInput
-            value={formattedAmounts[Field.OUTPUT]}
-            onUserInput={() => {
-              return
-            }}
-            isSelected={swapCTX.isAtokenSelected}
-          />
-        </Aligner>
-      </BottomTokenRow>
-      <ButtonRow>
-        {trade && (
-          <InfoMainWrapper>
-            <InfoRowWrapper>
-              <Description>You receive minimum</Description>
-              <ValueAndIconWrapper>
-                <MinimumAmount> {minimum && minimum + ' ' + trade?.outputAmount.currency.symbol}</MinimumAmount>
-                <InfoIcon />
-              </ValueAndIconWrapper>
-            </InfoRowWrapper>
-            <Divider />
-            <InfoRowWrapper>
-              <Description>Price impact</Description>
-              <ValueAndIconWrapper>
-                <ImpactAmount priceImpactTooHigh={priceImpactTooHigh ? 1 : 0}>
-                  {priceImpact?.toSignificant(3) + ' %' + `${priceImpactTooHigh ? ' (Too High)' : ''}`}
-                </ImpactAmount>
-                <InfoIcon />
-              </ValueAndIconWrapper>
-            </InfoRowWrapper>
-          </InfoMainWrapper>
-        )}
-        {!accountWhiteList && (
-          <PrimaryButton mrgn="0px 0px 12px 0px" disabled>
-            you are not in whitelist
-          </PrimaryButton>
-        )}
-        {accountWhiteList && !swapCTX.swapParams.start && (
-          <PrimaryButton
-            mrgn="0px 0px 12px 0px"
-            onClick={() => {
-              swapCTX.handleLeftSection('preview')
-              swapCTX.updateSwapParams({ start: true })
-            }}
-          >
-            Preview Swap
-          </PrimaryButton>
-        )}
-        {accountWhiteList && swapCTX.swapParams.start && !swapCTX.swapParams.confirm && (
-          <PrimaryButton mrgn="0px 0px 12px 0px" onClick={() => swapCTX.updateSwapParams({ confirm: true })}>
-            Swap
-          </PrimaryButton>
-        )}
-
-        {trade && (
-          <TradePrice price={trade.executionPrice} showInverted={showInverted} setShowInverted={setShowInverted} />
-        )}
-      </ButtonRow>
-    </MainWrapper>
-  ) : (
-    <Settings handleShowSettings={handleShowSettings} isSelected={false} />
-  )
+  return <MainWrapper></MainWrapper>
 }
 
 export default RightSection
