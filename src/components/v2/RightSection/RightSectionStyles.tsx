@@ -183,15 +183,15 @@ export const MinimumAmount = styled.span`
   color: #000000;
 `
 
-export const ImpactAmount = styled.span`
+export const ImpactAmount = styled.span<{ priceImpactTooHigh: number }>`
   font-weight: 400;
   font-size: 14px;
   line-height: 144.52%;
   text-align: right;
-  color: #000000;
+  color: ${({ priceImpactTooHigh }) => (priceImpactTooHigh ? '#FF0000' : '#000000')};
 `
 
-export const InfoIcon = styled.svg.attrs({
+export const InfoIconSVG = styled.svg.attrs({
   viewBox: '0 0 16 16',
   width: 16,
   height: 16,
@@ -227,3 +227,11 @@ export const ExchangeRate = styled.span`
   text-align: right;
   color: #626262;
 `
+
+export const InfoIcon = () => (
+  <InfoIconSVG>
+    <circle cx="8" cy="8" r="7.5" stroke="#9B9B9B" />
+    <rect x="7.27271" y="7.27271" width="1.45455" height="4.36364" fill="#9B9B9B" />
+    <rect x="7.27271" y="4.36365" width="1.45455" height="1.45455" fill="#9B9B9B" />
+  </InfoIconSVG>
+)

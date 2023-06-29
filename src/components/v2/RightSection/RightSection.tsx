@@ -25,9 +25,7 @@ import {
   ImpactAmount,
   InfoIcon,
   Divider,
-  ExchangeRateWrapper,
-  ExchangeIcon,
-  ExchangeRate,
+  MinimumAmount,
 } from './RightSectionStyles'
 
 import { Contract } from '@ethersproject/contracts'
@@ -59,10 +57,12 @@ import { useAllLists } from 'state/lists/hooks'
 import { useCurrency } from 'hooks/Tokens'
 import { useContext } from 'react'
 import SwapContext from 'store/swap-context'
+import TradePrice from '../../../components/swap/TradePrice'
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import Worker from 'worker-loader!workers/worker'
 import Settings from '../Settings/Settings'
+import { useExpertModeManager } from 'state/user/hooks'
 
 const MAXIMUM_PATH_LENGTH = 3
 const swapExactTokensForTokens = '0x73a2cff1'
@@ -472,6 +472,8 @@ export const RightSection = () => {
     }
   }, [swapParams, sendEncryptedTxFunc, sendEncryptedTx])
 
+  const [isExpertMode] = useExpertModeManager()
+
   // TODO: price impact dangerous level
   const priceImpactSeverity = useMemo(() => {
     const executionPriceImpact = trade?.priceImpact
@@ -483,6 +485,8 @@ export const RightSection = () => {
         : executionPriceImpact ?? priceImpact
     )
   }, [priceImpact, trade])
+
+  const priceImpactTooHigh = priceImpactSeverity > 3 && !isExpertMode
 
   const handleConfirmDismiss = useCallback(() => {
     setSwapParams({
@@ -514,6 +518,7 @@ export const RightSection = () => {
   )
   const [isSelected, setIsSelected] = useState(true)
   const [showSettings, setShowSettings] = useState(false)
+  const [showInverted, setShowInverted] = useState<boolean>(false)
 
   const handleShowSettings: MouseEventHandler<SVGSVGElement | HTMLImageElement> = () => {
     setShowSettings((prevState) => !prevState)
@@ -596,43 +601,30 @@ export const RightSection = () => {
         </Aligner>
       </BottomTokenRow>
       <ButtonRow>
-        {swapCTX.isBtokenSelected && (
+        {trade && (
           <InfoMainWrapper>
             <InfoRowWrapper>
               <Description>You receive minimum</Description>
               <ValueAndIconWrapper>
-                <ImpactAmount>15.2545 DAI</ImpactAmount>
-                <InfoIcon>
-                  <circle cx="8" cy="8" r="7.5" stroke="#9B9B9B" />
-                  <rect x="7.27271" y="7.27271" width="1.45455" height="4.36364" fill="#9B9B9B" />
-                  <rect x="7.27271" y="4.36365" width="1.45455" height="1.45455" fill="#9B9B9B" />
-                </InfoIcon>
+                <MinimumAmount> {minimum && minimum + ' ' + trade?.outputAmount.currency.symbol}</MinimumAmount>
+                <InfoIcon />
               </ValueAndIconWrapper>
             </InfoRowWrapper>
             <Divider />
             <InfoRowWrapper>
               <Description>Price impact</Description>
               <ValueAndIconWrapper>
-                <ImpactAmount>0.25%</ImpactAmount>
-                <InfoIcon>
-                  <circle cx="8" cy="8" r="7.5" stroke="#9B9B9B" />
-                  <rect x="7.27271" y="7.27271" width="1.45455" height="4.36364" fill="#9B9B9B" />
-                  <rect x="7.27271" y="4.36365" width="1.45455" height="1.45455" fill="#9B9B9B" />
-                </InfoIcon>
+                <ImpactAmount priceImpactTooHigh={priceImpactTooHigh ? 1 : 0}>
+                  {priceImpact?.toSignificant(3) + ' %' + `${priceImpactTooHigh ? ' (Too High)' : ''}`}
+                </ImpactAmount>
+                <InfoIcon />
               </ValueAndIconWrapper>
             </InfoRowWrapper>
           </InfoMainWrapper>
         )}
         <PrimaryButton mrgn="0px 0px 12px 0px">Preview Swap</PrimaryButton>
-        {swapCTX.isBtokenSelected && (
-          <ExchangeRateWrapper>
-            <ExchangeIcon>
-              <circle cx="8.5" cy="8.5" r="8.5" fill="#F5F4FF" />
-              <path d="M8 5L6 7H13" stroke="#847B98" />
-              <path d="M10 12L12 10H5" stroke="#847B98" />
-            </ExchangeIcon>
-            <ExchangeRate>1ETH = 2035 WMATIC</ExchangeRate>
-          </ExchangeRateWrapper>
+        {trade && (
+          <TradePrice price={trade.executionPrice} showInverted={showInverted} setShowInverted={setShowInverted} />
         )}
       </ButtonRow>
     </MainWrapper>
