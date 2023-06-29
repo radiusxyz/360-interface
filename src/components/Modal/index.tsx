@@ -8,15 +8,13 @@ const AnimatedDialogOverlay = animated(DialogOverlay)
 const StyledDialogOverlay = styled(AnimatedDialogOverlay)`
   &[data-reach-dialog-overlay] {
     z-index: 2;
-    background-color: transparent;
+    background: rgba(128, 128, 128, 0.5);
     overflow: hidden;
 
     display: flex;
     align-items: center;
     justify-content: center;
-
-    background-color: ${({ theme }) => theme.modalBG};
-    backdrop-filter: blur(15px);
+    backdrop-filter: blur(7px);
   }
 `
 
