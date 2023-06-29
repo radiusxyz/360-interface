@@ -57,11 +57,7 @@ const Settings = ({ isSelected, handleShowSettings }: Props) => {
         <MevSettingWrapper>
           <BottomDescWrapper>
             <Description>MEV Protection Guarantee</Description>
-            <InfoIcon>
-              <circle cx="8" cy="8" r="7.5" stroke="#9B9B9B" />
-              <rect x="7.27271" y="7.27271" width="1.45455" height="4.36364" fill="#9B9B9B" />
-              <rect x="7.27271" y="4.36365" width="1.45455" height="1.45455" fill="#9B9B9B" />
-            </InfoIcon>
+            <InfoIcon />
           </BottomDescWrapper>
           <Switch />
         </MevSettingWrapper>
