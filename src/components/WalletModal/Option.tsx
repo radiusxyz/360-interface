@@ -4,8 +4,7 @@ import styled from 'styled-components/macro'
 import { ExternalLinkCenter } from '../../theme'
 
 const InfoCard = styled.button<{ active?: boolean }>`
-  /*background-color: ${({ theme, active }) => (active ? theme.bg3 : theme.bg2)};*/
-  background: rgba(31, 32, 42);
+  background: rgba(200, 200, 200, 255);
   padding: 8px;
   margin: 10px;
   outline: none;

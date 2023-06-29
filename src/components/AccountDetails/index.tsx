@@ -16,27 +16,26 @@ import { ReactComponent as Close } from '../../assets/images/x.svg'
 import { injected, walletlink } from '../../connectors'
 import { SUPPORTED_WALLETS } from '../../constants/wallet'
 import { clearAllTransactions } from '../../state/transactions/reducer'
-import { ExternalLink, ThemedText } from '../../theme'
-import { LinkStyledButton } from '../../theme'
+import { ExternalLink } from '../../theme'
 import { shortenAddress } from '../../utils'
 import { db, Status } from '../../utils/db'
 import { ExplorerDataType, getExplorerLink } from '../../utils/getExplorerLink'
 import { ButtonSecondary } from '../Button'
 import StatusIcon from '../Identicon/StatusIcon'
-import { AutoRow } from '../Row'
 import Copy from './Copy'
 import Transaction from './Transaction'
 
 const HeaderRow = styled.div`
-  ${({ theme }) => theme.flexRowNoWrap};
-  padding: 30px;
+  background-color: white;
+  padding: 10px;
   font-weight: 600;
   color: ${(props) => (props.color === 'blue' ? ({ theme }) => theme.primary1 : 'inherit')};
 `
 
 const UpperSection = styled.div`
   position: relative;
-  background: rgba(44, 47, 63);
+  background: white;
+  margin: 30px;
 
   h5 {
     margin: 0;
@@ -58,7 +57,7 @@ const UpperSection = styled.div`
 const InfoCard = styled.div`
   padding: 22px 24px;
   border-radius: 2px;
-  background: rgba(23, 26, 38, 0.5);
+  background: rgba(255, 230, 255, 255);
   position: relative;
   margin: 0px 30px 0px 30px;
 `
@@ -433,20 +432,10 @@ export default function AccountDetails({
                     verticalAlign: 'middle',
                   }}
                 >
-                  <WalletAction
-                    style={{ fontSize: '14px', fontWeight: 600 }}
-                    onClick={() => {
-                      openOptions()
-                    }}
-                  >
-                    <Trans>Change Wallet</Trans>
-                  </WalletAction>
                   {connector !== injected && connector !== walletlink && (
                     <WalletAction
                       style={{ fontSize: '14px', fontWeight: 600 }}
-                      onClick={() => {
-                        ;(connector as any).close()
-                      }}
+                      onClick={() => (connector as any).close()}
                     >
                       <Trans>Disconnect Wallet</Trans>
                     </WalletAction>
@@ -454,54 +443,13 @@ export default function AccountDetails({
                 </div>
               </AccountGroupingRow>
             </InfoCard>
+            <div style={{ padding: '10px', justifyContent: 'space-around' }}>
+              <button style={{ width: '48%', height: '20px' }}>Disconnect Wallet</button>
+              <button style={{ width: '48%', height: '20px' }}>Explorer</button>
+            </div>
           </YourAccount>
         </AccountSection>
       </UpperSection>
-      {!!recentTx || !!pendingTransactions.length || !!confirmedTransactions.length ? (
-        <LowerSection>
-          <AutoRow mb={'10px'} style={{ justifyContent: 'space-between' }}>
-            <ThemedText.Body>
-              <Trans>Recent Transactions</Trans>
-            </ThemedText.Body>
-            {/* <LinkStyledButton onClick={clearAllTransactionsCallback}>
-              <Trans>(clear all)</Trans>
-            </LinkStyledButton> */}
-            {recentTx && recentTx.length !== 0 && (
-              <LinkStyledButton
-                onClick={() => setShowHistory(true)}
-                style={{
-                  color: '#ffffff',
-                  padding: '0px',
-                  fontWeight: 'bold',
-                  fontSize: '14px',
-                }}
-              >
-                View All
-              </LinkStyledButton>
-            )}
-          </AutoRow>
-          <hr
-            style={{
-              width: '100%',
-              height: '0px',
-              margin: '0px',
-              borderTop: '1px solid #272b3e',
-              borderBottom: '0px solid #000',
-              borderLeft: '0px solid #000',
-              borderRight: '0px solid #000',
-            }}
-          />
-          {recentTx ? renderRecentTx(chainId, recentTx) : <div style={{ height: 50 }}>No recent Transaction</div>}
-          {/* renderTransactions(pendingTransactions) */}
-          {/* renderTransactions(confirmedTransactions) */}
-        </LowerSection>
-      ) : (
-        <LowerSection>
-          <ThemedText.Body color={theme.text1}>
-            <Trans>Your transactions will appear here...</Trans>
-          </ThemedText.Body>
-        </LowerSection>
-      )}
     </>
   )
 }

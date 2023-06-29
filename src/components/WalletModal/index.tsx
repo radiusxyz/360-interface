@@ -4,7 +4,6 @@ import { PrivacyPolicy } from 'components/PrivacyPolicy'
 import Row, { AutoRow } from 'components/Row'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowLeft } from 'react-feather'
-import ReactGA from 'react-ga4'
 import styled from 'styled-components/macro'
 import { AbstractConnector } from 'web3-react-abstract-connector'
 import { UnsupportedChainIdError, useWeb3React } from 'web3-react-core'
@@ -47,13 +46,13 @@ const Wrapper = styled.div`
   margin: 0;
   padding: 0;
   width: 100%;
-  background: rgba(44, 47, 63);
+  background: white;
 `
 
 const HeaderRow = styled.div`
   ${({ theme }) => theme.flexRowNoWrap};
   padding: 1rem 1rem;
-  background: rgba(44, 47, 63);
+  background: white;
   font-weight: 500;
   /*color: ${(props) => (props.color === 'blue' ? ({ theme }) => theme.primary1 : 'inherit')};
   ${({ theme }) => theme.mediaWidth.upToMedium`
@@ -63,7 +62,7 @@ const HeaderRow = styled.div`
 
 const ContentWrapper = styled.div`
   /*background-color: ${({ theme }) => theme.bg0};*/
-  background: rgba(44, 47, 63);
+  background: white;
   padding: 1rem 1rem 3rem 1rem;
   border-bottom-left-radius: 20px;
   border-bottom-right-radius: 20px;
@@ -206,12 +205,7 @@ export default function WalletModal({
       }
       return true
     })
-    // log selected wallet
-    ReactGA.event({
-      category: 'Wallet',
-      action: 'Change Wallet',
-      label: name,
-    })
+
     setPendingWallet(connector) // set wallet for pending view
     setWalletView(WALLET_VIEWS.PENDING)
 
@@ -323,7 +317,7 @@ export default function WalletModal({
   function getModalContent() {
     if (error) {
       return {
-        width: 560,
+        width: 800,
         content: (
           <UpperSection>
             <CloseIcon onClick={toggleWalletModal}>
@@ -351,7 +345,7 @@ export default function WalletModal({
     }
     if (walletView === WALLET_VIEWS.LEGAL) {
       return {
-        width: 560,
+        width: 800,
         content: (
           <UpperSection>
             <HeaderRow>
@@ -378,7 +372,7 @@ export default function WalletModal({
     }
     if (account && walletView === WALLET_VIEWS.ACCOUNT) {
       return {
-        width: 540,
+        width: 800,
         content: (
           <AccountDetails
             toggleWalletModal={toggleWalletModal}
@@ -391,7 +385,7 @@ export default function WalletModal({
       }
     }
     return {
-      width: 500,
+      width: 800,
       content: (
         <UpperSection>
           <CloseIcon onClick={toggleWalletModal} style={{ zIndex: 1 }}>

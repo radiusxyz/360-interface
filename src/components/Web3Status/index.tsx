@@ -157,7 +157,7 @@ function Web3StatusInner() {
         ) : (
           <>
             {hasSocks ? <Sock /> : null}
-            <Text>{ENSName || shortenAddress(account)}</Text>
+            <Text style={{ color: 'black' }}>{ENSName || shortenAddress(account)}</Text>
           </>
         )}
         {!hasPendingTransactions && connector && <WrappedStatusIcon connector={connector} />}

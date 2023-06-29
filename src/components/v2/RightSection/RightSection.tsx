@@ -337,6 +337,7 @@ export const RightSection = () => {
               setSwapParams({ ...swapParams, prepareDone: true, ...res, operatorAddress })
             })
             .catch(() => {
+              swapCTX.handleLeftSection('welcome')
               setSwapParams({
                 ...swapParams,
                 start: false,
@@ -345,6 +346,7 @@ export const RightSection = () => {
             })
         })
         .catch(() => {
+          swapCTX.handleLeftSection('welcome')
           setSwapParams({
             ...swapParams,
             start: false,
@@ -415,11 +417,13 @@ export const RightSection = () => {
 
           await sleep(10000)
           // set swapResponse: res,
+          swapCTX.handleLeftSection('welcome')
           setSwapParams({ start: false })
         })
         .catch(async (e) => {
           console.error(e)
           onUserInput(Field.INPUT, '')
+          swapCTX.handleLeftSection('welcome')
           setSwapParams({ start: false })
         })
     }
@@ -456,6 +460,7 @@ export const RightSection = () => {
   useEffect(() => {
     if (!isSigning.current && swapParams.prepareDone && swapParams.confirm && !swapParams.signingDone) {
       isSigning.current = true
+      swapCTX.handleLeftSection('almost-there')
       userSignFunc().then(() => {
         isSigning.current = false
       })
@@ -489,6 +494,7 @@ export const RightSection = () => {
   const priceImpactTooHigh = priceImpactSeverity > 3 && !isExpertMode
 
   const handleConfirmDismiss = useCallback(() => {
+    swapCTX.handleLeftSection('welcome')
     setSwapParams({
       start: false,
       timeLockPuzzleData: swapParams.timeLockPuzzleData,
