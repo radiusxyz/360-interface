@@ -138,7 +138,7 @@ export default function useSendSwapTransaction(
     encryptedSwapTx: any,
     sig: Signature,
     operatorAddress: string
-  ) => Promise<RadiusSwapResponse>
+  ) => Promise<RadiusSwapResponse | undefined>
 } {
   const dispatch = useAppDispatch()
 
@@ -329,7 +329,7 @@ export default function useSendSwapTransaction(
         encryptedSwapTx: any,
         sig: Signature,
         operatorAddress: string
-      ): Promise<RadiusSwapResponse> {
+      ): Promise<RadiusSwapResponse | undefined> {
         console.log('run sendEncryptedTx', txHash, mimcHash, signMessage, encryptedSwapTx, sig, operatorAddress)
         let input = trade?.inputAmount?.numerator
         let output = trade?.outputAmount?.numerator
@@ -345,26 +345,33 @@ export default function useSendSwapTransaction(
         const outSymbol =
           trade?.outputAmount?.currency?.symbol !== undefined ? trade?.outputAmount?.currency?.symbol : ''
 
-        const readyTxId = await db.readyTxs.add({
-          txHash,
-          mimcHash,
-          tx: signMessage,
-          progressHere: 1,
-          from: { token: inSymbol, amount: input.toString(), decimal: inDecimal.toString() },
-          to: { token: outSymbol, amount: output.toString(), decimal: outDecimal.toString() },
-        })
+        const exist = await db.readyTxs.where({ txHash })
+        const ar = await exist.toArray()
+        console.log('exist', exist, ar, ar.length)
+        if (!exist) {
+          await db.addReadyTx({
+            txHash,
+            mimcHash,
+            tx: signMessage,
+            progressHere: 1,
+            from: { token: inSymbol, amount: input.toString(), decimal: inDecimal.toString() },
+            to: { token: outSymbol, amount: output.toString(), decimal: outDecimal.toString() },
+          })
 
-        const sendResponse = await sendEIP712Tx(
-          chainId,
-          routerContract,
-          recorderContract,
-          encryptedSwapTx,
-          sig,
-          dispatch,
-          setCancel,
-          operatorAddress
-        )
-        return sendResponse
+          const sendResponse = await sendEIP712Tx(
+            chainId,
+            routerContract,
+            recorderContract,
+            encryptedSwapTx,
+            sig,
+            dispatch,
+            setCancel,
+            operatorAddress
+          )
+          return sendResponse
+        }
+
+        return undefined
       },
     }
   }, [trade, library, account, chainId, parameters, swapCalls, dispatch])

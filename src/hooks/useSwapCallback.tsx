@@ -48,7 +48,7 @@ export function useSwapCallback(
     encryptedSwapTx: any,
     sig: Signature,
     operatorAddress: string
-  ) => Promise<RadiusSwapResponse>
+  ) => Promise<RadiusSwapResponse | undefined>
   error: ReactNode | null
 } {
   const { account } = useActiveWeb3React()

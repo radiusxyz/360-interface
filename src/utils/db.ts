@@ -100,6 +100,58 @@ export class MySubClassedDexie extends Dexie {
     })
   }
 
+  async addReadyTx(_readyTx: ReadyTx) {
+    const readyTxs = await this.readyTxs.where({ txHash: _readyTx.txHash })
+    const readyTxArray = await readyTxs.toArray()
+    if (readyTxArray.length === 0) {
+      const readyTx = await this.readyTxs.add(_readyTx)
+      return readyTx
+    } else {
+      return readyTxArray[0]
+    }
+  }
+
+  async addPendingTx(_pendingTx: PendingTx) {
+    const pendingTxs = await this.pendingTxs.where({ readyTxId: _pendingTx.readyTxId })
+    const pendingTxArray = await pendingTxs.toArray()
+    if (pendingTxArray.length === 0) {
+      const pendingTx = await this.pendingTxs.add(_pendingTx)
+      return pendingTx
+    } else {
+      return pendingTxArray[0]
+    }
+  }
+
+  async addTxHistory(_txHistory: TxHistory) {
+    const txHistories = await this.txHistory.where({ pendingTxId: _txHistory.pendingTxId })
+    const txHistoriesArray = await txHistories.toArray()
+    if (txHistoriesArray.length === 0) {
+      const txHistory = await this.txHistory.add(_txHistory)
+      return txHistory
+    } else {
+      return txHistoriesArray[0]
+    }
+  }
+
+  async getRecentTxHistory() {
+    const txs = await this.txHistory.orderBy('id').reverse().limit(1)
+    const tx = (await txs.toArray())[0]
+
+    const pendingTxs = await this.pendingTxs.orderBy('id').reverse().limit(1)
+    const pendingTx = (await pendingTxs.toArray())[0]
+
+    const readyTxs = await this.readyTxs.orderBy('id').reverse().limit(1)
+    const readyTx = (await readyTxs.toArray())[0]
+
+    console.log(readyTx, pendingTx, tx)
+
+    if (readyTx && pendingTx && tx && readyTx.id === pendingTx.readyTxId && tx.pendingTxId === pendingTx.id) {
+      return tx
+    } else {
+      return undefined
+    }
+  }
+
   async getTxHistoryWithPendingTxById(id: number) {
     const tx = await this.txHistory.where({ id }).first()
 

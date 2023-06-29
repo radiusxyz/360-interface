@@ -82,7 +82,7 @@ export const RightSection = () => {
   const { account, chainId } = useActiveWeb3React()
   const parameters = useParameters()
 
-  const [swapParams, setSwapParams] = useState<any>({ start: false })
+  // const [swapParams, setSwapParams] = useState<any>({ start: false })
 
   const lists = useAllLists()
 
@@ -193,7 +193,7 @@ export const RightSection = () => {
         })
         .catch((e) => console.error(e))
     }
-  }, [account, swapParams])
+  }, [account, swapCTX.swapParams])
 
   // mark when a user has submitted an approval, reset onTokenSelection for input field
   useEffect(() => {
@@ -224,7 +224,7 @@ export const RightSection = () => {
   )
 
   const handleSwap = () => {
-    setSwapParams({ ...swapParams, confirm: true })
+    swapCTX.updateSwapParams({ confirm: true })
   }
   const dispatch = useAppDispatch()
 
@@ -258,7 +258,7 @@ export const RightSection = () => {
 
   const isPuzzling = useRef<boolean>(false)
   useEffect(() => {
-    if (!swapParams.timeLockPuzzleData && !isPuzzling.current) {
+    if (!swapCTX.swapParams.timeLockPuzzleData && !isPuzzling.current) {
       isPuzzling.current = true
       getTimeLockPuzzleParam().then((res) => {
         worker.postMessage({
@@ -268,55 +268,55 @@ export const RightSection = () => {
         })
       })
     }
-  }, [getTimeLockPuzzleParam, swapParams.timeLockPuzzleData, worker])
+  }, [getTimeLockPuzzleParam, swapCTX.swapParams.timeLockPuzzleData, worker])
 
   worker.onmessage = (e: MessageEvent<any>) => {
     if (e.data.target === 'timeLockPuzzle') {
-      setSwapParams({ ...swapParams, timeLockPuzzleDone: true, timeLockPuzzleData: { ...e.data.data } })
+      swapCTX.updateSwapParams({ timeLockPuzzleDone: true, timeLockPuzzleData: { ...e.data.data } })
       isPuzzling.current = false
     }
     if (
       e.data.target === 'encryptor' &&
       account &&
       chainId &&
-      swapParams.timeLockPuzzleData &&
-      swapParams.signMessage
+      swapCTX.swapParams.timeLockPuzzleData &&
+      swapCTX.swapParams.signMessage
     ) {
       const encryptData = e.data.data
 
       const encryptedPath = {
         message_length: encryptData.message_length,
         nonce: encryptData.nonce,
-        commitment: swapParams.timeLockPuzzleData.commitment_hex,
+        commitment: swapCTX.swapParams.timeLockPuzzleData.commitment_hex,
         cipher_text: [encryptData.cipher_text],
-        r1: swapParams.timeLockPuzzleData.r1,
-        r3: swapParams.timeLockPuzzleData.r3,
-        s1: swapParams.timeLockPuzzleData.s1,
-        s3: swapParams.timeLockPuzzleData.s3,
-        k: swapParams.timeLockPuzzleData.k,
-        time_lock_puzzle_snark_proof: swapParams.timeLockPuzzleData.time_lock_puzzle_snark_proof,
+        r1: swapCTX.swapParams.timeLockPuzzleData.r1,
+        r3: swapCTX.swapParams.timeLockPuzzleData.r3,
+        s1: swapCTX.swapParams.timeLockPuzzleData.s1,
+        s3: swapCTX.swapParams.timeLockPuzzleData.s3,
+        k: swapCTX.swapParams.timeLockPuzzleData.k,
+        time_lock_puzzle_snark_proof: swapCTX.swapParams.timeLockPuzzleData.time_lock_puzzle_snark_proof,
         encryption_proof: encryptData.proof,
       }
 
-      const txHash = typedDataEncoder.hash(domain(chainId), { Swap: SWAP_TYPE }, swapParams.signMessage)
+      const txHash = typedDataEncoder.hash(domain(chainId), { Swap: SWAP_TYPE }, swapCTX.swapParams.signMessage)
       const mimcHash = '0x' + encryptData.tx_id
 
       const encryptedSwapTx: EncryptedSwapTx = {
         txOwner: account,
         functionSelector: swapExactTokensForTokens,
-        amountIn: `${swapParams.signMessage.amountIn}`,
-        amountOut: `${swapParams.signMessage.amountOut}`,
+        amountIn: `${swapCTX.swapParams.signMessage.amountIn}`,
+        amountOut: `${swapCTX.swapParams.signMessage.amountOut}`,
         path: encryptedPath,
         to: account,
-        nonce: swapParams.txNonce,
-        backerIntegrity: swapParams.signMessage.backerIntegrity,
-        availableFrom: swapParams.signMessage.availableFrom,
-        deadline: swapParams.signMessage.deadline,
+        nonce: swapCTX.swapParams.txNonce,
+        backerIntegrity: swapCTX.swapParams.signMessage.backerIntegrity,
+        availableFrom: swapCTX.swapParams.signMessage.availableFrom,
+        deadline: swapCTX.swapParams.signMessage.deadline,
         txHash,
         mimcHash,
       }
 
-      setSwapParams({ ...swapParams, encryptorDone: true, txHash, mimcHash, encryptedSwapTx })
+      swapCTX.updateSwapParams({ encryptorDone: true, txHash, mimcHash, encryptedSwapTx })
 
       isEncrypting.current = false
     }
@@ -334,12 +334,11 @@ export const RightSection = () => {
             .operator()
             .then(async (operatorAddress: any) => {
               const res = await prepareSignMessage(backerIntegrity, contractNonce)
-              setSwapParams({ ...swapParams, prepareDone: true, ...res, operatorAddress })
+              swapCTX.updateSwapParams({ prepareDone: true, ...res, operatorAddress })
             })
             .catch(() => {
               swapCTX.handleLeftSection('welcome')
-              setSwapParams({
-                ...swapParams,
+              swapCTX.handleSwapParams({
                 start: false,
                 errorMessage: 'RPC server is not responding, please try again',
               })
@@ -347,135 +346,144 @@ export const RightSection = () => {
         })
         .catch(() => {
           swapCTX.handleLeftSection('welcome')
-          setSwapParams({
-            ...swapParams,
+          swapCTX.handleSwapParams({
             start: false,
             errorMessage: 'RPC server is not responding, please try again',
           })
         })
     }
-  }, [prepareSignMessage, swapParams, account, routerContract, backerIntegrity])
+  }, [prepareSignMessage, swapCTX.swapParams, account, routerContract, backerIntegrity])
 
   const createEncryptProofFunc = useCallback(async () => {
-    if (chainId && swapParams.signMessage) {
-      if (swapParams.signMessage.path.length > 3) {
+    if (chainId && swapCTX.swapParams.signMessage) {
+      if (swapCTX.swapParams.signMessage.path.length > 3) {
         console.error('Cannot encrypt path which length is over 3')
       }
 
       const pathToHash: string[] = new Array(MAXIMUM_PATH_LENGTH)
 
       for (let i = 0; i < MAXIMUM_PATH_LENGTH; i++) {
-        pathToHash[i] = i < swapParams.signMessage.path.length ? swapParams.signMessage.path[i].split('x')[1] : '0'
+        pathToHash[i] =
+          i < swapCTX.swapParams.signMessage.path.length ? swapCTX.swapParams.signMessage.path[i].split('x')[1] : '0'
       }
 
       const txInfoToHash: TxInfo = {
-        tx_owner: swapParams.signMessage.txOwner.split('x')[1],
-        function_selector: swapParams.signMessage.functionSelector.split('x')[1],
-        amount_in: `${swapParams.signMessage.amountIn}`,
-        amount_out: `${swapParams.signMessage.amountOut}`,
-        to: swapParams.signMessage.to.split('x')[1],
-        deadline: `${swapParams.signMessage.deadline}`,
-        nonce: `${swapParams.signMessage.nonce}`,
+        tx_owner: swapCTX.swapParams.signMessage.txOwner.split('x')[1],
+        function_selector: swapCTX.swapParams.signMessage.functionSelector.split('x')[1],
+        amount_in: `${swapCTX.swapParams.signMessage.amountIn}`,
+        amount_out: `${swapCTX.swapParams.signMessage.amountOut}`,
+        to: swapCTX.swapParams.signMessage.to.split('x')[1],
+        deadline: `${swapCTX.swapParams.signMessage.deadline}`,
+        nonce: `${swapCTX.swapParams.signMessage.nonce}`,
         path: pathToHash,
       }
 
       worker.postMessage({
         target: 'encryptor',
         txInfoToHash,
-        s2_string: swapParams.timeLockPuzzleData.s2_string,
-        s2_field_hex: swapParams.timeLockPuzzleData.s2_field_hex,
-        commitment_hex: swapParams.timeLockPuzzleData.commitment_hex,
-        idPath: swapParams.idPath,
+        s2_string: swapCTX.swapParams.timeLockPuzzleData.s2_string,
+        s2_field_hex: swapCTX.swapParams.timeLockPuzzleData.s2_field_hex,
+        commitment_hex: swapCTX.swapParams.timeLockPuzzleData.commitment_hex,
+        idPath: swapCTX.swapParams.idPath,
       })
     }
-  }, [swapParams, chainId, worker])
+  }, [swapCTX.swapParams, chainId, worker])
 
   const userSignFunc = useCallback(async () => {
     if (userSign) {
-      const res = await userSign(swapParams.signMessage)
+      const res = await userSign(swapCTX.swapParams.signMessage)
       if (res) {
-        setSwapParams({ ...swapParams, signingDone: true, ...res })
+        swapCTX.updateSwapParams({ signingDone: true, ...res })
+        swapCTX.handleLeftSection('progress')
       } else {
-        setSwapParams({ ...swapParams, confirm: false })
+        swapCTX.updateSwapParams({ confirm: false })
       }
     }
-  }, [userSign, swapParams])
+  }, [userSign, swapCTX.swapParams])
 
   const sendEncryptedTxFunc = useCallback(async () => {
     if (sendEncryptedTx) {
       sendEncryptedTx(
-        swapParams.txHash,
-        swapParams.mimcHash,
-        swapParams.signMessage,
-        swapParams.encryptedSwapTx,
-        swapParams.sig,
-        swapParams.operatorAddress
+        swapCTX.swapParams.txHash,
+        swapCTX.swapParams.mimcHash,
+        swapCTX.swapParams.signMessage,
+        swapCTX.swapParams.encryptedSwapTx,
+        swapCTX.swapParams.sig,
+        swapCTX.swapParams.operatorAddress
       )
         .then(async (res) => {
           onUserInput(Field.INPUT, '')
-          setSwapParams({ ...swapParams, sent: true })
-
-          await sleep(10000)
-          // set swapResponse: res,
-          swapCTX.handleLeftSection('welcome')
-          setSwapParams({ start: false })
+          swapCTX.updateSwapParams({ sent: true })
+          // swapCTX.handleLeftSection('welcome')
+          // swapCTX.handleSwapParams({ start: false })
         })
         .catch(async (e) => {
           console.error(e)
           onUserInput(Field.INPUT, '')
           swapCTX.handleLeftSection('welcome')
-          setSwapParams({ start: false })
+          swapCTX.handleSwapParams({ start: false })
         })
     }
-  }, [sendEncryptedTx, onUserInput, swapParams])
+  }, [sendEncryptedTx, onUserInput, swapCTX.swapParams])
 
   ///////////////////////////////
   // swap processing
   ///////////////////////////////
   const isPreparing = useRef<boolean>(false)
   useEffect(() => {
-    if (prepareSignMessageFunc !== null && !isPreparing.current && swapParams.start && !swapParams.prepareDone) {
+    if (
+      prepareSignMessageFunc !== null &&
+      !isPreparing.current &&
+      swapCTX.swapParams.start &&
+      !swapCTX.swapParams.prepareDone
+    ) {
       isPreparing.current = true
       prepareSignMessageFunc().then(() => {
         isPreparing.current = false
       })
     }
-  }, [prepareSignMessageFunc, swapParams.start, swapParams.prepareDone])
+  }, [prepareSignMessageFunc, swapCTX.swapParams.start, swapCTX.swapParams.prepareDone])
 
   const isEncrypting = useRef<boolean>(false)
   useEffect(() => {
     if (
       createEncryptProofFunc !== null &&
       !isEncrypting.current &&
-      swapParams.timeLockPuzzleDone &&
-      swapParams.prepareDone &&
-      !swapParams.encryptorDone
+      swapCTX.swapParams.timeLockPuzzleDone &&
+      swapCTX.swapParams.prepareDone &&
+      !swapCTX.swapParams.encryptorDone
     ) {
       isEncrypting.current = true
       createEncryptProofFunc()
     }
-  }, [swapParams, createEncryptProofFunc, createEncryptProof])
+  }, [swapCTX.swapParams, createEncryptProofFunc, createEncryptProof])
 
   const isSigning = useRef(false)
   useEffect(() => {
-    if (!isSigning.current && swapParams.prepareDone && swapParams.confirm && !swapParams.signingDone) {
+    if (
+      !isSigning.current &&
+      swapCTX.swapParams.prepareDone &&
+      swapCTX.swapParams.confirm &&
+      !swapCTX.swapParams.signingDone
+    ) {
       isSigning.current = true
       swapCTX.handleLeftSection('almost-there')
       userSignFunc().then(() => {
         isSigning.current = false
       })
     }
-  }, [swapParams, userSignFunc])
+  }, [swapCTX.swapParams, userSignFunc])
 
   const isSending = useRef<boolean>(false)
   useEffect(() => {
-    if (!isSending.current && swapParams.encryptorDone && swapParams.signingDone) {
+    if (!isSending.current && swapCTX.swapParams.encryptorDone && swapCTX.swapParams.signingDone) {
       isSending.current = true
+      console.log('sendEncryptedTxFunc')
       sendEncryptedTxFunc().then(() => {
         isSending.current = false
       })
     }
-  }, [swapParams, sendEncryptedTxFunc, sendEncryptedTx])
+  }, [swapCTX.swapParams, sendEncryptedTxFunc])
 
   const [isExpertMode] = useExpertModeManager()
 
@@ -495,17 +503,17 @@ export const RightSection = () => {
 
   const handleConfirmDismiss = useCallback(() => {
     swapCTX.handleLeftSection('welcome')
-    setSwapParams({
+    swapCTX.handleSwapParams({
       start: false,
-      timeLockPuzzleData: swapParams.timeLockPuzzleData,
-      timeLockPuzzleDone: swapParams.timeLockPuzzleDone,
+      timeLockPuzzleData: swapCTX.swapParams.timeLockPuzzleData,
+      timeLockPuzzleDone: swapCTX.swapParams.timeLockPuzzleDone,
     })
 
     // if there was a tx hash, we want to clear the input
     // if (txHash) {
     //   onUserInput(Field.INPUT, '')
     // }
-  }, [onUserInput, swapParams])
+  }, [onUserInput, swapCTX.swapParams])
 
   const handleInputSelect = useCallback(
     (inputCurrency: any) => {
@@ -522,7 +530,6 @@ export const RightSection = () => {
     },
     [onCurrencySelection]
   )
-  const [isSelected, setIsSelected] = useState(true)
   const [showSettings, setShowSettings] = useState(false)
   const [showInverted, setShowInverted] = useState<boolean>(false)
 
@@ -546,7 +553,9 @@ export const RightSection = () => {
     }
   }, [swapCTX.isAtokenSelectionActive, swapCTX.isBtokenSelectionActive, swapCTX.handleLeftSection])
 
-  return !showSettings ? (
+  return swapCTX.leftSection === 'progress' ? (
+    <></>
+  ) : !showSettings ? (
     <MainWrapper>
       <Header>
         <HeaderTitle>Swap</HeaderTitle>
@@ -628,7 +637,28 @@ export const RightSection = () => {
             </InfoRowWrapper>
           </InfoMainWrapper>
         )}
-        <PrimaryButton mrgn="0px 0px 12px 0px">Preview Swap</PrimaryButton>
+        {!accountWhiteList && (
+          <PrimaryButton mrgn="0px 0px 12px 0px" disabled>
+            you are not in whitelist
+          </PrimaryButton>
+        )}
+        {accountWhiteList && !swapCTX.swapParams.start && (
+          <PrimaryButton
+            mrgn="0px 0px 12px 0px"
+            onClick={() => {
+              swapCTX.handleLeftSection('preview')
+              swapCTX.updateSwapParams({ start: true })
+            }}
+          >
+            Preview Swap
+          </PrimaryButton>
+        )}
+        {accountWhiteList && swapCTX.swapParams.start && !swapCTX.swapParams.confirm && (
+          <PrimaryButton mrgn="0px 0px 12px 0px" onClick={() => swapCTX.updateSwapParams({ confirm: true })}>
+            Swap
+          </PrimaryButton>
+        )}
+
         {trade && (
           <TradePrice price={trade.executionPrice} showInverted={showInverted} setShowInverted={setShowInverted} />
         )}
