@@ -10,6 +10,7 @@ import { shortenAddress } from '../../utils'
 import { ExplorerDataType, getExplorerLink } from '../../utils/getExplorerLink'
 import Copy from './Copy'
 import { PrimaryButton } from 'components/v2/UI/Buttons'
+import React from 'react'
 
 const Wrapper = styled.div`
   display: flex;
@@ -18,7 +19,6 @@ const Wrapper = styled.div`
   background: #ffffff;
   padding: 24px 30px 30px 30px;
   width: 100%;
-  max-width: 500px;
 `
 
 const HeaderRow = styled.div`
