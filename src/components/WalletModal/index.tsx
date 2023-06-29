@@ -39,7 +39,7 @@ const Wrapper = styled.div`
   margin: 0;
   padding: 0;
   width: 100%;
-  background: rgba(44, 47, 63);
+  background: white;
 `
 
 const HeaderRow = styled.div`
@@ -134,8 +134,6 @@ export default function WalletModal({
     console.log('accountsChanged')
   })
 
-  // console.log('walletStatus', active, account, connector, activate, error)
-
   const [walletView, setWalletView] = useState(WALLET_VIEWS.ACCOUNT)
 
   const [pendingWallet, setPendingWallet] = useState<AbstractConnector | undefined>()
@@ -183,12 +181,7 @@ export default function WalletModal({
       }
       return true
     })
-    // log selected wallet
-    ReactGA.event({
-      category: 'Wallet',
-      action: 'Change Wallet',
-      label: name,
-    })
+
     setPendingWallet(connector) // set wallet for pending view
     setWalletView(WALLET_VIEWS.PENDING)
 

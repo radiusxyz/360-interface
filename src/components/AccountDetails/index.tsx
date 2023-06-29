@@ -15,6 +15,7 @@ import React from 'react'
 const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
+
   position: relative;
   background: #ffffff;
   padding: 24px 30px 30px 30px;

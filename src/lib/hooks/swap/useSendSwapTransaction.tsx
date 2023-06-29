@@ -193,6 +193,7 @@ export default function useSendSwapTransaction(
         return { signMessage, txNonce, idPath }
       },
       userSign: async function userSign(signMessage: any): Promise<{ sig: Signature } | null> {
+        console.log('userSign')
         const typedData = JSON.stringify({
           types: {
             EIP712Domain: DOMAIN_TYPE,
@@ -204,9 +205,11 @@ export default function useSendSwapTransaction(
         })
         const signer = library.getSigner()
         const signAddress = await signer.getAddress()
+        console.log('aaa')
 
         const now = Date.now()
 
+        console.log('now', now)
         const sig = await signWithEIP712(library, signAddress, typedData).catch((e) => {
           console.log(e)
           return null
@@ -379,11 +382,14 @@ async function fetchWithTimeout(resource: any, options: any, timeout = 1000) {
 }
 
 async function signWithEIP712(library: JsonRpcProvider, signAddress: string, typedData: string): Promise<Signature> {
+  console.log('signWithEIP712')
   const signer = library.getSigner()
+  console.log('signer', signer)
   const sig = await signer.provider
     .send('eth_signTypedData_v4', [signAddress, typedData])
     .then((response) => {
       const sig = splitSignature(response)
+      console.log('sig', sig)
       return sig
     })
     .catch((error) => {
