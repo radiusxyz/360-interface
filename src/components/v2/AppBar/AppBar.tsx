@@ -1,18 +1,8 @@
-import React, { useState } from 'react'
-import { Item, LinkList, Span360, StyledNavLink, Wrapper, MenuIcon, MainWrapper, Backdrop } from './AppBarStyles'
+import { Item, LinkList, Span360, StyledNavLink, Wrapper, MainWrapper } from './AppBarStyles'
 
 import Web3Status from 'components/Web3Status'
-import { useWalletModalToggle } from 'state/application/hooks'
 
 const AppBar = () => {
-  const [displayMenu, setDisplayMenu] = useState(false)
-
-  const handleMenu = () => {
-    setDisplayMenu((displayMenu) => !displayMenu)
-  }
-
-  const toggleWalletModal = useWalletModalToggle()
-
   return (
     <MainWrapper>
       <Wrapper>
@@ -35,34 +25,7 @@ const AppBar = () => {
         )}
 
         <Web3Status />
-
-        {window.innerWidth <= 634 && (
-          <MenuIcon onClick={handleMenu}>
-            <rect width="22" height="2" fill="#646464" />
-            <rect y="9" width="22" height="2" fill="#646464" />
-            <rect y="18" width="22" height="2" fill="#646464" />
-          </MenuIcon>
-        )}
       </Wrapper>
-      {displayMenu && (
-        <>
-          <Backdrop onClick={handleMenu} />
-          <LinkList>
-            <StyledNavLink onClick={handleMenu} to="/">
-              <Item>Swap</Item>
-            </StyledNavLink>
-            <StyledNavLink onClick={handleMenu} to="/about">
-              <Item>About</Item>
-            </StyledNavLink>
-            <StyledNavLink onClick={handleMenu} to="/history">
-              <Item>History</Item>
-            </StyledNavLink>
-            <StyledNavLink onClick={handleMenu} to="/my-profit">
-              <Item>My Profit</Item>
-            </StyledNavLink>
-          </LinkList>
-        </>
-      )}
     </MainWrapper>
   )
 }

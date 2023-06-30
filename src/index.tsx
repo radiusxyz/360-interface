@@ -10,7 +10,6 @@ import './index.css'
 
 import Web3ReactManager from 'components/Web3ReactManager'
 import { BlockNumberProvider } from 'lib/hooks/useBlockNumber'
-import { MulticallUpdater } from 'lib/state/multicall'
 // import { StrictMode } from 'react'
 // import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'
@@ -23,11 +22,12 @@ import { NetworkContextName } from './constants/misc'
 // import App from './pages/App'
 // import * as serviceWorkerRegistration from './serviceWorkerRegistration'
 import store from './state'
-import ApplicationUpdater from './state/application/updater'
-import ListsUpdater from './state/lists/updater'
-import LogsUpdater from './state/logs/updater'
-import TransactionUpdater from './state/transactions/updater'
-import UserUpdater from './state/user/updater'
+// import { MulticallUpdater } from 'lib/state/multicall'
+// import ApplicationUpdater from './state/application/updater'
+// import ListsUpdater from './state/lists/updater'
+// import LogsUpdater from './state/logs/updater'
+// import TransactionUpdater from './state/transactions/updater'
+// import UserUpdater from './state/user/updater'
 // import ThemeProvider, { ThemedGlobalStyle } from './theme'
 // import RadialGradientByChainUpdater from './theme/RadialGradientByChainUpdater'
 import getLibrary from './utils/getLibrary'
@@ -38,18 +38,18 @@ const Web3ProviderNetwork = createWeb3ReactRoot(NetworkContextName)
 //   window.ethereum.autoRefreshOnNetworkChange = false
 // }
 
-function Updaters() {
-  return (
-    <>
-      <ListsUpdater />
-      <UserUpdater />
-      <ApplicationUpdater />
-      <TransactionUpdater />
-      <MulticallUpdater />
-      <LogsUpdater />
-    </>
-  )
-}
+// function Updaters() {
+//   return (
+//     <>
+//       <ListsUpdater />
+//       <UserUpdater />
+//       <ApplicationUpdater />
+//       <TransactionUpdater />
+//       <MulticallUpdater />
+//       <LogsUpdater />
+//     </>
+//   )
+// }
 
 // ReactDOM.render(
 //   <StrictMode>
@@ -83,18 +83,16 @@ function Updaters() {
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 
 root.render(
-  <React.StrictMode>
-    <Provider store={store}>
-      <Web3ReactProvider getLibrary={getLibrary}>
-        <Web3ProviderNetwork getLibrary={getLibrary}>
-          <Web3ReactManager>
-            <BlockNumberProvider>
-              <Updaters />
-              <App />
-            </BlockNumberProvider>
-          </Web3ReactManager>
-        </Web3ProviderNetwork>
-      </Web3ReactProvider>
-    </Provider>
-  </React.StrictMode>
+  <Provider store={store}>
+    <Web3ReactProvider getLibrary={getLibrary}>
+      <Web3ProviderNetwork getLibrary={getLibrary}>
+        <Web3ReactManager>
+          <BlockNumberProvider>
+            {/* <Updaters /> */}
+            <App />
+          </BlockNumberProvider>
+        </Web3ReactManager>
+      </Web3ProviderNetwork>
+    </Web3ReactProvider>
+  </Provider>
 )

@@ -13,7 +13,6 @@ import styled from 'styled-components/macro'
 
 import { ExternalLink } from '../../theme'
 import Row from '../Row'
-import Web3Status from '../Web3Status'
 import HolidayOrnament from './HolidayOrnament'
 import NetworkSelector from './NetworkSelector'
 
@@ -266,7 +265,6 @@ export default function Header() {
                   </Trans>
                 </BalanceText>
               ) : null*/}
-              <Web3Status />
             </AccountElement>
           </HeaderElement>
           {/* <HeaderElement>

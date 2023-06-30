@@ -1,6 +1,5 @@
 import jazzicon from '@metamask/jazzicon'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
-import useENSAvatar from 'hooks/useENSAvatar'
 import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import styled from 'styled-components/macro'
 
@@ -20,7 +19,6 @@ const StyledAvatar = styled.img`
 
 export default function Identicon() {
   const { account } = useActiveWeb3React()
-  const { avatar } = useENSAvatar(account ?? undefined)
   const [fetchable, setFetchable] = useState(true)
 
   const icon = useMemo(() => account && jazzicon(16, parseInt(account.slice(2, 10), 16)), [account])

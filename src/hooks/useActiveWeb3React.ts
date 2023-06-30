@@ -4,7 +4,7 @@ import { useWeb3React } from 'web3-react-core'
 
 export default function useActiveWeb3React() {
   const interfaceContext = useWeb3React<Web3Provider>()
-  const interfaceNetworkContext = useWeb3React<Web3Provider>(process.env.REACT_APP_IS_WIDGET ? undefined : undefined)
+  const interfaceNetworkContext = useWeb3React<Web3Provider>(undefined)
 
   if (interfaceContext.active) {
     return interfaceContext

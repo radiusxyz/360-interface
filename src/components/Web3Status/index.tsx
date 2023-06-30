@@ -15,7 +15,6 @@ import { isTransactionRecent, useAllTransactions } from '../../state/transaction
 import { TransactionDetails } from '../../state/transactions/types'
 import { shortenAddress } from '../../utils'
 import { ButtonSecondary } from '../Button'
-import StatusIcon from '../Identicon/StatusIcon'
 import Loader from '../Loader'
 import { RowBetween } from '../Row'
 import WalletModal from '../WalletModal'
@@ -119,11 +118,6 @@ function Sock() {
 
 function WrappedStatusIcon({ connector }: { connector: AbstractConnector | Connector }) {
   return <> </>
-  return (
-    <IconWrapper size={16}>
-      <StatusIcon connector={connector} />
-    </IconWrapper>
-  )
 }
 
 function Web3StatusInner() {
@@ -184,7 +178,7 @@ function Web3StatusInner() {
 export default function Web3Status() {
   const { active, account } = useWeb3React()
   const contextNetwork = useWeb3React(NetworkContextName)
-
+  console.log('it is here')
   const { ENSName } = useENSName(account ?? undefined)
 
   const allTransactions = useAllTransactions()

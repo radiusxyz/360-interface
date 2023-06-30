@@ -5,12 +5,11 @@ import CoinbaseWalletIcon from '../../assets/images/coinbaseWalletIcon.svg'
 import FortmaticIcon from '../../assets/images/fortmaticIcon.png'
 import WalletConnectIcon from '../../assets/images/walletConnectIcon.svg'
 import { fortmatic, injected, walletconnect, walletlink } from '../../connectors'
-import Identicon from '../Identicon'
 
 export default function StatusIcon({ connector }: { connector: AbstractConnector | Connector }) {
   switch (connector) {
     case injected:
-      return <Identicon />
+      return <></>
     case walletconnect:
       return <img src={WalletConnectIcon} alt={'WalletConnect'} />
     case walletlink:

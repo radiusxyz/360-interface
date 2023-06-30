@@ -21,7 +21,7 @@ import { shortenAddress } from '../../utils'
 import { db, Status } from '../../utils/db'
 import { ExplorerDataType, getExplorerLink } from '../../utils/getExplorerLink'
 import { ButtonSecondary } from '../Button'
-import StatusIcon from '../Identicon/StatusIcon'
+
 import Copy from './Copy'
 import Transaction from './Transaction'
 
@@ -180,11 +180,7 @@ function LinkIconThin() {
 }
 
 function WrappedStatusIcon({ connector }: { connector: AbstractConnector | Connector }) {
-  return (
-    <IconWrapper size={16}>
-      <StatusIcon connector={connector} />
-    </IconWrapper>
-  )
+  return <IconWrapper size={16}></IconWrapper>
 }
 
 const TransactionListWrapper = styled.div`
