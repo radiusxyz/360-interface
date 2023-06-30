@@ -1,5 +1,5 @@
 import { Trans } from 'utils/trans'
-import copyDuplicateImage from 'assets/images/copy-duplicate.png'
+import copy_icon from 'assets/v2/images/copy_icon.svg'
 import useCopyClipboard from 'hooks/useCopyClipboard'
 import React, { useCallback } from 'react'
 import { CheckCircle } from 'react-feather'
@@ -7,16 +7,16 @@ import styled from 'styled-components/macro'
 import { LinkStyledButton } from 'theme'
 
 const CopyIcon = styled(LinkStyledButton)`
-  color: ${({ color, theme }) => color || theme.text3};
   flex-shrink: 0;
   display: flex;
+  margin-left: auto;
+  margin-right: 3px;
   text-decoration: none;
   font-size: 12px;
   :hover,
   :active,
   :focus {
     text-decoration: none;
-    color: ${({ color, theme }) => color || theme.text2};
   }
 `
 const TransactionStatusText = styled.span`
@@ -33,7 +33,7 @@ interface BaseProps {
 export type CopyHelperProps = BaseProps & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseProps>
 
 function Copy() {
-  return <img src={copyDuplicateImage} width="16px" height="16px" alt="copy" />
+  return <img src={copy_icon} alt="copy" />
 }
 
 export default function CopyHelper({ color, toCopy, children }: CopyHelperProps) {

@@ -1,15 +1,11 @@
 import { Trans } from 'utils/trans'
-import { AutoColumn } from 'components/Column'
-import { PrivacyPolicy } from 'components/PrivacyPolicy'
-import Row, { AutoRow } from 'components/Row'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { ArrowLeft } from 'react-feather'
+import { useCallback, useEffect, useState } from 'react'
+import ReactGA from 'react-ga4'
 import styled from 'styled-components/macro'
 import { AbstractConnector } from 'web3-react-abstract-connector'
 import { UnsupportedChainIdError, useWeb3React } from 'web3-react-core'
 import { WalletConnectConnector } from 'web3-react-walletconnect-connector'
 
-import MetamaskIcon from '../../assets/images/metamask.png'
 import { ReactComponent as Close } from '../../assets/images/x.svg'
 import { fortmatic, injected } from '../../connectors'
 import { OVERLAY_READY } from '../../connectors/Fortmatic'
@@ -17,18 +13,15 @@ import { SUPPORTED_WALLETS } from '../../constants/wallet'
 import usePrevious from '../../hooks/usePrevious'
 import { useModalOpen, useWalletModalToggle } from '../../state/application/hooks'
 import { ApplicationModal } from '../../state/application/reducer'
-import { ExternalLink, ThemedText } from '../../theme'
 import { isMobile } from '../../utils/userAgent'
 import AccountDetails from '../AccountDetails'
-import Card from '../Card'
 import Modal from '../Modal'
 import Option from './Option'
 import PendingView from './PendingView'
+import no_entry from '../../assets/v2/images/no_entry.svg'
+import { PrimaryButton } from 'components/v2/UI/Buttons'
 
 const CloseIcon = styled.div`
-  position: absolute;
-  right: 1rem;
-  top: 14px;
   &:hover {
     cursor: pointer;
     opacity: 0.6;
@@ -37,7 +30,7 @@ const CloseIcon = styled.div`
 
 const CloseColor = styled(Close)`
   path {
-    stroke: ${({ theme }) => theme.text4};
+    stroke: #000000;
   }
 `
 
@@ -50,44 +43,58 @@ const Wrapper = styled.div`
 `
 
 const HeaderRow = styled.div`
-  ${({ theme }) => theme.flexRowNoWrap};
-  padding: 1rem 1rem;
-  background: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+`
+
+const ModalTitle = styled.span`
+  color: #333;
+  font-size: 18px;
+  font-family: Pretendard;
   font-weight: 500;
-  /*color: ${(props) => (props.color === 'blue' ? ({ theme }) => theme.primary1 : 'inherit')};
-  ${({ theme }) => theme.mediaWidth.upToMedium`
-    padding: 1rem;
-  `};*/
 `
 
-const ContentWrapper = styled.div`
-  /*background-color: ${({ theme }) => theme.bg0};*/
-  background: white;
-  padding: 1rem 1rem 3rem 1rem;
-  border-bottom-left-radius: 20px;
-  border-bottom-right-radius: 20px;
-
-  /* ${({ theme }) => theme.mediaWidth.upToMedium`padding: 0 1rem 1rem 1rem`}; */
+const Body = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 207px;
+  background: #f5f4ff;
+  align-items: center;
+  justify-content: flex-start;
 `
 
-const UpperSection = styled.div`
+const ImgWrapper = styled.div`
+  margin-top: 26px;
+`
+
+const Message = styled.p`
+  color: #000;
+  font-size: 18px;
+  font-weight: 500;
+  margin-top: 18px;
+`
+
+const MessageDetails = styled.p`
+  color: #424242;
+  font-size: 14px;
+  text-align: center;
+  font-family: Pretendard;
+  margin-top: 12px;
+`
+
+const Container = styled.div`
   position: relative;
+  padding: 24px 30px 30px 30px;
+  background: #ffffff;
+`
 
-  h5 {
-    margin: 0;
-    margin-bottom: 0.5rem;
-    font-size: 1rem;
-    font-weight: 400;
-  }
-
-  h5:last-child {
-    margin-bottom: 0px;
-  }
-
-  h4 {
-    margin-top: 0;
-    font-weight: 500;
-  }
+const Button = styled(PrimaryButton)`
+  background: #ffffff;
+  border: 1px solid #6b11ff;
+  color: #6b11ff;
+  margin-top: 10px;
 `
 
 const OptionGrid = styled.div`
@@ -96,40 +103,13 @@ const OptionGrid = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  grid-gap: 10px;
-  /* ${({ theme }) => theme.mediaWidth.upToMedium`
-    grid-template-columns: 1fr;
-    grid-gap: 10px;
-  `}; */
-`
-
-const HoverText = styled.div`
-  text-decoration: none;
-  color: ${({ theme }) => theme.text1};
-  display: flex;
-  align-items: center;
-
-  :hover {
-    cursor: pointer;
-  }
-`
-
-const LinkCard = styled(Card)`
-  background-color: ${({ theme }) => theme.bg1};
-  color: ${({ theme }) => theme.text3};
-
-  :hover {
-    cursor: pointer;
-    filter: brightness(0.9);
-  }
+  gap: 4px;
 `
 
 const WALLET_VIEWS = {
   OPTIONS: 'options',
-  OPTIONS_SECONDARY: 'options_secondary',
   ACCOUNT: 'account',
   PENDING: 'pending',
-  LEGAL: 'legal',
 }
 
 export default function WalletModal({
@@ -154,15 +134,11 @@ export default function WalletModal({
     console.log('accountsChanged')
   })
 
-  // console.log('walletStatus', active, account, connector, activate, error)
-
   const [walletView, setWalletView] = useState(WALLET_VIEWS.ACCOUNT)
-  const previousWalletView = usePrevious(walletView)
 
   const [pendingWallet, setPendingWallet] = useState<AbstractConnector | undefined>()
 
   const [pendingError, setPendingError] = useState<boolean>()
-  const ref = useRef()
 
   const walletModalOpen = useModalOpen(ApplicationModal.WALLET)
   const toggleWalletModal = useWalletModalToggle()
@@ -236,29 +212,6 @@ export default function WalletModal({
     const isMetamask = !!window.ethereum?.isMetaMask
     return Object.keys(SUPPORTED_WALLETS).map((key) => {
       const option = SUPPORTED_WALLETS[key]
-      // check for mobile options
-      if (isMobile) {
-        if (!window.web3 && !window.ethereum && option.mobile) {
-          return (
-            <Option
-              onClick={() => {
-                option.connector !== connector && !option.href && tryActivation(option.connector)
-              }}
-              id={`connect-${key}`}
-              key={key}
-              size={46}
-              active={option.connector && option.connector === connector}
-              color={option.color}
-              link={option.href}
-              header={option.name}
-              subheader={null}
-              icon={option.iconURL}
-            />
-          )
-        }
-        return null
-      }
-
       // overwrite injected when needed
       if (option.connector === injected) {
         // don't show injected if there's no injected provider
@@ -268,12 +221,9 @@ export default function WalletModal({
               <Option
                 id={`connect-${key}`}
                 key={key}
-                size={46}
-                color={'#E8831D'}
                 header={<Trans>Install Metamask</Trans>}
-                subheader={null}
                 link={'https://metamask.io/'}
-                icon={MetamaskIcon}
+                icon={option.iconURL}
               />
             )
           } else {
@@ -293,7 +243,8 @@ export default function WalletModal({
       // return rest of options
       return (
         !isMobile &&
-        !option.mobileOnly && (
+        !option.mobileOnly &&
+        option.name !== 'MetaMask_New' && (
           <Option
             id={`connect-${key}`}
             onClick={() => {
@@ -303,10 +254,8 @@ export default function WalletModal({
             }}
             key={key}
             active={option.connector === connector}
-            color={option.color}
             link={option.href}
             header={option.name}
-            subheader={null} //use option.descriptio to bring back multi-line
             icon={option.iconURL}
           />
         )
@@ -317,62 +266,58 @@ export default function WalletModal({
   function getModalContent() {
     if (error) {
       return {
-        width: 800,
+        width: 425,
         content: (
-          <UpperSection>
-            <CloseIcon onClick={toggleWalletModal}>
-              <CloseColor />
-            </CloseIcon>
+          <Container>
             <HeaderRow>
-              {error instanceof UnsupportedChainIdError ? (
-                <Trans>Wrong Network</Trans>
-              ) : (
-                <Trans>Error connecting</Trans>
-              )}
+              <ModalTitle>
+                <Trans>{walletView !== WALLET_VIEWS.ACCOUNT ? 'Connect wallet' : 'Connect a wallet'}</Trans>
+              </ModalTitle>
+              <CloseIcon onClick={toggleWalletModal}>
+                <CloseColor />
+              </CloseIcon>
             </HeaderRow>
-            <ContentWrapper>
-              {error instanceof UnsupportedChainIdError ? (
-                <h5>
-                  <Trans>Please connect to a supported network in the dropdown menu or in your wallet.</Trans>
-                </h5>
-              ) : (
-                <Trans>Error connecting. Try refreshing the page.</Trans>
-              )}
-            </ContentWrapper>
-          </UpperSection>
-        ),
-      }
-    }
-    if (walletView === WALLET_VIEWS.LEGAL) {
-      return {
-        width: 800,
-        content: (
-          <UpperSection>
-            <HeaderRow>
-              <HoverText
+            <Body>
+              <ImgWrapper>
+                <img src={no_entry} alt="no_entry" />
+              </ImgWrapper>
+              <Message>
+                <Trans> {error instanceof UnsupportedChainIdError ? 'Wrong Network' : 'Error connecting'}</Trans>
+              </Message>
+              <MessageDetails>
+                {error instanceof UnsupportedChainIdError ? (
+                  <Trans>
+                    Please connect to a supported network
+                    <br />
+                    in the dropdown menu or in your wallet.
+                  </Trans>
+                ) : (
+                  <Trans>
+                    Oops, looks like we couldn&apos;t connect! Don&apos;t worry, <br />
+                    let&apos;s give it another shot.
+                  </Trans>
+                )}
+              </MessageDetails>
+            </Body>
+            {error instanceof UnsupportedChainIdError ? (
+              <Button onClick={resetAccountView}>Back to wallet selection</Button>
+            ) : (
+              <Button
                 onClick={() => {
-                  setWalletView(
-                    (previousWalletView === WALLET_VIEWS.LEGAL ? WALLET_VIEWS.ACCOUNT : previousWalletView) ??
-                      WALLET_VIEWS.ACCOUNT
-                  )
+                  setPendingError(false)
+                  connector && tryActivation(connector)
                 }}
               >
-                <ArrowLeft />
-              </HoverText>
-              <Row justify="center">
-                <ThemedText.MediumHeader>
-                  <Trans>Legal & Privacy</Trans>
-                </ThemedText.MediumHeader>
-              </Row>
-            </HeaderRow>
-            <PrivacyPolicy />
-          </UpperSection>
+                Try again
+              </Button>
+            )}
+          </Container>
         ),
       }
     }
     if (account && walletView === WALLET_VIEWS.ACCOUNT) {
       return {
-        width: 800,
+        width: 500,
         content: (
           <AccountDetails
             toggleWalletModal={toggleWalletModal}
@@ -385,98 +330,28 @@ export default function WalletModal({
       }
     }
     return {
-      width: 800,
+      width: 425,
       content: (
-        <UpperSection>
-          <CloseIcon onClick={toggleWalletModal} style={{ zIndex: 1 }}>
-            <CloseColor />
-          </CloseIcon>
-          {walletView !== WALLET_VIEWS.ACCOUNT ? (
-            <div style={{ width: '100%' }}>
-              <HeaderRow>
-                <HoverText onClick={resetAccountView} style={{ textAlign: 'center', zIndex: 1 }}>
-                  <ArrowLeft />
-                </HoverText>
-                <div
-                  style={{
-                    position: 'absolute',
-                    width: 'calc(100% - 32px)',
-                    textAlign: 'center',
-                    color: '#FFFFFF',
-                    fontWeight: 'bold',
-                    fontSize: '20',
-                    zIndex: 0,
-                  }}
-                >
-                  <Trans>Connect Wallet</Trans>
-                </div>
-              </HeaderRow>
-            </div>
-          ) : (
-            <HeaderRow>
-              <HoverText>
-                <Trans>Connect a wallet</Trans>
-              </HoverText>
-            </HeaderRow>
+        <Container>
+          <HeaderRow>
+            <ModalTitle>
+              <Trans> {walletView !== WALLET_VIEWS.ACCOUNT ? 'Connect wallet' : 'Connect a wallet'}</Trans>
+            </ModalTitle>
+            <CloseIcon onClick={toggleWalletModal}>
+              <CloseColor />
+            </CloseIcon>
+          </HeaderRow>
+          {walletView === WALLET_VIEWS.PENDING && (
+            <PendingView
+              connector={pendingWallet}
+              error={pendingError}
+              setPendingError={setPendingError}
+              tryActivation={tryActivation}
+              resetAccountView={resetAccountView}
+            />
           )}
-
-          <ContentWrapper>
-            <AutoColumn gap="16px">
-              {walletView === WALLET_VIEWS.PENDING && (
-                <PendingView
-                  connector={pendingWallet}
-                  error={pendingError}
-                  setPendingError={setPendingError}
-                  tryActivation={tryActivation}
-                  resetAccountView={resetAccountView}
-                />
-              )}
-              {walletView !== WALLET_VIEWS.PENDING && (
-                <>
-                  <OptionGrid>{getOptions()}</OptionGrid>
-                  {/* <LinkCard padding=".5rem" $borderRadius=".75rem" onClick={() => setWalletView(WALLET_VIEWS.LEGAL)}>
-                  <RowBetween>
-                    <AutoRow gap="4px">
-                      <Info size={20} />
-                      <ThemedText.Label fontSize={14}>
-                        <Trans>How this app uses APIs</Trans>
-                      </ThemedText.Label>
-                    </AutoRow>
-                    <ArrowRight size={16} />
-                  </RowBetween>
-                </LinkCard>
-                <ThemedText.Black fontSize={14}>
-                  <ExternalLink href="https://help.uniswap.org/en/articles/5391525-what-is-a-wallet">
-                    <Row justify="center" alignItems="center">
-                      <Trans>Learn more about wallets</Trans>
-                      <ArrowRight size={16} />
-                    </Row>
-                  </ExternalLink>
-                </ThemedText.Black> */}
-                </>
-              )}
-              {!pendingError && (
-                <div style={{ display: 'flex', width: '100%', justifyContent: 'center' }}>
-                  <div style={{ width: '90%' }}>
-                    <AutoRow style={{ flexWrap: 'nowrap' }}>
-                      <ThemedText.Label fontSize={16} fontWeight={400} color={'#8BB3FF'}>
-                        <Trans>
-                          By connecting a wallet, you confirm that you have read and agree to our{' '}
-                          <ExternalLink
-                            href="https://360swap.io/terms-of-service/"
-                            style={{ color: '#8BB3FF', fontWeight: 'bold' }}
-                          >
-                            Terms of Service
-                          </ExternalLink>
-                        </Trans>
-                      </ThemedText.Label>
-                    </AutoRow>
-                  </div>
-                </div>
-              )}
-            </AutoColumn>
-          </ContentWrapper>
-        </UpperSection>
+          {walletView !== WALLET_VIEWS.PENDING && <OptionGrid>{getOptions()}</OptionGrid>}
+        </Container>
       ),
     }
   }
