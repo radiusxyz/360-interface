@@ -82,6 +82,7 @@ export function useDerivedSwapInfo(): boolean {
   const { recipient } = useSwapState()
 
   const recipientLookup = useENS(recipient ?? undefined)
+  console.log('useDerivedSwapInfo')
 
   // const relevantTokenBalances = useCurrencyBalances(
   //   account ?? undefined,
@@ -154,7 +155,6 @@ export function useDerivedSwapInfo(): boolean {
 
     return inputError
   }, [account, allowedSlippage, parsedAmount, to]) */
-  console.log('useDerivedSwapInfo but this is outside useEffect')
 
   /* useEffect(() => {
     console.log('useDerivedSwapInfo')

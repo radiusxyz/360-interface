@@ -9,7 +9,7 @@ export default function useENS(nameOrAddress?: string | null): {
   address: string | null
   name: string | null
 } {
-  console.log('useEns outside useeffect')
+  console.log('useENS')
 
   return useMemo(() => {
     return {

@@ -9,7 +9,7 @@ import { useMemo } from 'react'
  * Does a lookup for an ENS name to find its address.
  */
 export default function useENSAddress(ensName?: string | null): { loading: boolean; address: string | null } {
-  console.log('ENSADDRESS outside EFFECT')
+  console.log('useENSAddress')
 
   // const resolverAddress = useSingleCallResult(undefined, 'resolver')
   // const resolverAddressResult = resolverAddress.result?.[0]

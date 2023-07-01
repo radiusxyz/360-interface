@@ -122,6 +122,7 @@ function WrappedStatusIcon({ connector }: { connector: AbstractConnector | Conne
 
 function Web3StatusInner() {
   const { account, connector, error } = useWeb3React()
+  console.log(account, connector, error)
 
   const { ENSName } = useENSName(account ?? undefined)
 
@@ -178,8 +179,8 @@ function Web3StatusInner() {
 export default function Web3Status() {
   const { active, account } = useWeb3React()
   const contextNetwork = useWeb3React(NetworkContextName)
-  console.log('it is here')
-  const { ENSName } = useENSName(account ?? undefined)
+  const { ENSName } = { ENSName: 's' }
+  // const { ENSName } = useENSName(account ?? undefined)
 
   const allTransactions = useAllTransactions()
 
