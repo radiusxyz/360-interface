@@ -10,7 +10,7 @@ import { useOnClickOutside } from 'hooks/useOnClickOutside'
 import useToggle from 'hooks/useToggle'
 import { getTokenFilter } from 'lib/hooks/useTokenList/filtering'
 import { tokenComparator, useSortTokensByQuery } from 'lib/hooks/useTokenList/sorting'
-import { useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import ReactGA from 'react-ga4'
 import { FixedSizeList } from 'react-window'
 import { useAllTokenBalances } from 'state/wallet/hooks'
@@ -36,9 +36,9 @@ const Search = ({ onCurrencySelection }: any) => {
   const swapCTX = useContext(SwapContext)
   const [tokensState, setTokensState] = useState(tokens)
 
-  const handleTokensState = (handler: () => Tokens): void => {
+  const handleTokensState = useCallback((handler: () => Tokens): void => {
     setTokensState(handler)
-  }
+  }, [])
 
   // const { chainId } = useActiveWeb3React()
   // const theme = useTheme()
