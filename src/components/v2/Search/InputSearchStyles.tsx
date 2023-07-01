@@ -12,7 +12,7 @@ export const Wrapper = styled.div`
   width: 100%;
   height: 46px;
   align-items: center;
-  padding: 16px;
+  padding: 14px 17px 13px;
   background: #ffffff;
   border: 1px solid #dde0ff;
   border-radius: 2px;
@@ -32,7 +32,7 @@ export const Input = styled.input`
   color: #595959;
 `
 
-export const Search = styled.div`
+export const SearchIcon = styled.div`
   display: flex;
   align-items: center;
   &:hover {

@@ -3,7 +3,7 @@ import TableRow from './TableRow'
 import { Wrapper } from './TableStyles'
 import cuid from 'cuid'
 import { WrappedTokenInfo } from 'state/lists/wrappedTokenInfo'
-import { Currency, Token } from '@uniswap/sdk-core'
+import { Currency } from '@uniswap/sdk-core'
 import { FixedSizeList } from 'react-window'
 
 export function currencyKey(currency: Currency): string {
@@ -17,8 +17,7 @@ const Table = ({
   onCurrencySelect,
   otherCurrency,
   fixedListRef,
-  showImportView,
-  setImportToken,
+
   showCurrencyAmount,
 }: {
   currencies: Currency[]
@@ -27,8 +26,6 @@ const Table = ({
   onCurrencySelect: (field: any, currency: Currency | null) => void
   otherCurrency?: Currency | null
   fixedListRef?: MutableRefObject<FixedSizeList | undefined>
-  showImportView: () => void
-  setImportToken: (token: Token) => void
   showCurrencyAmount?: boolean
 }) => {
   return (
@@ -47,4 +44,4 @@ const Table = ({
   )
 }
 
-export default Table
+export default React.memo(Table)
