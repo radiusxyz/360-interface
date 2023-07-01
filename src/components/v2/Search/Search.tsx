@@ -3,14 +3,14 @@ import { tokens, Tokens } from '../../../assets/v2/data'
 import { TableWrapper } from './SearchStyles'
 import InputSearch from './InputSearch'
 
-import { Token } from '@uniswap/sdk-core'
+import { Currency, Token } from '@uniswap/sdk-core'
 import useDebounce from 'hooks/useDebounce'
 import { useOnClickOutside } from 'hooks/useOnClickOutside'
 // import useTheme from 'hooks/useTheme'
 import useToggle from 'hooks/useToggle'
 import { getTokenFilter } from 'lib/hooks/useTokenList/filtering'
 import { tokenComparator, useSortTokensByQuery } from 'lib/hooks/useTokenList/sorting'
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useRef, useState, KeyboardEvent, RefObject } from 'react'
 import ReactGA from 'react-ga4'
 import { FixedSizeList } from 'react-window'
 import { useAllTokenBalances } from 'state/wallet/hooks'
@@ -27,6 +27,7 @@ import { isAddress } from 'utils'
 import Table from './Table'
 import SwapContext from 'store/swap-context'
 import { useSwapState } from 'state/swap/hooks'
+import useNativeCurrency from 'lib/hooks/useNativeCurrency'
 
 // import CurrencyList from 'components/SearchModal/CurrencyList'
 
@@ -96,17 +97,17 @@ const Search = ({ onCurrencySelection }: any) => {
 
   const filteredSortedTokens = useSortTokensByQuery(debouncedQuery, sortedTokens)
 
-  // const native = useNativeCurrency()
+  const native = useNativeCurrency()
 
-  // const filteredSortedTokensWithETH: Currency[] = useMemo(() => {
-  //   if (!native) return filteredSortedTokens
+  const filteredSortedTokensWithETH: Currency[] = useMemo(() => {
+    if (!native) return filteredSortedTokens
 
-  //   const s = debouncedQuery.toLowerCase().trim()
-  //   if (native.symbol?.toLowerCase()?.indexOf(s) !== -1) {
-  //     return native ? [native, ...filteredSortedTokens] : filteredSortedTokens
-  //   }
-  //   return filteredSortedTokens
-  // }, [debouncedQuery, native, filteredSortedTokens])
+    const s = debouncedQuery.toLowerCase().trim()
+    if (native.symbol?.toLowerCase()?.indexOf(s) !== -1) {
+      return native ? [native, ...filteredSortedTokens] : filteredSortedTokens
+    }
+    return filteredSortedTokens
+  }, [debouncedQuery, native, filteredSortedTokens])
 
   // menu ui
   const [open, toggle] = useToggle(false)
@@ -126,9 +127,49 @@ const Search = ({ onCurrencySelection }: any) => {
     console.log('setImportToken')
   }
 
+  const handleCurrencySelect = useCallback(
+    (currency: Currency | null) => {
+      onCurrencySelection(currency)
+    },
+    [onCurrencySelection]
+  )
+
+  const inputRef = useRef<HTMLInputElement>()
+
+  const handleInput = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const input = event.target.value
+    const checksummedInput = isAddress(input)
+    setSearchQuery(checksummedInput || input)
+    fixedList.current?.scrollTo(0)
+  }, [])
+
+  const handleEnter = useCallback(
+    (e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        const s = debouncedQuery.toLowerCase().trim()
+        if (s === native?.symbol?.toLowerCase()) {
+          handleCurrencySelect(native)
+        } else if (filteredSortedTokensWithETH.length > 0) {
+          if (
+            filteredSortedTokensWithETH[0].symbol?.toLowerCase() === debouncedQuery.trim().toLowerCase() ||
+            filteredSortedTokensWithETH.length === 1
+          ) {
+            handleCurrencySelect(filteredSortedTokensWithETH[0])
+          }
+        }
+      }
+    },
+    [debouncedQuery, native, filteredSortedTokensWithETH, handleCurrencySelect]
+  )
+
   return (
     <TableWrapper>
-      <InputSearch handler={handleTokensState} />
+      <InputSearch
+        searchQuery={searchQuery}
+        inputRef={inputRef as RefObject<HTMLInputElement>}
+        handleInput={handleInput}
+        handleEnter={handleEnter}
+      />
       <FrequentTokens />
       {/* <CurrencyList
         height={filteredSortedTokens.length * 80}
