@@ -1,5 +1,4 @@
 import FrequentTokens from './FrequentTokens'
-import { tokens } from '../../../assets/v2/data'
 import { TableWrapper } from './SearchStyles'
 import magnifier from '../../../assets/v2/images/magnifying_glass.png'
 import { Input, Paddinger, SearchIcon, Wrapper } from './InputSearchStyles'
@@ -7,7 +6,6 @@ import { Input, Paddinger, SearchIcon, Wrapper } from './InputSearchStyles'
 import { Currency, Token } from '@uniswap/sdk-core'
 import useDebounce from 'hooks/useDebounce'
 import { useOnClickOutside } from 'hooks/useOnClickOutside'
-// import useTheme from 'hooks/useTheme'
 import useToggle from 'hooks/useToggle'
 import { getTokenFilter } from 'lib/hooks/useTokenList/filtering'
 import { tokenComparator, useSortTokensByQuery } from 'lib/hooks/useTokenList/sorting'
@@ -34,7 +32,6 @@ const Search = ({ onCurrencySelection }: any) => {
   const { INPUT, OUTPUT } = useSwapState()
 
   const swapCTX = useContext(SwapContext)
-  const [tokensState, setTokensState] = useState(tokens)
 
   // const { chainId } = useActiveWeb3React()
   // const theme = useTheme()
@@ -113,14 +110,6 @@ const Search = ({ onCurrencySelection }: any) => {
   const filteredInactiveTokens = useSearchInactiveTokenLists(
     filteredTokens.length === 0 || (debouncedQuery.length > 2 && !isAddressSearch) ? debouncedQuery : undefined
   )
-
-  // const showImportView = () => {
-  //   console.log('showImportView')
-  // }
-
-  // const setImportToken = () => {
-  //   console.log('setImportToken')
-  // }
 
   const handleCurrencySelect = useCallback(
     (currency: Currency | null) => {
