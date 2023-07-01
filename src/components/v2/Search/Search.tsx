@@ -1,7 +1,8 @@
 import FrequentTokens from './FrequentTokens'
-import { tokens, Tokens } from '../../../assets/v2/data'
+import { tokens } from '../../../assets/v2/data'
 import { TableWrapper } from './SearchStyles'
-import InputSearch from './InputSearch'
+import magnifier from '../../../assets/v2/images/magnifying_glass.png'
+import { Input, Paddinger, SearchIcon, Wrapper } from './InputSearchStyles'
 
 import { Currency, Token } from '@uniswap/sdk-core'
 import useDebounce from 'hooks/useDebounce'
@@ -10,7 +11,7 @@ import { useOnClickOutside } from 'hooks/useOnClickOutside'
 import useToggle from 'hooks/useToggle'
 import { getTokenFilter } from 'lib/hooks/useTokenList/filtering'
 import { tokenComparator, useSortTokensByQuery } from 'lib/hooks/useTokenList/sorting'
-import { useCallback, useContext, useEffect, useMemo, useRef, useState, KeyboardEvent, RefObject } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useRef, useState, RefObject, KeyboardEvent } from 'react'
 import ReactGA from 'react-ga4'
 import { FixedSizeList } from 'react-window'
 import { useAllTokenBalances } from 'state/wallet/hooks'
@@ -29,17 +30,11 @@ import SwapContext from 'store/swap-context'
 import { useSwapState } from 'state/swap/hooks'
 import useNativeCurrency from 'lib/hooks/useNativeCurrency'
 
-// import CurrencyList from 'components/SearchModal/CurrencyList'
-
 const Search = ({ onCurrencySelection }: any) => {
   const { INPUT, OUTPUT } = useSwapState()
 
   const swapCTX = useContext(SwapContext)
   const [tokensState, setTokensState] = useState(tokens)
-
-  const handleTokensState = useCallback((handler: () => Tokens): void => {
-    setTokensState(handler)
-  }, [])
 
   // const { chainId } = useActiveWeb3React()
   // const theme = useTheme()
@@ -119,13 +114,13 @@ const Search = ({ onCurrencySelection }: any) => {
     filteredTokens.length === 0 || (debouncedQuery.length > 2 && !isAddressSearch) ? debouncedQuery : undefined
   )
 
-  const showImportView = () => {
-    console.log('showImportView')
-  }
+  // const showImportView = () => {
+  //   console.log('showImportView')
+  // }
 
-  const setImportToken = () => {
-    console.log('setImportToken')
-  }
+  // const setImportToken = () => {
+  //   console.log('setImportToken')
+  // }
 
   const handleCurrencySelect = useCallback(
     (currency: Currency | null) => {
@@ -142,7 +137,6 @@ const Search = ({ onCurrencySelection }: any) => {
     setSearchQuery(checksummedInput || input)
     fixedList.current?.scrollTo(0)
   }, [])
-
   const handleEnter = useCallback(
     (e: KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Enter') {
@@ -164,25 +158,24 @@ const Search = ({ onCurrencySelection }: any) => {
 
   return (
     <TableWrapper>
-      <InputSearch
-        searchQuery={searchQuery}
-        inputRef={inputRef as RefObject<HTMLInputElement>}
-        handleInput={handleInput}
-        handleEnter={handleEnter}
-      />
+      <Paddinger>
+        <Wrapper>
+          <SearchIcon>
+            <img src={magnifier} width="14px" height="14px" alt="magnifier" />
+          </SearchIcon>
+          <Input
+            type="text"
+            id="token-search-input"
+            placeholder={`Which token would you like to swap?`}
+            autoComplete="off"
+            value={searchQuery}
+            ref={inputRef as RefObject<HTMLInputElement>}
+            onChange={handleInput}
+            onKeyDown={handleEnter}
+          />
+        </Wrapper>
+      </Paddinger>
       <FrequentTokens />
-      {/* <CurrencyList
-        height={filteredSortedTokens.length * 80}
-        currencies={filteredSortedTokens}
-        otherListTokens={filteredInactiveTokens}
-        onCurrencySelect={onCurrencySelect}
-        otherCurrency={null}
-        selectedCurrency={null}
-        fixedListRef={fixedList}
-        showImportView={showImportView}
-        setImportToken={setImportToken}
-        showCurrencyAmount={true}
-      /> */}
       <Table
         currencies={filteredSortedTokens}
         otherListTokens={filteredInactiveTokens}
@@ -190,8 +183,6 @@ const Search = ({ onCurrencySelection }: any) => {
         otherCurrency={null}
         selectedCurrency={null}
         fixedListRef={fixedList}
-        showImportView={showImportView}
-        setImportToken={setImportToken}
         showCurrencyAmount={true}
       />
     </TableWrapper>

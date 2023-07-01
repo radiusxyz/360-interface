@@ -32,7 +32,7 @@ export const Input = styled.input`
   color: #595959;
 `
 
-export const Search = styled.div`
+export const SearchIcon = styled.div`
   display: flex;
   align-items: center;
   &:hover {

@@ -1,7 +1,7 @@
 import { KeyboardEvent, RefObject } from 'react'
 import magnifier from '../../../assets/v2/images/magnifying_glass.png'
 
-import { Input, Paddinger, Search, Wrapper } from './InputSearchStyles'
+import { Input, Paddinger, SearchIcon, Wrapper } from './InputSearchStyles'
 
 const InputSearch = ({
   searchQuery,
@@ -17,9 +17,9 @@ const InputSearch = ({
   return (
     <Paddinger>
       <Wrapper>
-        <Search>
+        <SearchIcon>
           <img src={magnifier} width="14px" height="14px" alt="magnifier" />
-        </Search>
+        </SearchIcon>
         <Input
           type="text"
           id="token-search-input"
