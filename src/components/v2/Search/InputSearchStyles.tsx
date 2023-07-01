@@ -12,7 +12,7 @@ export const Wrapper = styled.div`
   width: 100%;
   height: 46px;
   align-items: center;
-  padding: 16px;
+  padding: 14px 17px 13px;
   background: #ffffff;
   border: 1px solid #dde0ff;
   border-radius: 2px;
