@@ -73,6 +73,19 @@ function sleep(ms: number) {
 
 export const RightSection = () => {
   const swapCTX = useContext(SwapContext)
+  const {
+    swapParams,
+    updateSwapParams,
+    handleSwapParams,
+    handleLeftSection,
+    isAtokenSelectionActive,
+    handleSetIsAtokenSelectionActive,
+    isBtokenSelectionActive,
+    handleSetIsBtokenSelectionActive,
+    leftSection,
+    isAtokenSelected,
+    isBtokenSelected,
+  } = swapCTX
   const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
 
   // TODO: add this to check account in whitelist
@@ -82,7 +95,7 @@ export const RightSection = () => {
   const { account, chainId } = useActiveWeb3React()
   const parameters = useParameters()
 
-  const [swapParams, setSwapParams] = useState<any>({ start: false })
+  // const [swapParams, setSwapParams] = useState<any>({ start: false })
 
   const lists = useAllLists()
 
@@ -224,7 +237,7 @@ export const RightSection = () => {
   )
 
   const handleSwap = () => {
-    setSwapParams({ ...swapParams, confirm: true })
+    updateSwapParams({ confirm: true })
   }
   const dispatch = useAppDispatch()
 
@@ -272,7 +285,7 @@ export const RightSection = () => {
 
   worker.onmessage = (e: MessageEvent<any>) => {
     if (e.data.target === 'timeLockPuzzle') {
-      setSwapParams({ ...swapParams, timeLockPuzzleDone: true, timeLockPuzzleData: { ...e.data.data } })
+      updateSwapParams({ timeLockPuzzleDone: true, timeLockPuzzleData: { ...e.data.data } })
       isPuzzling.current = false
     }
     if (
@@ -316,7 +329,7 @@ export const RightSection = () => {
         mimcHash,
       }
 
-      setSwapParams({ ...swapParams, encryptorDone: true, txHash, mimcHash, encryptedSwapTx })
+      updateSwapParams({ encryptorDone: true, txHash, mimcHash, encryptedSwapTx })
 
       isEncrypting.current = false
     }
@@ -334,21 +347,19 @@ export const RightSection = () => {
             .operator()
             .then(async (operatorAddress: any) => {
               const res = await prepareSignMessage(backerIntegrity, contractNonce)
-              setSwapParams({ ...swapParams, prepareDone: true, ...res, operatorAddress })
+              updateSwapParams({ prepareDone: true, ...res, operatorAddress })
             })
             .catch(() => {
-              swapCTX.handleLeftSection('welcome')
-              setSwapParams({
-                ...swapParams,
+              handleLeftSection('welcome')
+              handleSwapParams({
                 start: false,
                 errorMessage: 'RPC server is not responding, please try again',
               })
             })
         })
         .catch(() => {
-          swapCTX.handleLeftSection('welcome')
-          setSwapParams({
-            ...swapParams,
+          handleLeftSection('welcome')
+          handleSwapParams({
             start: false,
             errorMessage: 'RPC server is not responding, please try again',
           })
@@ -394,9 +405,10 @@ export const RightSection = () => {
     if (userSign) {
       const res = await userSign(swapParams.signMessage)
       if (res) {
-        setSwapParams({ ...swapParams, signingDone: true, ...res })
+        updateSwapParams({ signingDone: true, ...res })
+        handleLeftSection('progress')
       } else {
-        setSwapParams({ ...swapParams, confirm: false })
+        updateSwapParams({ confirm: false })
       }
     }
   }, [userSign, swapParams])
@@ -413,18 +425,15 @@ export const RightSection = () => {
       )
         .then(async (res) => {
           onUserInput(Field.INPUT, '')
-          setSwapParams({ ...swapParams, sent: true })
-
-          await sleep(10000)
-          // set swapResponse: res,
-          swapCTX.handleLeftSection('welcome')
-          setSwapParams({ start: false })
+          updateSwapParams({ sent: true })
+          // handleLeftSection('welcome')
+          // handleSwapParams({ start: false })
         })
         .catch(async (e) => {
           console.error(e)
           onUserInput(Field.INPUT, '')
-          swapCTX.handleLeftSection('welcome')
-          setSwapParams({ start: false })
+          handleLeftSection('welcome')
+          handleSwapParams({ start: false })
         })
     }
   }, [sendEncryptedTx, onUserInput, swapParams])
@@ -460,7 +469,7 @@ export const RightSection = () => {
   useEffect(() => {
     if (!isSigning.current && swapParams.prepareDone && swapParams.confirm && !swapParams.signingDone) {
       isSigning.current = true
-      swapCTX.handleLeftSection('almost-there')
+      handleLeftSection('almost-there')
       userSignFunc().then(() => {
         isSigning.current = false
       })
@@ -471,11 +480,12 @@ export const RightSection = () => {
   useEffect(() => {
     if (!isSending.current && swapParams.encryptorDone && swapParams.signingDone) {
       isSending.current = true
+      console.log('sendEncryptedTxFunc')
       sendEncryptedTxFunc().then(() => {
         isSending.current = false
       })
     }
-  }, [swapParams, sendEncryptedTxFunc, sendEncryptedTx])
+  }, [swapParams, sendEncryptedTxFunc])
 
   const [isExpertMode] = useExpertModeManager()
 
@@ -494,8 +504,8 @@ export const RightSection = () => {
   const priceImpactTooHigh = priceImpactSeverity > 3 && !isExpertMode
 
   const handleConfirmDismiss = useCallback(() => {
-    swapCTX.handleLeftSection('welcome')
-    setSwapParams({
+    handleLeftSection('welcome')
+    handleSwapParams({
       start: false,
       timeLockPuzzleData: swapParams.timeLockPuzzleData,
       timeLockPuzzleDone: swapParams.timeLockPuzzleDone,
@@ -522,7 +532,6 @@ export const RightSection = () => {
     },
     [onCurrencySelection]
   )
-  const [isSelected, setIsSelected] = useState(true)
   const [showSettings, setShowSettings] = useState(false)
   const [showInverted, setShowInverted] = useState<boolean>(false)
 
@@ -531,29 +540,31 @@ export const RightSection = () => {
   }
 
   const openInputTokenSelect = () => {
-    swapCTX.handleSetIsBtokenSelectionActive(false)
-    swapCTX.handleSetIsAtokenSelectionActive(true)
+    handleSetIsBtokenSelectionActive(false)
+    handleSetIsAtokenSelectionActive(true)
   }
 
   const openOutputTokenSelect = () => {
-    swapCTX.handleSetIsAtokenSelectionActive(false)
-    swapCTX.handleSetIsBtokenSelectionActive(true)
+    handleSetIsAtokenSelectionActive(false)
+    handleSetIsBtokenSelectionActive(true)
   }
 
   useEffect(() => {
-    if (swapCTX.isAtokenSelectionActive || swapCTX.isBtokenSelectionActive) {
-      swapCTX.handleLeftSection('search-table')
+    if (isAtokenSelectionActive || isBtokenSelectionActive) {
+      handleLeftSection('search-table')
     }
-  }, [swapCTX.isAtokenSelectionActive, swapCTX.isBtokenSelectionActive, swapCTX.handleLeftSection])
+  }, [isAtokenSelectionActive, isBtokenSelectionActive, handleLeftSection])
 
-  return !showSettings ? (
+  return leftSection === 'progress' ? (
+    <></>
+  ) : !showSettings ? (
     <MainWrapper>
       <Header>
         <HeaderTitle>Swap</HeaderTitle>
         <Cog onClick={handleShowSettings} />
       </Header>
       <TopTokenRow>
-        {swapCTX.isAtokenSelected && (
+        {isAtokenSelected && (
           <SlippageOptions>
             <SlippageOption>MAX</SlippageOption>
             <SlippageOption>50%</SlippageOption>
@@ -562,8 +573,8 @@ export const RightSection = () => {
         )}
         <Aligner>
           <ButtonAndBalanceWrapper>
-            <SelectTokenButton isSelected={swapCTX.isAtokenSelected} onClick={openInputTokenSelect}>
-              {swapCTX.isAtokenSelected ? (
+            <SelectTokenButton isSelected={isAtokenSelected} onClick={openInputTokenSelect}>
+              {isAtokenSelected ? (
                 <TokenWrapper>
                   <Logo />
                   <TokenName>{inputCurrency?.symbol}</TokenName>
@@ -572,12 +583,12 @@ export const RightSection = () => {
                 'Select'
               )}
             </SelectTokenButton>
-            {swapCTX.isAtokenSelected && <Balance>Balance : 0.00225</Balance>}
+            {isAtokenSelected && <Balance>Balance : 0.00225</Balance>}
           </ButtonAndBalanceWrapper>
           <NumericInput
             value={formattedAmounts[Field.INPUT]}
             onUserInput={handleTypeInput}
-            isSelected={swapCTX.isAtokenSelected}
+            isSelected={isAtokenSelected}
           />
         </Aligner>
         <Circle />
@@ -585,8 +596,8 @@ export const RightSection = () => {
       <BottomTokenRow>
         <Aligner>
           <ButtonAndBalanceWrapper>
-            <SelectTokenButton isSelected={swapCTX.isBtokenSelected} onClick={openOutputTokenSelect}>
-              {swapCTX.isBtokenSelected ? (
+            <SelectTokenButton isSelected={isBtokenSelected} onClick={openOutputTokenSelect}>
+              {isBtokenSelected ? (
                 <TokenWrapper>
                   <Logo />
                   <TokenName>{outputCurrency?.symbol}</TokenName>
@@ -595,14 +606,14 @@ export const RightSection = () => {
                 'Select'
               )}
             </SelectTokenButton>
-            {swapCTX.isBtokenSelected && <Balance>Balance : 0.00225</Balance>}
+            {isBtokenSelected && <Balance>Balance : 0.00225</Balance>}
           </ButtonAndBalanceWrapper>
           <NumericInput
             value={formattedAmounts[Field.OUTPUT]}
             onUserInput={() => {
               return
             }}
-            isSelected={swapCTX.isAtokenSelected}
+            isSelected={isAtokenSelected}
           />
         </Aligner>
       </BottomTokenRow>
@@ -628,7 +639,28 @@ export const RightSection = () => {
             </InfoRowWrapper>
           </InfoMainWrapper>
         )}
-        <PrimaryButton mrgn="0px 0px 12px 0px">Preview Swap</PrimaryButton>
+        {!accountWhiteList && (
+          <PrimaryButton mrgn="0px 0px 12px 0px" disabled>
+            you are not in whitelist
+          </PrimaryButton>
+        )}
+        {accountWhiteList && !swapParams.start && (
+          <PrimaryButton
+            mrgn="0px 0px 12px 0px"
+            onClick={() => {
+              handleLeftSection('preview')
+              updateSwapParams({ start: true })
+            }}
+          >
+            Preview Swap
+          </PrimaryButton>
+        )}
+        {accountWhiteList && swapParams.start && !swapParams.confirm && (
+          <PrimaryButton mrgn="0px 0px 12px 0px" onClick={() => updateSwapParams({ confirm: true })}>
+            Swap
+          </PrimaryButton>
+        )}
+
         {trade && (
           <TradePrice price={trade.executionPrice} showInverted={showInverted} setShowInverted={setShowInverted} />
         )}

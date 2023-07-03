@@ -1,12 +1,18 @@
 import { useState, ReactNode } from 'react'
 import SwapContext from './swap-context'
 
+type swapProps = {
+  start: boolean
+  confirm?: boolean
+}
+
 const SwapProvider = ({ children }: { children: ReactNode }) => {
   const [isAtokenSelected, setIsAtokenSelected] = useState(false)
   const [isBtokenSelected, setIsBtokenSelected] = useState(false)
   const [isAtokenSelectionActive, setIsAtokenSelectionActive] = useState(false)
   const [isBtokenSelectionActive, setIsBtokenSelectionActive] = useState(false)
   const [leftSection, setLeftSection] = useState('welcome')
+  const [swapParams, setSwapParams] = useState<any>({ start: false })
 
   const handleSetIsAtokenSelected = () => {
     setIsAtokenSelected(true)
@@ -24,6 +30,14 @@ const SwapProvider = ({ children }: { children: ReactNode }) => {
   const handleLeftSection = (value: string) => {
     setLeftSection(value)
   }
+
+  const handleSwapParams = (value: any) => {
+    setSwapParams(value)
+  }
+  const updateSwapParams = (value: any) => {
+    setSwapParams({ ...swapParams, ...value })
+  }
+
   const swapContext = {
     isAtokenSelected,
     handleSetIsAtokenSelected,
@@ -35,6 +49,9 @@ const SwapProvider = ({ children }: { children: ReactNode }) => {
     handleSetIsBtokenSelectionActive,
     leftSection,
     handleLeftSection,
+    swapParams,
+    handleSwapParams,
+    updateSwapParams,
   }
 
   return <SwapContext.Provider value={swapContext}>{children}</SwapContext.Provider>

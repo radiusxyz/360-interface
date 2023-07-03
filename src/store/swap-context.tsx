@@ -1,11 +1,12 @@
 import React from 'react'
 
-const SwapContext = React.createContext({
+const SwapContext = React.createContext<any>({
   isAtokenSelected: false,
   isBtokenSelected: false,
   isAtokenSelectionActive: false,
   isBtokenSelectionActive: false,
   leftSection: 'welcome',
+  swapParams: {},
 
   handleSetIsAtokenSelected: () => {
     return
@@ -20,6 +21,12 @@ const SwapContext = React.createContext({
     return
   },
   handleLeftSection: (target: string) => {
+    return
+  },
+  handleSwapParams: (target: any) => {
+    return
+  },
+  updateSwapParams: (target: any) => {
     return
   },
 })
