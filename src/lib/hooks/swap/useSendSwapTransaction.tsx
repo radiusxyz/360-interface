@@ -27,7 +27,7 @@ import { poseidonEncryptWithTxHash } from 'wasm/encrypt'
 import { getTimeLockPuzzleProof } from 'wasm/timeLockPuzzle'
 
 import { useRecorderContract, useV2RouterContract } from '../../../hooks/useContract'
-import { db, Status, TokenAmount } from '../../../utils/db'
+import { db, Status } from '../../../utils/db'
 import { TimeLockPuzzleResponse } from '../../../wasm/timeLockPuzzle'
 
 type AnyTrade =
@@ -345,33 +345,33 @@ export default function useSendSwapTransaction(
         const outSymbol =
           trade?.outputAmount?.currency?.symbol !== undefined ? trade?.outputAmount?.currency?.symbol : ''
 
-        const exist = await db.readyTxs.where({ txHash })
-        const ar = await exist.toArray()
-        console.log('exist', exist, ar, ar.length)
-        if (!exist) {
-          await db.addReadyTx({
+        // db.transaction('rw', db.swap, async () => {
+        const sendResponse = await db
+          .setSwap({
             txHash,
             mimcHash,
             tx: signMessage,
-            progressHere: 1,
             from: { token: inSymbol, amount: input.toString(), decimal: inDecimal.toString() },
             to: { token: outSymbol, amount: output.toString(), decimal: outDecimal.toString() },
           })
+          .then(async (i) => {
+            const sendResponse = await sendEIP712Tx(
+              chainId,
+              routerContract,
+              recorderContract,
+              encryptedSwapTx,
+              sig,
+              dispatch,
+              setCancel,
+              operatorAddress
+            )
 
-          const sendResponse = await sendEIP712Tx(
-            chainId,
-            routerContract,
-            recorderContract,
-            encryptedSwapTx,
-            sig,
-            dispatch,
-            setCancel,
-            operatorAddress
-          )
-          return sendResponse
-        }
+            return sendResponse
+          })
+        return sendResponse
+        // })
 
-        return undefined
+        // return undefined
       },
     }
   }, [trade, library, account, chainId, parameters, swapCalls, dispatch])
@@ -422,7 +422,7 @@ export async function sendEIP712Tx(
   setCancel: (cancel: number) => void,
   operatorAddress: string
 ): Promise<RadiusSwapResponse> {
-  const readyTx = await db.readyTxs.where({ txHash: encryptedSwapTx.txHash }).first()
+  const swap = await db.swap.where({ txHash: encryptedSwapTx.txHash }).first()
   const time = Date.now()
   const sendResponse = await fetchWithTimeout(
     `${process.env.REACT_APP_360_OPERATOR}/tx`,
@@ -458,11 +458,10 @@ export async function sendEIP712Tx(
         // console.log('clear disableTxHash tx')
         console.log('txOrderMsg', res.txOrderMsg)
 
-        await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
-        const pendingTxId = await db.pushPendingTx(
+        await db.updateSwap(
           {
-            field: 'readyTxId',
-            value: readyTx?.id as number,
+            field: 'id',
+            value: swap?.id as number,
           },
           {
             round: parseInt(res.txOrderMsg.round),
@@ -470,16 +469,6 @@ export async function sendEIP712Tx(
             proofHash: res.txOrderMsg.proofHash,
             sendDate: Math.floor(Date.now() / 1000),
             operatorSignature: res.signature,
-            readyTxId: readyTx?.id as number,
-            progressHere: 1,
-          }
-        )
-        await db.pushTxHistory(
-          { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
-          {
-            pendingTxId: parseInt(pendingTxId.toString()),
-            from: readyTx?.from as TokenAmount,
-            to: readyTx?.to as TokenAmount,
             status: Status.PENDING,
           }
         )
@@ -490,32 +479,6 @@ export async function sendEIP712Tx(
         }
       } else {
         console.log('operator sign verify error')
-        // await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
-        // const pendingTxId = await db.pushPendingTx(
-        //   {
-        //     field: 'readyTxId',
-        //     value: readyTx?.id as number,
-        //   },
-        //   {
-        //     round: doneRound,
-        //     order: -1,
-        //     proofHash: '',
-        //     sendDate: Math.floor(Date.now() / 1000),
-        //     operatorSignature: { r: '', s: '', v: 27 },
-        //     readyTxId: readyTx?.id as number,
-        //     progressHere: 1,
-        //   }
-        // )
-        // await db.pushTxHistory(
-        //   { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
-        //   {
-        //     pendingTxId: parseInt(pendingTxId.toString()),
-        //     from: readyTx?.from as TokenAmount,
-        //     to: readyTx?.to as TokenAmount,
-        //     status: Status.PENDING,
-        //   }
-        // )
-        // setCancel(readyTx?.id as number)
 
         throw new Error(`Operator answered wrong response.`)
         // return {
@@ -529,30 +492,22 @@ export async function sendEIP712Tx(
       const _currentRound = parseInt((await recorderContract.currentRound()).toString())
       const doneRound = _currentRound === 0 ? 0 : _currentRound - 1
 
-      await db.readyTxs.where({ id: readyTx?.id }).modify({ progressHere: 0 })
-      const pendingTxId = await db.pushPendingTx(
-        { field: 'readyTxId', value: readyTx?.id as number },
+      const id = await db.updateSwap(
+        {
+          field: 'id',
+          value: swap?.id as number,
+        },
         {
           round: doneRound,
           order: -1,
           proofHash: '',
           sendDate: Math.floor(Date.now() / 1000),
           operatorSignature: { r: '', s: '', v: 27 },
-          readyTxId: readyTx?.id as number,
-          progressHere: 1,
-        }
-      )
-      const txHistoryId = await db.pushTxHistory(
-        { field: 'pendingTxId', value: parseInt(pendingTxId.toString()) },
-        {
-          pendingTxId: parseInt(pendingTxId.toString()),
-          from: readyTx?.from as TokenAmount,
-          to: readyTx?.to as TokenAmount,
           status: Status.PENDING,
         }
       )
 
-      setCancel(txHistoryId as number)
+      setCancel(id as number)
 
       if (error.name === 'AbortError') {
         throw new Error(

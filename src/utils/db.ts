@@ -9,6 +9,55 @@ export enum Status {
   REIMBURSED,
 }
 
+export interface swap {
+  id?: number
+  tx?: TX
+  mimcHash?: string
+  txHash: string
+  from?: TokenAmount
+  to?: TokenAmount
+  fromResult?: TokenAmount
+  toResult?: TokenAmount
+
+  sendDate?: number
+
+  round?: number
+  order?: number
+  proofHash?: string
+  operatorSignature?: { r: string; s: string; v: number }
+
+  reimbursementTxId?: string
+  reimbursement?: TokenAmount
+  txId?: string
+  txDate?: number
+
+  status?: Status
+}
+
+export interface swapParam {
+  tx?: TX
+  mimcHash?: string
+  txHash?: string
+  from?: TokenAmount
+  to?: TokenAmount
+  fromResult?: TokenAmount
+  toResult?: TokenAmount
+
+  sendDate?: number
+
+  round?: number
+  order?: number
+  proofHash?: string
+  operatorSignature?: { r: string; s: string; v: number }
+
+  reimbursementTxId?: string
+  reimbursement?: TokenAmount
+  txId?: string
+  txDate?: number
+
+  status?: Status
+}
+
 export interface TX {
   txOwner: string
   functionSelector: string
@@ -90,6 +139,7 @@ export class MySubClassedDexie extends Dexie {
   readyTxs!: Table<ReadyTx>
   pendingTxs!: Table<PendingTx>
   txHistory!: Table<TxHistory>
+  swap!: Table<swap>
 
   constructor() {
     super('ThreeSixty')
@@ -97,7 +147,63 @@ export class MySubClassedDexie extends Dexie {
       readyTxs: '++id, txHash, progressHere',
       pendingTxs: '++id, readyTxId, sendDate, txOwner, nonce, round, order, txHash, progressHere',
       txHistory: '++id, pendingTxId, txDate, txId, fromToken, toToken',
+      swap: '++id, &txHash, status',
     })
+  }
+
+  /*
+  tx?: TX
+  mimcHash?: string
+  txHash?: string
+  from?: TokenAmount
+  to?: TokenAmount
+
+  sendDate?: number
+
+  round?: number
+  order?: number
+  proofHash?: string
+  operatorSignature?: { r: string; s: string; v: number }
+
+  reimbursementTxId?: string
+  reimbursement?: TokenAmount
+  txId?: string
+  txDate?: number
+
+  status: Status
+  */
+  async updateSwap(_where: { field: string; value: any }, _swap: swapParam) {
+    // return db.transaction('rw', db.swap, async () => {
+    if ((await db.swap.where(_where.field).equals(_where.value).count()) === 0) {
+      return undefined
+    } else {
+      const swapParam: any = {}
+      _swap.tx && (swapParam['tx'] = _swap.tx)
+      _swap.mimcHash && (swapParam['mimcHash'] = _swap.mimcHash)
+      _swap.from && (swapParam['from'] = _swap.from)
+      _swap.to && (swapParam['to'] = _swap.to)
+      _swap.fromResult && (swapParam['fromResult'] = _swap.fromResult)
+      _swap.toResult && (swapParam['toResult'] = _swap.toResult)
+      _swap.sendDate && (swapParam['sendDate'] = _swap.sendDate)
+      _swap.round && (swapParam['round'] = _swap.round)
+      _swap.order && (swapParam['order'] = _swap.order)
+      _swap.proofHash && (swapParam['proofHash'] = _swap.proofHash)
+      _swap.operatorSignature && (swapParam['operatorSignature'] = _swap.operatorSignature)
+      _swap.txId && (swapParam['txId'] = _swap.txId)
+      _swap.txDate && (swapParam['txDate'] = _swap.txDate)
+      _swap.status && (swapParam['status'] = _swap.status)
+
+      return await db.swap.where(_where.field).equals(_where.value).modify(swapParam)
+    }
+    // })
+  }
+
+  async setSwap(_swap: swap) {
+    // db.transaction('rw', db.swap, async () => {
+    const exist = await db.swap.where({ txHash: _swap.txHash }).count()
+    if (exist === 0) return await db.swap.add({ ..._swap, txHash: _swap.txHash as string })
+    return undefined
+    // })
   }
 
   async addReadyTx(_readyTx: ReadyTx) {

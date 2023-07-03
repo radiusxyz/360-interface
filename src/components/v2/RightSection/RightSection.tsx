@@ -476,7 +476,12 @@ export const RightSection = () => {
 
   const isSending = useRef<boolean>(false)
   useEffect(() => {
-    if (!isSending.current && swapCTX.swapParams.encryptorDone && swapCTX.swapParams.signingDone) {
+    if (
+      !isSending.current &&
+      swapCTX.swapParams.encryptorDone &&
+      swapCTX.swapParams.signingDone &&
+      !swapCTX.swapParams.sent
+    ) {
       isSending.current = true
       console.log('sendEncryptedTxFunc')
       sendEncryptedTxFunc().then(() => {
