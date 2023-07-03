@@ -6,7 +6,7 @@ import { L2_DEADLINE_FROM_NOW } from 'constants/misc'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
 import JSBI from 'jsbi'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { shallowEqual } from 'react-redux'
 import { useAppDispatch, useAppSelector } from 'state/hooks'
 
@@ -374,4 +374,19 @@ export function useTrackedTokenPairs(): [Token, Token][] {
 
     return Object.keys(keyed).map((key) => keyed[key])
   }, [combinedList])
+}
+
+export const useCheckAccountWhiteList = (account: string | null | undefined, swapParams: any) => {
+  const [accountWhiteList, setAccountWhiteList] = useState<boolean>(false)
+  useEffect(() => {
+    if (account) {
+      fetch(`${process.env.REACT_APP_360_OPERATOR}/whiteList?walletAddress=` + account)
+        .then(async (is) => {
+          const val = await is.text()
+          if (val === 'false') setAccountWhiteList(false)
+          else setAccountWhiteList(true)
+        })
+        .catch((e) => console.error(e))
+    }
+  }, [account, swapParams])
 }

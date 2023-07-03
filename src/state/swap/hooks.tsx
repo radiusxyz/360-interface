@@ -286,3 +286,8 @@ export function useDefaultsFromURLSearch(): SwapState {
 
   return parsedSwapState
 }
+
+// export function usePrepareSignMessage() {}
+// export function useCreateEncryptProof() {}
+// export function useSignTx() {}
+// export function useSendEncryptedTx() {}
