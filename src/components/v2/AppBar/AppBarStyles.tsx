@@ -76,10 +76,10 @@ export const Item = styled.li`
 
 export const Button = styled.button`
   border: none;
+  flex: 0;
   border-radius: 43px;
   width: 100%;
   background: #6b11ff;
-  max-width: 120px;
   padding: 9px 32px;
   font-weight: 500;
   font-size: 14px;
