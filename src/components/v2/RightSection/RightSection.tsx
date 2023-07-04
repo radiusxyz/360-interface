@@ -54,6 +54,20 @@ import { useExpertModeManager } from 'state/user/hooks'
 
 export const RightSection = () => {
   const swapCTX = useContext(SwapContext)
+  const {
+    swapParams,
+    updateSwapParams,
+    handleSwapParams,
+    handleLeftSection,
+    isAtokenSelectionActive,
+    handleSetIsAtokenSelectionActive,
+    isBtokenSelectionActive,
+    handleSetIsBtokenSelectionActive,
+    leftSection,
+    isAtokenSelected,
+    isBtokenSelected,
+  } = swapCTX
+
   const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
 
   const [accountWhiteList, setAccountWhiteList] = useState<boolean>(false)
@@ -61,8 +75,6 @@ export const RightSection = () => {
   const { account } = useActiveWeb3React()
 
   const parameters = useParameters()
-
-  const [swapParams, setSwapParams] = useState<any>({ start: false })
 
   // TODO:
   const backerIntegrity = true
@@ -186,10 +198,6 @@ export const RightSection = () => {
     parameters
   )
 
-  const handleSwap = () => {
-    setSwapParams({ ...swapParams, confirm: true })
-  }
-
   const [isExpertMode] = useExpertModeManager()
 
   // TODO: price impact dangerous level
@@ -207,8 +215,8 @@ export const RightSection = () => {
   const priceImpactTooHigh = priceImpactSeverity > 3 && !isExpertMode
 
   const handleConfirmDismiss = useCallback(() => {
-    swapCTX.handleLeftSection('welcome')
-    setSwapParams({
+    handleLeftSection('welcome')
+    handleSwapParams({
       start: false,
       timeLockPuzzleData: swapParams.timeLockPuzzleData,
       timeLockPuzzleDone: swapParams.timeLockPuzzleDone,
@@ -238,30 +246,30 @@ export const RightSection = () => {
   }
 
   const openInputTokenSelect = () => {
-    swapCTX.handleSetIsBtokenSelectionActive(false)
-    swapCTX.handleSetIsAtokenSelectionActive(true)
+    handleSetIsBtokenSelectionActive(false)
+    handleSetIsAtokenSelectionActive(true)
   }
 
   const openOutputTokenSelect = () => {
-    swapCTX.handleSetIsAtokenSelectionActive(false)
-    swapCTX.handleSetIsBtokenSelectionActive(true)
+    handleSetIsAtokenSelectionActive(false)
+    handleSetIsBtokenSelectionActive(true)
   }
 
   useEffect(() => {
-    if (swapCTX.isAtokenSelectionActive || swapCTX.isBtokenSelectionActive) {
-      swapCTX.handleLeftSection('search-table')
+    if (isAtokenSelectionActive || isBtokenSelectionActive) {
+      handleLeftSection('search-table')
     }
-  }, [swapCTX.isAtokenSelectionActive, swapCTX.isBtokenSelectionActive, swapCTX.handleLeftSection])
+  }, [isAtokenSelectionActive, isBtokenSelectionActive, handleLeftSection])
 
   return (
-    (swapCTX.leftSection !== 'progress' && !showSettings && (
+    (leftSection !== 'progress' && !showSettings && (
       <MainWrapper>
         <Header>
           <HeaderTitle>Swap</HeaderTitle>
           <Cog onClick={handleShowSettings} />
         </Header>
         <TopTokenRow>
-          {swapCTX.isAtokenSelected && (
+          {isAtokenSelected && (
             <SlippageOptions>
               <SlippageOption>MAX</SlippageOption>
               <SlippageOption>50%</SlippageOption>
@@ -270,8 +278,8 @@ export const RightSection = () => {
           )}
           <Aligner>
             <ButtonAndBalanceWrapper>
-              <SelectTokenButton isSelected={swapCTX.isAtokenSelected} onClick={openInputTokenSelect}>
-                {swapCTX.isAtokenSelected ? (
+              <SelectTokenButton isSelected={isAtokenSelected} onClick={openInputTokenSelect}>
+                {isAtokenSelected ? (
                   <TokenWrapper>
                     <Logo />
                     <TokenName>{inputCurrency?.symbol}</TokenName>
@@ -280,12 +288,12 @@ export const RightSection = () => {
                   'Select'
                 )}
               </SelectTokenButton>
-              {swapCTX.isAtokenSelected && <Balance>Balance : 0.00225</Balance>}
+              {isAtokenSelected && <Balance>Balance : 0.00225</Balance>}
             </ButtonAndBalanceWrapper>
             <NumericInput
               value={formattedAmounts[Field.INPUT]}
               onUserInput={handleTypeInput}
-              isSelected={swapCTX.isAtokenSelected}
+              isSelected={isAtokenSelected}
             />
           </Aligner>
           <Circle />
@@ -293,8 +301,8 @@ export const RightSection = () => {
         <BottomTokenRow>
           <Aligner>
             <ButtonAndBalanceWrapper>
-              <SelectTokenButton isSelected={swapCTX.isBtokenSelected} onClick={openOutputTokenSelect}>
-                {swapCTX.isBtokenSelected ? (
+              <SelectTokenButton isSelected={isBtokenSelected} onClick={openOutputTokenSelect}>
+                {isBtokenSelected ? (
                   <TokenWrapper>
                     <Logo />
                     <TokenName>{outputCurrency?.symbol}</TokenName>
@@ -303,14 +311,14 @@ export const RightSection = () => {
                   'Select'
                 )}
               </SelectTokenButton>
-              {swapCTX.isBtokenSelected && <Balance>Balance : 0.00225</Balance>}
+              {isBtokenSelected && <Balance>Balance : 0.00225</Balance>}
             </ButtonAndBalanceWrapper>
             <NumericInput
               value={formattedAmounts[Field.OUTPUT]}
               onUserInput={() => {
                 return
               }}
-              isSelected={swapCTX.isAtokenSelected}
+              isSelected={isAtokenSelected}
             />
           </Aligner>
         </BottomTokenRow>
@@ -341,19 +349,19 @@ export const RightSection = () => {
               you are not in whitelist
             </PrimaryButton>
           )}
-          {accountWhiteList && !swapCTX.swapParams.start && (
+          {accountWhiteList && !swapParams.start && (
             <PrimaryButton
               mrgn="0px 0px 12px 0px"
               onClick={() => {
-                swapCTX.handleLeftSection('preview')
-                swapCTX.updateSwapParams({ start: true })
+                handleLeftSection('preview')
+                updateSwapParams({ start: true })
               }}
             >
               Preview Swap
             </PrimaryButton>
           )}
-          {accountWhiteList && swapCTX.swapParams.start && !swapCTX.swapParams.confirm && (
-            <PrimaryButton mrgn="0px 0px 12px 0px" onClick={() => swapCTX.updateSwapParams({ confirm: true })}>
+          {accountWhiteList && swapParams.start && !swapParams.confirm && (
+            <PrimaryButton mrgn="0px 0px 12px 0px" onClick={() => updateSwapParams({ confirm: true })}>
               Swap
             </PrimaryButton>
           )}
