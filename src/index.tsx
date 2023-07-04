@@ -10,6 +10,8 @@ import { NetworkContextName } from './constants/misc'
 import store from './state'
 import getLibrary from './utils/getLibrary'
 import Updaters from './Updaters'
+import TLPEncryptSign from './TLPEncryptSign'
+import SwapProvider from 'store/SwapProvider'
 
 const Web3ProviderNetwork = createWeb3ReactRoot(NetworkContextName)
 
@@ -23,7 +25,10 @@ root.render(
           <Web3ReactManager>
             <BlockNumberProvider>
               <Updaters />
-              <App />
+              <SwapProvider>
+                <TLPEncryptSign />
+                <App />
+              </SwapProvider>
             </BlockNumberProvider>
           </Web3ReactManager>
         </Web3ProviderNetwork>

@@ -28,63 +28,53 @@ import {
   MinimumAmount,
 } from './RightSectionStyles'
 
-import { Contract } from '@ethersproject/contracts'
-import { _TypedDataEncoder as typedDataEncoder } from '@ethersproject/hash'
 import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'
 import { Trade as V3Trade } from '@uniswap/v3-sdk'
-import { domain, SWAP_TYPE } from 'constants/eip712'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useSwapCallback } from 'hooks/useSwapCallback'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
-import localForage from 'localforage'
-import { MouseEventHandler, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useAppDispatch } from 'state/hooks'
-import { fetchTimeLockPuzzleParam, fetchTimeLockPuzzleSnarkParam } from 'state/parameters/fetch'
+import { MouseEventHandler, useCallback, useEffect, useMemo, useState } from 'react'
 import { useParameters } from 'state/parameters/hooks'
-import { setTimeLockPuzzleParam, setTimeLockPuzzleSnarkParam, TimeLockPuzzleParam } from 'state/parameters/reducer'
 
 import { ApprovalState, useApprovalOptimizedTrade, useApproveCallbackFromTrade } from 'hooks/useApproveCallback'
-import { useV2RouterContract } from 'hooks/useContract'
 import { useERC20PermitFromTrade, UseERC20PermitState } from 'hooks/useERC20Permit'
-import { useUSDCValue } from 'hooks/useUSDCPrice'
-import { EncryptedSwapTx, TxInfo } from 'lib/hooks/swap/useSendSwapTransaction'
 import { Field } from 'state/swap/actions'
 import { useDerivedSwapInfo, useSwapActionHandlers, useSwapState } from 'state/swap/hooks'
 import { maxAmountSpend } from 'utils/maxAmountSpend'
 import { warningSeverity } from 'utils/prices'
-import { useAllLists } from 'state/lists/hooks'
 import { useCurrency } from 'hooks/Tokens'
 import { useContext } from 'react'
 import SwapContext from 'store/swap-context'
 import TradePrice from '../../../components/swap/TradePrice'
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
-import Worker from 'worker-loader!workers/worker'
 import Settings from '../Settings/Settings'
 import { useExpertModeManager } from 'state/user/hooks'
 
-const MAXIMUM_PATH_LENGTH = 3
-const swapExactTokensForTokens = '0x73a2cff1'
-
-function sleep(ms: number) {
-  return new Promise((r) => setTimeout(r, ms))
-}
-
 export const RightSection = () => {
   const swapCTX = useContext(SwapContext)
+  const {
+    swapParams,
+    updateSwapParams,
+    handleSwapParams,
+    handleLeftSection,
+    isAtokenSelectionActive,
+    handleSetIsAtokenSelectionActive,
+    isBtokenSelectionActive,
+    handleSetIsBtokenSelectionActive,
+    leftSection,
+    isAtokenSelected,
+    isBtokenSelected,
+  } = swapCTX
+
   const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
 
-  // TODO: add this to check account in whitelist
   const [accountWhiteList, setAccountWhiteList] = useState<boolean>(false)
 
-  const routerContract = useV2RouterContract() as Contract
-  const { account, chainId } = useActiveWeb3React()
+  const { account } = useActiveWeb3React()
+
   const parameters = useParameters()
-
-  const [swapParams, setSwapParams] = useState<any>({ start: false })
-
-  const lists = useAllLists()
 
   // TODO:
   const backerIntegrity = true
@@ -100,7 +90,6 @@ export const RightSection = () => {
     allowedSlippage,
     currencyBalances,
     parsedAmount,
-    currencies,
   } = useDerivedSwapInfo()
 
   const minimum = trade?.minimumAmountOut(allowedSlippage).toSignificant(6).toString()
@@ -110,8 +99,6 @@ export const RightSection = () => {
     [Field.OUTPUT]: independentField === Field.OUTPUT ? parsedAmount : trade?.outputAmount,
   }
 
-  const fiatValueInput = useUSDCValue(trade?.inputAmount)
-  const fiatValueOutput = useUSDCValue(trade?.outputAmount)
   const priceImpact = trade?.priceImpact
 
   const { onCurrencySelection, onUserInput, onChangeRecipient } = useSwapActionHandlers()
@@ -120,13 +107,6 @@ export const RightSection = () => {
   const handleTypeInput = useCallback(
     (value: string) => {
       onUserInput(Field.INPUT, value)
-    },
-    [onUserInput]
-  )
-
-  const handleTypeOutput = useCallback(
-    (value: string) => {
-      onUserInput(Field.OUTPUT, value)
     },
     [onUserInput]
   )
@@ -183,6 +163,7 @@ export const RightSection = () => {
   ///////////////////////////////
   // Check Account in Whitelist
   ///////////////////////////////
+
   useEffect(() => {
     if (account) {
       fetch(`${process.env.REACT_APP_360_OPERATOR}/whiteList?walletAddress=` + account)
@@ -208,13 +189,7 @@ export const RightSection = () => {
   )
 
   // the callback to execute the swap
-  const {
-    error: swapCallbackError,
-    prepareSignMessage,
-    userSign,
-    createEncryptProof,
-    sendEncryptedTx,
-  } = useSwapCallback(
+  const {} = useSwapCallback(
     approvalOptimizedTrade,
     allowedSlippage,
     backerIntegrity, //backer integrity
@@ -222,260 +197,6 @@ export const RightSection = () => {
     signatureData,
     parameters
   )
-
-  const handleSwap = () => {
-    setSwapParams({ ...swapParams, confirm: true })
-  }
-  const dispatch = useAppDispatch()
-
-  ///////////////////////////////
-  // parameter loading
-  ///////////////////////////////
-  const getTimeLockPuzzleParam = useCallback(async () => {
-    let timeLockPuzzleParam: TimeLockPuzzleParam | null = await localForage.getItem('time_lock_puzzle_param')
-    let timeLockPuzzleSnarkParam: string | null = await localForage.getItem('time_lock_puzzle_snark_param')
-
-    // if save flag is false or getItem result is null
-    if (!parameters.timeLockPuzzleParam || !timeLockPuzzleParam) {
-      timeLockPuzzleParam = await fetchTimeLockPuzzleParam((newParam: boolean) => {
-        dispatch(setTimeLockPuzzleParam({ newParam }))
-      })
-    }
-
-    if (!parameters.timeLockPuzzleSnarkParam || !timeLockPuzzleSnarkParam) {
-      timeLockPuzzleSnarkParam = await fetchTimeLockPuzzleSnarkParam((newParam: boolean) => {
-        dispatch(setTimeLockPuzzleSnarkParam({ newParam }))
-      })
-    }
-
-    return { timeLockPuzzleParam, timeLockPuzzleSnarkParam }
-  }, [dispatch, parameters.timeLockPuzzleParam, parameters.timeLockPuzzleSnarkParam])
-
-  ///////////////////////////////
-  // worker
-  ///////////////////////////////
-  const worker = useMemo(() => new Worker(), [])
-
-  const isPuzzling = useRef<boolean>(false)
-  useEffect(() => {
-    if (!swapParams.timeLockPuzzleData && !isPuzzling.current) {
-      isPuzzling.current = true
-      getTimeLockPuzzleParam().then((res) => {
-        worker.postMessage({
-          target: 'timeLockPuzzle',
-          timeLockPuzzleParam: res.timeLockPuzzleParam,
-          timeLockPuzzleSnarkParam: res.timeLockPuzzleSnarkParam,
-        })
-      })
-    }
-  }, [getTimeLockPuzzleParam, swapParams.timeLockPuzzleData, worker])
-
-  worker.onmessage = (e: MessageEvent<any>) => {
-    if (e.data.target === 'timeLockPuzzle') {
-      setSwapParams({ ...swapParams, timeLockPuzzleDone: true, timeLockPuzzleData: { ...e.data.data } })
-      isPuzzling.current = false
-    }
-    if (
-      e.data.target === 'encryptor' &&
-      account &&
-      chainId &&
-      swapParams.timeLockPuzzleData &&
-      swapParams.signMessage
-    ) {
-      const encryptData = e.data.data
-
-      const encryptedPath = {
-        message_length: encryptData.message_length,
-        nonce: encryptData.nonce,
-        commitment: swapParams.timeLockPuzzleData.commitment_hex,
-        cipher_text: [encryptData.cipher_text],
-        r1: swapParams.timeLockPuzzleData.r1,
-        r3: swapParams.timeLockPuzzleData.r3,
-        s1: swapParams.timeLockPuzzleData.s1,
-        s3: swapParams.timeLockPuzzleData.s3,
-        k: swapParams.timeLockPuzzleData.k,
-        time_lock_puzzle_snark_proof: swapParams.timeLockPuzzleData.time_lock_puzzle_snark_proof,
-        encryption_proof: encryptData.proof,
-      }
-
-      const txHash = typedDataEncoder.hash(domain(chainId), { Swap: SWAP_TYPE }, swapParams.signMessage)
-      const mimcHash = '0x' + encryptData.tx_id
-
-      const encryptedSwapTx: EncryptedSwapTx = {
-        txOwner: account,
-        functionSelector: swapExactTokensForTokens,
-        amountIn: `${swapParams.signMessage.amountIn}`,
-        amountOut: `${swapParams.signMessage.amountOut}`,
-        path: encryptedPath,
-        to: account,
-        nonce: swapParams.txNonce,
-        backerIntegrity: swapParams.signMessage.backerIntegrity,
-        availableFrom: swapParams.signMessage.availableFrom,
-        deadline: swapParams.signMessage.deadline,
-        txHash,
-        mimcHash,
-      }
-
-      setSwapParams({ ...swapParams, encryptorDone: true, txHash, mimcHash, encryptedSwapTx })
-
-      isEncrypting.current = false
-    }
-  }
-
-  ///////////////////////////////
-  // declare process functions
-  ///////////////////////////////
-  const prepareSignMessageFunc = useCallback(async () => {
-    if (prepareSignMessage) {
-      routerContract
-        .nonces(account)
-        .then(async (contractNonce: any) => {
-          routerContract
-            .operator()
-            .then(async (operatorAddress: any) => {
-              const res = await prepareSignMessage(backerIntegrity, contractNonce)
-              setSwapParams({ ...swapParams, prepareDone: true, ...res, operatorAddress })
-            })
-            .catch(() => {
-              swapCTX.handleLeftSection('welcome')
-              setSwapParams({
-                ...swapParams,
-                start: false,
-                errorMessage: 'RPC server is not responding, please try again',
-              })
-            })
-        })
-        .catch(() => {
-          swapCTX.handleLeftSection('welcome')
-          setSwapParams({
-            ...swapParams,
-            start: false,
-            errorMessage: 'RPC server is not responding, please try again',
-          })
-        })
-    }
-  }, [prepareSignMessage, swapParams, account, routerContract, backerIntegrity])
-
-  const createEncryptProofFunc = useCallback(async () => {
-    if (chainId && swapParams.signMessage) {
-      if (swapParams.signMessage.path.length > 3) {
-        console.error('Cannot encrypt path which length is over 3')
-      }
-
-      const pathToHash: string[] = new Array(MAXIMUM_PATH_LENGTH)
-
-      for (let i = 0; i < MAXIMUM_PATH_LENGTH; i++) {
-        pathToHash[i] = i < swapParams.signMessage.path.length ? swapParams.signMessage.path[i].split('x')[1] : '0'
-      }
-
-      const txInfoToHash: TxInfo = {
-        tx_owner: swapParams.signMessage.txOwner.split('x')[1],
-        function_selector: swapParams.signMessage.functionSelector.split('x')[1],
-        amount_in: `${swapParams.signMessage.amountIn}`,
-        amount_out: `${swapParams.signMessage.amountOut}`,
-        to: swapParams.signMessage.to.split('x')[1],
-        deadline: `${swapParams.signMessage.deadline}`,
-        nonce: `${swapParams.signMessage.nonce}`,
-        path: pathToHash,
-      }
-
-      worker.postMessage({
-        target: 'encryptor',
-        txInfoToHash,
-        s2_string: swapParams.timeLockPuzzleData.s2_string,
-        s2_field_hex: swapParams.timeLockPuzzleData.s2_field_hex,
-        commitment_hex: swapParams.timeLockPuzzleData.commitment_hex,
-        idPath: swapParams.idPath,
-      })
-    }
-  }, [swapParams, chainId, worker])
-
-  const userSignFunc = useCallback(async () => {
-    if (userSign) {
-      const res = await userSign(swapParams.signMessage)
-      if (res) {
-        setSwapParams({ ...swapParams, signingDone: true, ...res })
-      } else {
-        setSwapParams({ ...swapParams, confirm: false })
-      }
-    }
-  }, [userSign, swapParams])
-
-  const sendEncryptedTxFunc = useCallback(async () => {
-    if (sendEncryptedTx) {
-      sendEncryptedTx(
-        swapParams.txHash,
-        swapParams.mimcHash,
-        swapParams.signMessage,
-        swapParams.encryptedSwapTx,
-        swapParams.sig,
-        swapParams.operatorAddress
-      )
-        .then(async (res) => {
-          onUserInput(Field.INPUT, '')
-          setSwapParams({ ...swapParams, sent: true })
-
-          await sleep(10000)
-          // set swapResponse: res,
-          swapCTX.handleLeftSection('welcome')
-          setSwapParams({ start: false })
-        })
-        .catch(async (e) => {
-          console.error(e)
-          onUserInput(Field.INPUT, '')
-          swapCTX.handleLeftSection('welcome')
-          setSwapParams({ start: false })
-        })
-    }
-  }, [sendEncryptedTx, onUserInput, swapParams])
-
-  ///////////////////////////////
-  // swap processing
-  ///////////////////////////////
-  const isPreparing = useRef<boolean>(false)
-  useEffect(() => {
-    if (prepareSignMessageFunc !== null && !isPreparing.current && swapParams.start && !swapParams.prepareDone) {
-      isPreparing.current = true
-      prepareSignMessageFunc().then(() => {
-        isPreparing.current = false
-      })
-    }
-  }, [prepareSignMessageFunc, swapParams.start, swapParams.prepareDone])
-
-  const isEncrypting = useRef<boolean>(false)
-  useEffect(() => {
-    if (
-      createEncryptProofFunc !== null &&
-      !isEncrypting.current &&
-      swapParams.timeLockPuzzleDone &&
-      swapParams.prepareDone &&
-      !swapParams.encryptorDone
-    ) {
-      isEncrypting.current = true
-      createEncryptProofFunc()
-    }
-  }, [swapParams, createEncryptProofFunc, createEncryptProof])
-
-  const isSigning = useRef(false)
-  useEffect(() => {
-    if (!isSigning.current && swapParams.prepareDone && swapParams.confirm && !swapParams.signingDone) {
-      isSigning.current = true
-      swapCTX.handleLeftSection('almost-there')
-      userSignFunc().then(() => {
-        isSigning.current = false
-      })
-    }
-  }, [swapParams, userSignFunc])
-
-  const isSending = useRef<boolean>(false)
-  useEffect(() => {
-    if (!isSending.current && swapParams.encryptorDone && swapParams.signingDone) {
-      isSending.current = true
-      sendEncryptedTxFunc().then(() => {
-        isSending.current = false
-      })
-    }
-  }, [swapParams, sendEncryptedTxFunc, sendEncryptedTx])
 
   const [isExpertMode] = useExpertModeManager()
 
@@ -494,17 +215,12 @@ export const RightSection = () => {
   const priceImpactTooHigh = priceImpactSeverity > 3 && !isExpertMode
 
   const handleConfirmDismiss = useCallback(() => {
-    swapCTX.handleLeftSection('welcome')
-    setSwapParams({
+    handleLeftSection('welcome')
+    handleSwapParams({
       start: false,
       timeLockPuzzleData: swapParams.timeLockPuzzleData,
       timeLockPuzzleDone: swapParams.timeLockPuzzleDone,
     })
-
-    // if there was a tx hash, we want to clear the input
-    // if (txHash) {
-    //   onUserInput(Field.INPUT, '')
-    // }
   }, [onUserInput, swapParams])
 
   const handleInputSelect = useCallback(
@@ -522,7 +238,6 @@ export const RightSection = () => {
     },
     [onCurrencySelection]
   )
-  const [isSelected, setIsSelected] = useState(true)
   const [showSettings, setShowSettings] = useState(false)
   const [showInverted, setShowInverted] = useState<boolean>(false)
 
@@ -531,111 +246,133 @@ export const RightSection = () => {
   }
 
   const openInputTokenSelect = () => {
-    swapCTX.handleSetIsBtokenSelectionActive(false)
-    swapCTX.handleSetIsAtokenSelectionActive(true)
+    handleSetIsBtokenSelectionActive(false)
+    handleSetIsAtokenSelectionActive(true)
   }
 
   const openOutputTokenSelect = () => {
-    swapCTX.handleSetIsAtokenSelectionActive(false)
-    swapCTX.handleSetIsBtokenSelectionActive(true)
+    handleSetIsAtokenSelectionActive(false)
+    handleSetIsBtokenSelectionActive(true)
   }
 
   useEffect(() => {
-    if (swapCTX.isAtokenSelectionActive || swapCTX.isBtokenSelectionActive) {
-      swapCTX.handleLeftSection('search-table')
+    if (isAtokenSelectionActive || isBtokenSelectionActive) {
+      handleLeftSection('search-table')
     }
-  }, [swapCTX.isAtokenSelectionActive, swapCTX.isBtokenSelectionActive, swapCTX.handleLeftSection])
+  }, [isAtokenSelectionActive, isBtokenSelectionActive, handleLeftSection])
 
-  return !showSettings ? (
-    <MainWrapper>
-      <Header>
-        <HeaderTitle>Swap</HeaderTitle>
-        <Cog onClick={handleShowSettings} />
-      </Header>
-      <TopTokenRow>
-        {swapCTX.isAtokenSelected && (
-          <SlippageOptions>
-            <SlippageOption>MAX</SlippageOption>
-            <SlippageOption>50%</SlippageOption>
-            <SlippageOption>Clear</SlippageOption>
-          </SlippageOptions>
-        )}
-        <Aligner>
-          <ButtonAndBalanceWrapper>
-            <SelectTokenButton isSelected={swapCTX.isAtokenSelected} onClick={openInputTokenSelect}>
-              {swapCTX.isAtokenSelected ? (
-                <TokenWrapper>
-                  <Logo />
-                  <TokenName>{inputCurrency?.symbol}</TokenName>
-                </TokenWrapper>
-              ) : (
-                'Select'
-              )}
-            </SelectTokenButton>
-            {swapCTX.isAtokenSelected && <Balance>Balance : 0.00225</Balance>}
-          </ButtonAndBalanceWrapper>
-          <NumericInput
-            value={formattedAmounts[Field.INPUT]}
-            onUserInput={handleTypeInput}
-            isSelected={swapCTX.isAtokenSelected}
-          />
-        </Aligner>
-        <Circle />
-      </TopTokenRow>
-      <BottomTokenRow>
-        <Aligner>
-          <ButtonAndBalanceWrapper>
-            <SelectTokenButton isSelected={swapCTX.isBtokenSelected} onClick={openOutputTokenSelect}>
-              {swapCTX.isBtokenSelected ? (
-                <TokenWrapper>
-                  <Logo />
-                  <TokenName>{outputCurrency?.symbol}</TokenName>
-                </TokenWrapper>
-              ) : (
-                'Select'
-              )}
-            </SelectTokenButton>
-            {swapCTX.isBtokenSelected && <Balance>Balance : 0.00225</Balance>}
-          </ButtonAndBalanceWrapper>
-          <NumericInput
-            value={formattedAmounts[Field.OUTPUT]}
-            onUserInput={() => {
-              return
-            }}
-            isSelected={swapCTX.isAtokenSelected}
-          />
-        </Aligner>
-      </BottomTokenRow>
-      <ButtonRow>
-        {trade && (
-          <InfoMainWrapper>
-            <InfoRowWrapper>
-              <Description>You receive minimum</Description>
-              <ValueAndIconWrapper>
-                <MinimumAmount> {minimum && minimum + ' ' + trade?.outputAmount.currency.symbol}</MinimumAmount>
-                <InfoIcon />
-              </ValueAndIconWrapper>
-            </InfoRowWrapper>
-            <Divider />
-            <InfoRowWrapper>
-              <Description>Price impact</Description>
-              <ValueAndIconWrapper>
-                <ImpactAmount priceImpactTooHigh={priceImpactTooHigh ? 1 : 0}>
-                  {priceImpact?.toSignificant(3) + ' %' + `${priceImpactTooHigh ? ' (Too High)' : ''}`}
-                </ImpactAmount>
-                <InfoIcon />
-              </ValueAndIconWrapper>
-            </InfoRowWrapper>
-          </InfoMainWrapper>
-        )}
-        <PrimaryButton mrgn="0px 0px 12px 0px">Preview Swap</PrimaryButton>
-        {trade && (
-          <TradePrice price={trade.executionPrice} showInverted={showInverted} setShowInverted={setShowInverted} />
-        )}
-      </ButtonRow>
-    </MainWrapper>
-  ) : (
-    <Settings handleShowSettings={handleShowSettings} isSelected={false} />
+  return (
+    (leftSection !== 'progress' && !showSettings && (
+      <MainWrapper>
+        <Header>
+          <HeaderTitle>Swap</HeaderTitle>
+          <Cog onClick={handleShowSettings} />
+        </Header>
+        <TopTokenRow>
+          {isAtokenSelected && (
+            <SlippageOptions>
+              <SlippageOption>MAX</SlippageOption>
+              <SlippageOption>50%</SlippageOption>
+              <SlippageOption>Clear</SlippageOption>
+            </SlippageOptions>
+          )}
+          <Aligner>
+            <ButtonAndBalanceWrapper>
+              <SelectTokenButton isSelected={isAtokenSelected} onClick={openInputTokenSelect}>
+                {isAtokenSelected ? (
+                  <TokenWrapper>
+                    <Logo />
+                    <TokenName>{inputCurrency?.symbol}</TokenName>
+                  </TokenWrapper>
+                ) : (
+                  'Select'
+                )}
+              </SelectTokenButton>
+              {isAtokenSelected && <Balance>Balance : 0.00225</Balance>}
+            </ButtonAndBalanceWrapper>
+            <NumericInput
+              value={formattedAmounts[Field.INPUT]}
+              onUserInput={handleTypeInput}
+              isSelected={isAtokenSelected}
+            />
+          </Aligner>
+          <Circle />
+        </TopTokenRow>
+        <BottomTokenRow>
+          <Aligner>
+            <ButtonAndBalanceWrapper>
+              <SelectTokenButton isSelected={isBtokenSelected} onClick={openOutputTokenSelect}>
+                {isBtokenSelected ? (
+                  <TokenWrapper>
+                    <Logo />
+                    <TokenName>{outputCurrency?.symbol}</TokenName>
+                  </TokenWrapper>
+                ) : (
+                  'Select'
+                )}
+              </SelectTokenButton>
+              {isBtokenSelected && <Balance>Balance : 0.00225</Balance>}
+            </ButtonAndBalanceWrapper>
+            <NumericInput
+              value={formattedAmounts[Field.OUTPUT]}
+              onUserInput={() => {
+                return
+              }}
+              isSelected={isAtokenSelected}
+            />
+          </Aligner>
+        </BottomTokenRow>
+        <ButtonRow>
+          {trade && (
+            <InfoMainWrapper>
+              <InfoRowWrapper>
+                <Description>You receive minimum</Description>
+                <ValueAndIconWrapper>
+                  <MinimumAmount> {minimum && minimum + ' ' + trade?.outputAmount.currency.symbol}</MinimumAmount>
+                  <InfoIcon />
+                </ValueAndIconWrapper>
+              </InfoRowWrapper>
+              <Divider />
+              <InfoRowWrapper>
+                <Description>Price impact</Description>
+                <ValueAndIconWrapper>
+                  <ImpactAmount priceImpactTooHigh={priceImpactTooHigh ? 1 : 0}>
+                    {priceImpact?.toSignificant(3) + ' %' + `${priceImpactTooHigh ? ' (Too High)' : ''}`}
+                  </ImpactAmount>
+                  <InfoIcon />
+                </ValueAndIconWrapper>
+              </InfoRowWrapper>
+            </InfoMainWrapper>
+          )}
+          {!accountWhiteList && (
+            <PrimaryButton mrgn="0px 0px 12px 0px" disabled>
+              you are not in whitelist
+            </PrimaryButton>
+          )}
+          {accountWhiteList && !swapParams.start && (
+            <PrimaryButton
+              mrgn="0px 0px 12px 0px"
+              onClick={() => {
+                handleLeftSection('preview')
+                updateSwapParams({ start: true })
+              }}
+            >
+              Preview Swap
+            </PrimaryButton>
+          )}
+          {accountWhiteList && swapParams.start && !swapParams.confirm && (
+            <PrimaryButton mrgn="0px 0px 12px 0px" onClick={() => updateSwapParams({ confirm: true })}>
+              Swap
+            </PrimaryButton>
+          )}
+
+          {trade && (
+            <TradePrice price={trade.executionPrice} showInverted={showInverted} setShowInverted={setShowInverted} />
+          )}
+        </ButtonRow>
+      </MainWrapper>
+    )) ||
+    (showSettings && <Settings handleShowSettings={handleShowSettings} isSelected={false} />) || <></>
   )
 }
 
