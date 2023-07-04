@@ -14,16 +14,37 @@ import {
   Start,
   ProgressBarWithSpans,
 } from './CurvedProgressStyles'
+import { useContext } from 'react'
+import SwapContext from 'store/swap-context'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db, Status } from 'utils/db'
 
 type Props = {
   percentage: number
 }
 
 export const CurvedProgress = ({ percentage }: Props) => {
+  const swapCTX = useContext(SwapContext)
+
+  const status = useLiveQuery(async () => {
+    const tx = await db.getRecentTxHistory()
+    if (!tx) return -1
+    return tx.status
+  })
+
+  let progress = 0
+  if (status === Status.PENDING) progress = 50
+  if (status === Status.COMPLETED) progress = 100
+  if (status === Status.REJECTED) progress = 100
+
   const width = 232
   const r = 108.5
   const strokeDasharray = 2 * Math.PI * r
-  const strokeDashoffset = strokeDasharray - (strokeDasharray * percentage) / 200
+  const strokeDashoffset = strokeDasharray - (strokeDasharray * progress) / 200
+
+  // if (row && row[0].status === Status.PENDING) setProgress(50)
+  // if (row && row[0].status === Status.COMPLETED) setProgress(100)
+  // if (row && row[0].status === Status.REJECTED) setProgress(100)
 
   return (
     <Wrapper>
@@ -32,7 +53,14 @@ export const CurvedProgress = ({ percentage }: Props) => {
           <Description>Ready to go! Transaction in progress.</Description>
           <Explanation>You can go do other things now! Your swap is still being processed.</Explanation>
         </Info>
-        <Button>New Swap</Button>
+        <Button
+          onClick={() => {
+            swapCTX.handleLeftSection('welcome')
+            swapCTX.handleSwapParams({ start: false })
+          }}
+        >
+          New Swap
+        </Button>
       </Head>
       <Body>
         <ProgressBarWithSpans>
@@ -66,12 +94,12 @@ export const CurvedProgress = ({ percentage }: Props) => {
           </SVG>
           <Emoji />
           <Start>1.006 ETH</Start>
-          <Middle passed={percentage >= 50}> NO FEE</Middle>
-          <Finish passed={percentage === 100}>0.100 DAI</Finish>
+          <Middle passed={progress >= 50}> NO FEE</Middle>
+          <Finish passed={progress === 100}>0.100 DAI</Finish>
         </ProgressBarWithSpans>
 
-        {(percentage === 100 && <Note>Your wallet is getting heavier!</Note>) ||
-          (percentage >= 50 && (
+        {(progress === 100 && <Note>Your wallet is getting heavier!</Note>) ||
+          (progress >= 50 && (
             <Note>
               Almost there!
               <br />

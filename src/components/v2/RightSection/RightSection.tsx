@@ -256,123 +256,124 @@ export const RightSection = () => {
   }
 
   useEffect(() => {
+    if (trade && leftSection === 'welcome') {
+      handleLeftSection('preview')
+    }
+  }, [trade, leftSection, handleLeftSection])
+
+  useEffect(() => {
     if (isAtokenSelectionActive || isBtokenSelectionActive) {
       handleLeftSection('search-table')
     }
   }, [isAtokenSelectionActive, isBtokenSelectionActive, handleLeftSection])
 
-  return (
-    (leftSection !== 'progress' && !showSettings && (
-      <MainWrapper>
-        <Header>
-          <HeaderTitle>Swap</HeaderTitle>
-          <Cog onClick={handleShowSettings} />
-        </Header>
-        <TopTokenRow>
-          {isAtokenSelected && (
-            <SlippageOptions>
-              <SlippageOption>MAX</SlippageOption>
-              <SlippageOption>50%</SlippageOption>
-              <SlippageOption>Clear</SlippageOption>
-            </SlippageOptions>
-          )}
-          <Aligner>
-            <ButtonAndBalanceWrapper>
-              <SelectTokenButton isSelected={isAtokenSelected} onClick={openInputTokenSelect}>
-                {isAtokenSelected ? (
-                  <TokenWrapper>
-                    <Logo />
-                    <TokenName>{inputCurrency?.symbol}</TokenName>
-                  </TokenWrapper>
-                ) : (
-                  'Select'
-                )}
-              </SelectTokenButton>
-              {isAtokenSelected && <Balance>Balance : 0.00225</Balance>}
-            </ButtonAndBalanceWrapper>
-            <NumericInput
-              value={formattedAmounts[Field.INPUT]}
-              onUserInput={handleTypeInput}
-              isSelected={isAtokenSelected}
-            />
-          </Aligner>
-          <Circle />
-        </TopTokenRow>
-        <BottomTokenRow>
-          <Aligner>
-            <ButtonAndBalanceWrapper>
-              <SelectTokenButton isSelected={isBtokenSelected} onClick={openOutputTokenSelect}>
-                {isBtokenSelected ? (
-                  <TokenWrapper>
-                    <Logo />
-                    <TokenName>{outputCurrency?.symbol}</TokenName>
-                  </TokenWrapper>
-                ) : (
-                  'Select'
-                )}
-              </SelectTokenButton>
-              {isBtokenSelected && <Balance>Balance : 0.00225</Balance>}
-            </ButtonAndBalanceWrapper>
-            <NumericInput
-              value={formattedAmounts[Field.OUTPUT]}
-              onUserInput={() => {
-                return
-              }}
-              isSelected={isAtokenSelected}
-            />
-          </Aligner>
-        </BottomTokenRow>
-        <ButtonRow>
-          {trade && (
-            <InfoMainWrapper>
-              <InfoRowWrapper>
-                <Description>You receive minimum</Description>
-                <ValueAndIconWrapper>
-                  <MinimumAmount> {minimum && minimum + ' ' + trade?.outputAmount.currency.symbol}</MinimumAmount>
-                  <InfoIcon />
-                </ValueAndIconWrapper>
-              </InfoRowWrapper>
-              <Divider />
-              <InfoRowWrapper>
-                <Description>Price impact</Description>
-                <ValueAndIconWrapper>
-                  <ImpactAmount priceImpactTooHigh={priceImpactTooHigh ? 1 : 0}>
-                    {priceImpact?.toSignificant(3) + ' %' + `${priceImpactTooHigh ? ' (Too High)' : ''}`}
-                  </ImpactAmount>
-                  <InfoIcon />
-                </ValueAndIconWrapper>
-              </InfoRowWrapper>
-            </InfoMainWrapper>
-          )}
-          {!accountWhiteList && (
-            <PrimaryButton mrgn="0px 0px 12px 0px" disabled>
-              you are not in whitelist
-            </PrimaryButton>
-          )}
-          {accountWhiteList && !swapParams.start && (
-            <PrimaryButton
-              mrgn="0px 0px 12px 0px"
-              onClick={() => {
-                handleLeftSection('preview')
-                updateSwapParams({ start: true })
-              }}
-            >
-              Preview Swap
-            </PrimaryButton>
-          )}
-          {accountWhiteList && swapParams.start && !swapParams.confirm && (
-            <PrimaryButton mrgn="0px 0px 12px 0px" onClick={() => updateSwapParams({ confirm: true })}>
-              Swap
-            </PrimaryButton>
-          )}
+  return leftSection === 'progress' || leftSection === 'almost-there' ? (
+    <></>
+  ) : !showSettings ? (
+    <MainWrapper>
+      <Header>
+        <HeaderTitle>Swap</HeaderTitle>
+        <Cog onClick={handleShowSettings} />
+      </Header>
+      <TopTokenRow>
+        {isAtokenSelected && (
+          <SlippageOptions>
+            <SlippageOption>MAX</SlippageOption>
+            <SlippageOption>50%</SlippageOption>
+            <SlippageOption>Clear</SlippageOption>
+          </SlippageOptions>
+        )}
+        <Aligner>
+          <ButtonAndBalanceWrapper>
+            <SelectTokenButton isSelected={isAtokenSelected} onClick={openInputTokenSelect}>
+              {isAtokenSelected ? (
+                <TokenWrapper>
+                  <Logo />
+                  <TokenName>{inputCurrency?.symbol}</TokenName>
+                </TokenWrapper>
+              ) : (
+                'Select'
+              )}
+            </SelectTokenButton>
+            {isAtokenSelected && <Balance>Balance : 0.00225</Balance>}
+          </ButtonAndBalanceWrapper>
+          <NumericInput
+            value={formattedAmounts[Field.INPUT]}
+            onUserInput={handleTypeInput}
+            isSelected={isAtokenSelected}
+          />
+        </Aligner>
+        <Circle />
+      </TopTokenRow>
+      <BottomTokenRow>
+        <Aligner>
+          <ButtonAndBalanceWrapper>
+            <SelectTokenButton isSelected={isBtokenSelected} onClick={openOutputTokenSelect}>
+              {isBtokenSelected ? (
+                <TokenWrapper>
+                  <Logo />
+                  <TokenName>{outputCurrency?.symbol}</TokenName>
+                </TokenWrapper>
+              ) : (
+                'Select'
+              )}
+            </SelectTokenButton>
+            {isBtokenSelected && <Balance>Balance : 0.00225</Balance>}
+          </ButtonAndBalanceWrapper>
+          <NumericInput
+            value={formattedAmounts[Field.OUTPUT]}
+            onUserInput={() => {
+              return
+            }}
+            isSelected={isAtokenSelected}
+          />
+        </Aligner>
+      </BottomTokenRow>
+      <ButtonRow>
+        {trade && (
+          <InfoMainWrapper>
+            <InfoRowWrapper>
+              <Description>You receive minimum</Description>
+              <ValueAndIconWrapper>
+                <MinimumAmount> {minimum && minimum + ' ' + trade?.outputAmount.currency.symbol}</MinimumAmount>
+                <InfoIcon />
+              </ValueAndIconWrapper>
+            </InfoRowWrapper>
+            <Divider />
+            <InfoRowWrapper>
+              <Description>Price impact</Description>
+              <ValueAndIconWrapper>
+                <ImpactAmount priceImpactTooHigh={priceImpactTooHigh ? 1 : 0}>
+                  {priceImpact?.toSignificant(3) + ' %' + `${priceImpactTooHigh ? ' (Too High)' : ''}`}
+                </ImpactAmount>
+                <InfoIcon />
+              </ValueAndIconWrapper>
+            </InfoRowWrapper>
+          </InfoMainWrapper>
+        )}
+        {!accountWhiteList && (
+          <PrimaryButton mrgn="0px 0px 12px 0px" disabled>
+            you are not in whitelist
+          </PrimaryButton>
+        )}
+        {accountWhiteList && (
+          <PrimaryButton
+            mrgn="0px 0px 12px 0px"
+            onClick={() => {
+              updateSwapParams({ start: true })
+            }}
+          >
+            Swap
+          </PrimaryButton>
+        )}
 
-          {trade && (
-            <TradePrice price={trade.executionPrice} showInverted={showInverted} setShowInverted={setShowInverted} />
-          )}
-        </ButtonRow>
-      </MainWrapper>
-    )) ||
-    (showSettings && <Settings handleShowSettings={handleShowSettings} isSelected={false} />) || <></>
+        {trade && (
+          <TradePrice price={trade.executionPrice} showInverted={showInverted} setShowInverted={setShowInverted} />
+        )}
+      </ButtonRow>
+    </MainWrapper>
+  ) : (
+    <Settings handleShowSettings={handleShowSettings} isSelected={false} />
   )
 }
 

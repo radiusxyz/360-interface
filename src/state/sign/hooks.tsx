@@ -72,7 +72,7 @@ export const useUserSignFunc = (
         updateSwapParams({ signingDone: true, ...res })
         handleLeftSection('progress')
       } else {
-        updateSwapParams({ confirm: false })
+        updateSwapParams({ start: false })
       }
     }
   }, [userSign, swapParams])

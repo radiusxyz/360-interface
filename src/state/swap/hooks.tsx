@@ -294,7 +294,7 @@ export function usePrepareSignMessage(
   prepareSignMessageFunc: () => Promise<void>
 ) {
   const swapCTX = useContext(SwapContext)
-  const { start, prepareDone } = swapCTX
+  const { start, prepareDone } = swapCTX.swapParams
   useEffect(() => {
     if (prepareSignMessageFunc !== null && !isPreparing.current && start && !prepareDone) {
       isPreparing.current = true
@@ -323,7 +323,7 @@ export function useCreateEncryptProof(
     | undefined
 ) {
   const swapCTX = useContext(SwapContext)
-  const { swapParams, timeLockPuzzleDone, prepareDone, encryptorDone } = swapCTX
+  const { timeLockPuzzleDone, prepareDone, encryptorDone } = swapCTX.swapParams
   useEffect(() => {
     if (
       createEncryptProofFunc !== null &&
@@ -335,15 +335,16 @@ export function useCreateEncryptProof(
       isEncrypting.current = true
       createEncryptProofFunc()
     }
-  }, [swapParams, createEncryptProofFunc, createEncryptProof])
+  }, [timeLockPuzzleDone, prepareDone, encryptorDone, createEncryptProofFunc, createEncryptProof])
 }
 
 // Sign transaction
 export function useSignTx(isSigning: React.MutableRefObject<boolean>, userSignFunc: () => Promise<void>) {
   const swapCTX = useContext(SwapContext)
-  const { swapParams, handleLeftSection, prepareDone, signingDone, confirm } = swapCTX
+  const { swapParams, handleLeftSection } = swapCTX
+  const { prepareDone, signingDone, start } = swapParams
   useEffect(() => {
-    if (!isSigning.current && prepareDone && confirm && !signingDone) {
+    if (!isSigning.current && prepareDone && start && !signingDone) {
       isSigning.current = true
       handleLeftSection('almost-there')
       userSignFunc().then(() => {
@@ -360,7 +361,7 @@ export function useSendEncryptedTx(
   sendEncryptedTxFunc: () => Promise<void>
 ) {
   const swapCTX = useContext(SwapContext)
-  const { swapParams, encryptorDone, signingDone } = swapCTX
+  const { encryptorDone, signingDone } = swapCTX.swapParams
   useEffect(() => {
     if (!isSending.current && encryptorDone && signingDone) {
       isSending.current = true
@@ -368,5 +369,5 @@ export function useSendEncryptedTx(
         isSending.current = false
       })
     }
-  }, [swapParams, sendEncryptedTxFunc])
+  }, [swapCTX, sendEncryptedTxFunc])
 }

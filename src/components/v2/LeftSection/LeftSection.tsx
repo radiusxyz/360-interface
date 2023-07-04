@@ -2,9 +2,10 @@ import React, { useContext } from 'react'
 import Search from '../../../components/v2/Search/Search'
 import Preview from '../../../components/v2/Preview/Preview'
 import AlmostThere from '../../../components/v2/AlmostThere/AlmostThere'
-import { useSwapActionHandlers } from 'state/swap/hooks'
+import { useSwapActionHandlers, useSwapState } from 'state/swap/hooks'
 import { FerrisWheel, GreetingMessage, Wrapper } from './LeftSectionStyles'
 import SwapContext from 'store/swap-context'
+import { CurvedProgress } from '../Progress/CurvedProgress'
 
 export const LeftSection = () => {
   const swapCTX = useContext(SwapContext)
@@ -21,6 +22,7 @@ export const LeftSection = () => {
   // }
 
   const { onCurrencySelection } = useSwapActionHandlers()
+  const { typedValue } = useSwapState()
 
   return (
     <>
@@ -30,13 +32,15 @@ export const LeftSection = () => {
           <GreetingMessage>
             {(!swapCTX.isAtokenSelected && 'Select a token') ||
               (swapCTX.isAtokenSelected && !swapCTX.isBtokenSelected && 'Select another token') ||
+              (swapCTX.isAtokenSelected && swapCTX.isBtokenSelected && typedValue === '' && 'Fill input amount') ||
               (swapCTX.isAtokenSelected && swapCTX.isBtokenSelected && 'Click swap')}
           </GreetingMessage>
         </Wrapper>
       )) ||
         (swapCTX.leftSection === 'search-table' && <Search onCurrencySelection={onCurrencySelection} />) ||
         (swapCTX.leftSection === 'preview' && <Preview />) ||
-        (swapCTX.leftSection === 'almost-there' && <AlmostThere />)}
+        (swapCTX.leftSection === 'almost-there' && <AlmostThere />) ||
+        (swapCTX.leftSection === 'progress' && <CurvedProgress percentage={0} />)}
     </>
   )
 }

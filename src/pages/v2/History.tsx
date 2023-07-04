@@ -1,6 +1,5 @@
 import Tabs from 'components/v2/Transactions/Tabs'
 import TransactionList from 'components/v2/Transactions/TransactionList'
-import cuid from 'cuid'
 import { useState } from 'react'
 import styled from 'styled-components/macro'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -15,46 +14,6 @@ const Wrapper = styled.div`
   align-items: flex-start;
   padding: 18px 0px;
 `
-
-const data = [
-  {
-    id: cuid(),
-    status: 'Pending',
-    date: '18 April 2023 - 5:18 PM',
-    from: '0.001 WMATIC',
-    to: '0.000000557497 ETH',
-  },
-  {
-    id: cuid(),
-    status: 'Failed',
-    date: '18 April 2023 - 5:18 PM',
-    from: '0.001 WMATIC',
-    to: '0.000000557497 ETH',
-    reimbursed: true,
-  },
-  {
-    id: cuid(),
-    status: 'Completed',
-    date: '18 April 2023 - 5:18 PM',
-    from: '0.001 WMATIC',
-    to: '0.000000557497 ETH',
-  },
-  {
-    id: cuid(),
-    status: 'Failed',
-    date: '18 April 2023 - 5:18 PM',
-    from: '0.001 WMATIC',
-    to: '0.000000557497 ETH',
-    reimbursed: false,
-  },
-  {
-    id: cuid(),
-    status: 'Pending',
-    date: '18 April 2023 - 5:18 PM',
-    from: '0.001 WMATIC',
-    to: '0.000000557497 ETH',
-  },
-]
 
 const History = () => {
   // const [txs, setTxs] = useState(data)
@@ -79,7 +38,7 @@ const History = () => {
   const rowsPerPage = 10
 
   const rows = useLiveQuery(async () => {
-    const history = await db.txHistory
+    const history = await db.swap
       .orderBy('id')
       .reverse()
       .offset(activePage * rowsPerPage)
@@ -95,17 +54,29 @@ const History = () => {
 
   console.log(rows)
 
-  const txs: { id: string; status: string; date: string; from: string; to: string }[] = []
+  const txs: { id: string; status: string; date: string; from: string; to: string; reimbursed?: boolean }[] = []
 
   rows?.forEach((row) => {
-    console.log(row, token2str(row.from), token2str(row.to))
-    txs.push({
-      id: row.id ? row.id.toString() : '-1',
-      date: new Date(row.txDate).toDateString(),
-      status: 'pending',
-      from: token2str(row.from),
-      to: token2str(row.to),
-    })
+    console.log('row', row)
+    if (row.fromResult && row.toResult && row.txDate) {
+      console.log(row, token2str(row.fromResult), token2str(row.toResult))
+      txs.push({
+        id: row.id ? row.id.toString() : '-1',
+        status: 'pending',
+        date: new Date(row.txDate).toDateString(),
+        from: token2str(row.fromResult),
+        to: token2str(row.toResult),
+      })
+    } else if (row.from && row.to && row.txDate) {
+      console.log(row, token2str(row.from), token2str(row.to))
+      txs.push({
+        id: row.id ? row.id.toString() : '-1',
+        status: 'pending',
+        date: new Date(row.txDate * 1000).toDateString(),
+        from: token2str(row.from),
+        to: token2str(row.to),
+      })
+    }
   })
 
   function token2str(row: { amount: string; decimal: string; token: string }) {
@@ -124,7 +95,7 @@ const History = () => {
   return (
     <Wrapper>
       <Tabs handleTabClick={handleTabClick} activeTab={activeTab} />
-      <TransactionList txs={txs} status={activeTab} />
+      <TransactionList txs={txs} status={'In Progress'} />
     </Wrapper>
   )
 }
