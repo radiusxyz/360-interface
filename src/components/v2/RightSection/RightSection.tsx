@@ -224,7 +224,7 @@ export const RightSection = () => {
   )
 
   const handleSwap = () => {
-    swapCTX.updateSwapParams({ confirm: true })
+    swapCTX.updateSwapParams({ start: true })
   }
   const dispatch = useAppDispatch()
 
@@ -396,7 +396,7 @@ export const RightSection = () => {
         swapCTX.updateSwapParams({ signingDone: true, ...res })
         swapCTX.handleLeftSection('progress')
       } else {
-        swapCTX.updateSwapParams({ confirm: false })
+        swapCTX.updateSwapParams({ start: false })
       }
     }
   }, [userSign, swapCTX.swapParams])
@@ -413,9 +413,7 @@ export const RightSection = () => {
       )
         .then(async (res) => {
           onUserInput(Field.INPUT, '')
-          swapCTX.updateSwapParams({ sent: true })
-          // swapCTX.handleLeftSection('welcome')
-          // swapCTX.handleSwapParams({ start: false })
+          swapCTX.handleSwapParams({ start: false })
         })
         .catch(async (e) => {
           console.error(e)
@@ -463,7 +461,7 @@ export const RightSection = () => {
     if (
       !isSigning.current &&
       swapCTX.swapParams.prepareDone &&
-      swapCTX.swapParams.confirm &&
+      swapCTX.swapParams.start &&
       !swapCTX.swapParams.signingDone
     ) {
       isSigning.current = true
@@ -476,12 +474,7 @@ export const RightSection = () => {
 
   const isSending = useRef<boolean>(false)
   useEffect(() => {
-    if (
-      !isSending.current &&
-      swapCTX.swapParams.encryptorDone &&
-      swapCTX.swapParams.signingDone &&
-      !swapCTX.swapParams.sent
-    ) {
+    if (!isSending.current && swapCTX.swapParams.encryptorDone && swapCTX.swapParams.signingDone) {
       isSending.current = true
       console.log('sendEncryptedTxFunc')
       sendEncryptedTxFunc().then(() => {
@@ -553,12 +546,18 @@ export const RightSection = () => {
   }
 
   useEffect(() => {
+    if (trade && swapCTX.leftSection === 'welcome') {
+      swapCTX.handleLeftSection('preview')
+    }
+  }, [trade, swapCTX])
+
+  useEffect(() => {
     if (swapCTX.isAtokenSelectionActive || swapCTX.isBtokenSelectionActive) {
       swapCTX.handleLeftSection('search-table')
     }
-  }, [swapCTX.isAtokenSelectionActive, swapCTX.isBtokenSelectionActive, swapCTX.handleLeftSection])
+  }, [swapCTX])
 
-  return swapCTX.leftSection === 'progress' ? (
+  return swapCTX.leftSection === 'progress' || swapCTX.leftSection === 'almost-there' ? (
     <></>
   ) : !showSettings ? (
     <MainWrapper>
@@ -647,19 +646,13 @@ export const RightSection = () => {
             you are not in whitelist
           </PrimaryButton>
         )}
-        {accountWhiteList && !swapCTX.swapParams.start && (
+        {accountWhiteList && (
           <PrimaryButton
             mrgn="0px 0px 12px 0px"
             onClick={() => {
-              swapCTX.handleLeftSection('preview')
               swapCTX.updateSwapParams({ start: true })
             }}
           >
-            Preview Swap
-          </PrimaryButton>
-        )}
-        {accountWhiteList && swapCTX.swapParams.start && !swapCTX.swapParams.confirm && (
-          <PrimaryButton mrgn="0px 0px 12px 0px" onClick={() => swapCTX.updateSwapParams({ confirm: true })}>
             Swap
           </PrimaryButton>
         )}
