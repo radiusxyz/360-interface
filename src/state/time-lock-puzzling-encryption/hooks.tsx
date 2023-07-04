@@ -49,7 +49,6 @@ export const useGetTimeLockPuzzleParam = () => {
 
 export function useMakeTimeLockPuzzle(
   isPuzzling: React.MutableRefObject<boolean>,
-  timeLockPuzzleData: any,
   worker: Worker,
   getTimeLockPuzzleParams: () => Promise<{
     timeLockPuzzleParam: TimeLockPuzzleParam
@@ -57,6 +56,8 @@ export function useMakeTimeLockPuzzle(
   }>
 ) {
   // If there is no timeLockPuzzleData or currently not being made, then  start making it
+  const swapCTX = useContext(SwapContext)
+  const { timeLockPuzzleData } = swapCTX
   useEffect(() => {
     if (!timeLockPuzzleData && !isPuzzling.current) {
       isPuzzling.current = true
@@ -75,16 +76,9 @@ export function useMakeTimeLockPuzzle(
 // Create a function for creating zk proof for time-lock puzzle validity
 ///////////////////////////////
 
-export const useCreateEncryptProofFunc = (
-  chainId: number | undefined,
-  signMessage: any,
-  MAXIMUM_PATH_LENGTH: number,
-  worker: Worker,
-  timeLockPuzzleData: any,
-  idPath: any
-) => {
+export const useCreateEncryptProofFunc = (chainId: number | undefined, MAXIMUM_PATH_LENGTH: number, worker: Worker) => {
   const swapCTX = useContext(SwapContext)
-  const { swapParams } = swapCTX
+  const { swapParams, signMessage, timeLockPuzzleData, idPath } = swapCTX
   const createEncryptProofFunc = useCallback(async () => {
     if (chainId && signMessage) {
       if (signMessage.path.length > 3) {
@@ -127,17 +121,22 @@ export const useCreateEncryptProofFunc = (
 
 export const useSendEncryptedTxFunc = (
   sendEncryptedTx: any,
-  txHash: any,
-  mimcHash: any,
-  signMessage: any,
-  encryptedSwapTx: any,
-  sig: any,
-  operatorAddress: any,
   onUserInput: (field: Field, typedValue: string) => void,
   fieldInput: Field
 ) => {
   const swapCTX = useContext(SwapContext)
-  const { updateSwapParams, handleLeftSection, handleSwapParams, swapParams } = swapCTX
+  const {
+    updateSwapParams,
+    handleLeftSection,
+    handleSwapParams,
+    swapParams,
+    txHash,
+    mimcHash,
+    signMessage,
+    encryptedSwapTx,
+    sig,
+    operatorAddress,
+  } = swapCTX
   const sendEncryptedTxFunc = useCallback(async () => {
     if (sendEncryptedTx) {
       sendEncryptedTx(txHash, mimcHash, signMessage, encryptedSwapTx, sig, operatorAddress)

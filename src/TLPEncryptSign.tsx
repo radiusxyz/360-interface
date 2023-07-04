@@ -44,23 +44,8 @@ export const TLPEncryptSign = () => {
   const swapCTX = useContext(SwapContext)
   const { swapParams, updateSwapParams } = swapCTX
 
-  const {
-    timeLockPuzzleData,
-    timeLockPuzzleDone,
-    signMessage,
-    txNonce,
-    idPath,
-    txHash,
-    mimcHash,
-    encryptedSwapTx,
-    sig,
-    operatorAddress,
-    prepareDone,
-    encryptorDone,
-    start,
-    confirm,
-    signingDone,
-  } = swapParams
+  const { timeLockPuzzleData, signMessage, txNonce } = swapParams
+
   const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
 
   // TODO: add this to check account in whitelist
@@ -126,7 +111,7 @@ export const TLPEncryptSign = () => {
 
   // Start making the time-lock puzzle inside worker
 
-  useMakeTimeLockPuzzle(isPuzzling, timeLockPuzzleData, worker, getTimeLockPuzzleParams)
+  useMakeTimeLockPuzzle(isPuzzling, worker, getTimeLockPuzzleParams)
 
   // Proceed in accordance with the message passed by the worker into the main thread
 
@@ -191,7 +176,7 @@ export const TLPEncryptSign = () => {
 
   // When "Preview swap" is clicked, preparation of swap processing starts
   // If it is not prepared, currently not started and not done then start preparing
-  usePrepareSignMessage(isPreparing, start, prepareDone, prepareSignMessageFunc)
+  usePrepareSignMessage(isPreparing, prepareSignMessageFunc)
 
   // Set initial state
 
@@ -199,24 +184,10 @@ export const TLPEncryptSign = () => {
 
   // Define encryption proof creator function
 
-  const createEncryptProofFunc = useCreateEncryptProofFunc(
-    chainId,
-    signMessage,
-    MAXIMUM_PATH_LENGTH,
-    worker,
-    timeLockPuzzleData,
-    idPath
-  )
+  const createEncryptProofFunc = useCreateEncryptProofFunc(chainId, MAXIMUM_PATH_LENGTH, worker)
 
   // Encrypt transaction
-  useCreateEncryptProof(
-    isEncrypting,
-    createEncryptProofFunc,
-    createEncryptProof,
-    timeLockPuzzleDone,
-    prepareDone,
-    encryptorDone
-  )
+  useCreateEncryptProof(isEncrypting, createEncryptProofFunc, createEncryptProof)
 
   // Set initial state
 
@@ -228,7 +199,7 @@ export const TLPEncryptSign = () => {
 
   // Sign transaction
 
-  useSignTx(isSigning, prepareDone, signingDone, confirm, userSignFunc)
+  useSignTx(isSigning, userSignFunc)
 
   // Set initial state
 
@@ -236,21 +207,11 @@ export const TLPEncryptSign = () => {
 
   // Define encrypted tx sender function
 
-  const sendEncryptedTxFunc = useSendEncryptedTxFunc(
-    sendEncryptedTx,
-    txHash,
-    mimcHash,
-    signMessage,
-    encryptedSwapTx,
-    sig,
-    operatorAddress,
-    onUserInput,
-    Field.INPUT
-  )
+  const sendEncryptedTxFunc = useSendEncryptedTxFunc(sendEncryptedTx, onUserInput, Field.INPUT)
 
   // Send transaction
 
-  useSendEncryptedTx(isSending, encryptorDone, signingDone, sendEncryptedTxFunc)
+  useSendEncryptedTx(isSending, sendEncryptedTxFunc)
   return <></>
 }
 

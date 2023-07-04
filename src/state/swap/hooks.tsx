@@ -291,10 +291,10 @@ export function useDefaultsFromURLSearch(): SwapState {
 
 export function usePrepareSignMessage(
   isPreparing: React.MutableRefObject<boolean>,
-  start: any,
-  prepareDone: any,
   prepareSignMessageFunc: () => Promise<void>
 ) {
+  const swapCTX = useContext(SwapContext)
+  const { start, prepareDone } = swapCTX
   useEffect(() => {
     if (prepareSignMessageFunc !== null && !isPreparing.current && start && !prepareDone) {
       isPreparing.current = true
@@ -320,13 +320,10 @@ export function useCreateEncryptProof(
         mimcHash: string
         encryptedSwapTx: any
       }>)
-    | undefined,
-  timeLockPuzzleDone: any,
-  prepareDone: any,
-  encryptorDone: any
+    | undefined
 ) {
   const swapCTX = useContext(SwapContext)
-  const { swapParams } = swapCTX
+  const { swapParams, timeLockPuzzleDone, prepareDone, encryptorDone } = swapCTX
   useEffect(() => {
     if (
       createEncryptProofFunc !== null &&
@@ -342,15 +339,9 @@ export function useCreateEncryptProof(
 }
 
 // Sign transaction
-export function useSignTx(
-  isSigning: React.MutableRefObject<boolean>,
-  prepareDone: any,
-  signingDone: any,
-  confirm: any,
-  userSignFunc: () => Promise<void>
-) {
+export function useSignTx(isSigning: React.MutableRefObject<boolean>, userSignFunc: () => Promise<void>) {
   const swapCTX = useContext(SwapContext)
-  const { swapParams, handleLeftSection } = swapCTX
+  const { swapParams, handleLeftSection, prepareDone, signingDone, confirm } = swapCTX
   useEffect(() => {
     if (!isSigning.current && prepareDone && confirm && !signingDone) {
       isSigning.current = true
@@ -365,12 +356,11 @@ export function useSignTx(
 // Send encrypted transaction
 export function useSendEncryptedTx(
   isSending: React.MutableRefObject<boolean>,
-  encryptorDone: any,
-  signingDone: any,
+
   sendEncryptedTxFunc: () => Promise<void>
 ) {
   const swapCTX = useContext(SwapContext)
-  const { swapParams } = swapCTX
+  const { swapParams, encryptorDone, signingDone } = swapCTX
   useEffect(() => {
     if (!isSending.current && encryptorDone && signingDone) {
       isSending.current = true
