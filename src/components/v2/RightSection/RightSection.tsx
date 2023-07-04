@@ -28,63 +28,53 @@ import {
   MinimumAmount,
 } from './RightSectionStyles'
 
-import { Contract } from '@ethersproject/contracts'
-import { _TypedDataEncoder as typedDataEncoder } from '@ethersproject/hash'
 import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'
 import { Trade as V3Trade } from '@uniswap/v3-sdk'
-import { domain, SWAP_TYPE } from 'constants/eip712'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useSwapCallback } from 'hooks/useSwapCallback'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
-import localForage from 'localforage'
-import { MouseEventHandler, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useAppDispatch } from 'state/hooks'
-import { fetchTimeLockPuzzleParam, fetchTimeLockPuzzleSnarkParam } from 'state/parameters/fetch'
+import { MouseEventHandler, useCallback, useEffect, useMemo, useState } from 'react'
 import { useParameters } from 'state/parameters/hooks'
-import { setTimeLockPuzzleParam, setTimeLockPuzzleSnarkParam, TimeLockPuzzleParam } from 'state/parameters/reducer'
 
 import { ApprovalState, useApprovalOptimizedTrade, useApproveCallbackFromTrade } from 'hooks/useApproveCallback'
-import { useV2RouterContract } from 'hooks/useContract'
 import { useERC20PermitFromTrade, UseERC20PermitState } from 'hooks/useERC20Permit'
-import { useUSDCValue } from 'hooks/useUSDCPrice'
-import { EncryptedSwapTx, TxInfo } from 'lib/hooks/swap/useSendSwapTransaction'
 import { Field } from 'state/swap/actions'
 import { useDerivedSwapInfo, useSwapActionHandlers, useSwapState } from 'state/swap/hooks'
 import { maxAmountSpend } from 'utils/maxAmountSpend'
 import { warningSeverity } from 'utils/prices'
-import { useAllLists } from 'state/lists/hooks'
 import { useCurrency } from 'hooks/Tokens'
 import { useContext } from 'react'
 import SwapContext from 'store/swap-context'
 import TradePrice from '../../../components/swap/TradePrice'
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
-import Worker from 'worker-loader!workers/worker'
 import Settings from '../Settings/Settings'
 import { useExpertModeManager } from 'state/user/hooks'
 
-const MAXIMUM_PATH_LENGTH = 3
-const swapExactTokensForTokens = '0x73a2cff1'
-
-function sleep(ms: number) {
-  return new Promise((r) => setTimeout(r, ms))
-}
-
 export const RightSection = () => {
   const swapCTX = useContext(SwapContext)
+  const {
+    swapParams,
+    updateSwapParams,
+    handleSwapParams,
+    handleLeftSection,
+    isAtokenSelectionActive,
+    handleSetIsAtokenSelectionActive,
+    isBtokenSelectionActive,
+    handleSetIsBtokenSelectionActive,
+    leftSection,
+    isAtokenSelected,
+    isBtokenSelected,
+  } = swapCTX
+
   const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
 
-  // TODO: add this to check account in whitelist
   const [accountWhiteList, setAccountWhiteList] = useState<boolean>(false)
 
-  const routerContract = useV2RouterContract() as Contract
-  const { account, chainId } = useActiveWeb3React()
+  const { account } = useActiveWeb3React()
+
   const parameters = useParameters()
-
-  // const [swapParams, setSwapParams] = useState<any>({ start: false })
-
-  const lists = useAllLists()
 
   // TODO:
   const backerIntegrity = true
@@ -100,7 +90,6 @@ export const RightSection = () => {
     allowedSlippage,
     currencyBalances,
     parsedAmount,
-    currencies,
   } = useDerivedSwapInfo()
 
   const minimum = trade?.minimumAmountOut(allowedSlippage).toSignificant(6).toString()
@@ -110,8 +99,6 @@ export const RightSection = () => {
     [Field.OUTPUT]: independentField === Field.OUTPUT ? parsedAmount : trade?.outputAmount,
   }
 
-  const fiatValueInput = useUSDCValue(trade?.inputAmount)
-  const fiatValueOutput = useUSDCValue(trade?.outputAmount)
   const priceImpact = trade?.priceImpact
 
   const { onCurrencySelection, onUserInput, onChangeRecipient } = useSwapActionHandlers()
@@ -120,13 +107,6 @@ export const RightSection = () => {
   const handleTypeInput = useCallback(
     (value: string) => {
       onUserInput(Field.INPUT, value)
-    },
-    [onUserInput]
-  )
-
-  const handleTypeOutput = useCallback(
-    (value: string) => {
-      onUserInput(Field.OUTPUT, value)
     },
     [onUserInput]
   )
@@ -183,6 +163,7 @@ export const RightSection = () => {
   ///////////////////////////////
   // Check Account in Whitelist
   ///////////////////////////////
+
   useEffect(() => {
     if (account) {
       fetch(`${process.env.REACT_APP_360_OPERATOR}/whiteList?walletAddress=` + account)
@@ -193,7 +174,7 @@ export const RightSection = () => {
         })
         .catch((e) => console.error(e))
     }
-  }, [account, swapCTX.swapParams])
+  }, [account, swapParams])
 
   // mark when a user has submitted an approval, reset onTokenSelection for input field
   useEffect(() => {
@@ -208,13 +189,7 @@ export const RightSection = () => {
   )
 
   // the callback to execute the swap
-  const {
-    error: swapCallbackError,
-    prepareSignMessage,
-    userSign,
-    createEncryptProof,
-    sendEncryptedTx,
-  } = useSwapCallback(
+  const {} = useSwapCallback(
     approvalOptimizedTrade,
     allowedSlippage,
     backerIntegrity, //backer integrity
@@ -222,266 +197,6 @@ export const RightSection = () => {
     signatureData,
     parameters
   )
-
-  const handleSwap = () => {
-    swapCTX.updateSwapParams({ start: true })
-  }
-  const dispatch = useAppDispatch()
-
-  ///////////////////////////////
-  // parameter loading
-  ///////////////////////////////
-  const getTimeLockPuzzleParam = useCallback(async () => {
-    let timeLockPuzzleParam: TimeLockPuzzleParam | null = await localForage.getItem('time_lock_puzzle_param')
-    let timeLockPuzzleSnarkParam: string | null = await localForage.getItem('time_lock_puzzle_snark_param')
-
-    // if save flag is false or getItem result is null
-    if (!parameters.timeLockPuzzleParam || !timeLockPuzzleParam) {
-      timeLockPuzzleParam = await fetchTimeLockPuzzleParam((newParam: boolean) => {
-        dispatch(setTimeLockPuzzleParam({ newParam }))
-      })
-    }
-
-    if (!parameters.timeLockPuzzleSnarkParam || !timeLockPuzzleSnarkParam) {
-      timeLockPuzzleSnarkParam = await fetchTimeLockPuzzleSnarkParam((newParam: boolean) => {
-        dispatch(setTimeLockPuzzleSnarkParam({ newParam }))
-      })
-    }
-
-    return { timeLockPuzzleParam, timeLockPuzzleSnarkParam }
-  }, [dispatch, parameters.timeLockPuzzleParam, parameters.timeLockPuzzleSnarkParam])
-
-  ///////////////////////////////
-  // worker
-  ///////////////////////////////
-  const worker = useMemo(() => new Worker(), [])
-
-  const isPuzzling = useRef<boolean>(false)
-  useEffect(() => {
-    if (!swapCTX.swapParams.timeLockPuzzleData && !isPuzzling.current) {
-      isPuzzling.current = true
-      getTimeLockPuzzleParam().then((res) => {
-        worker.postMessage({
-          target: 'timeLockPuzzle',
-          timeLockPuzzleParam: res.timeLockPuzzleParam,
-          timeLockPuzzleSnarkParam: res.timeLockPuzzleSnarkParam,
-        })
-      })
-    }
-  }, [getTimeLockPuzzleParam, swapCTX.swapParams.timeLockPuzzleData, worker])
-
-  worker.onmessage = (e: MessageEvent<any>) => {
-    if (e.data.target === 'timeLockPuzzle') {
-      swapCTX.updateSwapParams({ timeLockPuzzleDone: true, timeLockPuzzleData: { ...e.data.data } })
-      isPuzzling.current = false
-    }
-    if (
-      e.data.target === 'encryptor' &&
-      account &&
-      chainId &&
-      swapCTX.swapParams.timeLockPuzzleData &&
-      swapCTX.swapParams.signMessage
-    ) {
-      const encryptData = e.data.data
-
-      const encryptedPath = {
-        message_length: encryptData.message_length,
-        nonce: encryptData.nonce,
-        commitment: swapCTX.swapParams.timeLockPuzzleData.commitment_hex,
-        cipher_text: [encryptData.cipher_text],
-        r1: swapCTX.swapParams.timeLockPuzzleData.r1,
-        r3: swapCTX.swapParams.timeLockPuzzleData.r3,
-        s1: swapCTX.swapParams.timeLockPuzzleData.s1,
-        s3: swapCTX.swapParams.timeLockPuzzleData.s3,
-        k: swapCTX.swapParams.timeLockPuzzleData.k,
-        time_lock_puzzle_snark_proof: swapCTX.swapParams.timeLockPuzzleData.time_lock_puzzle_snark_proof,
-        encryption_proof: encryptData.proof,
-      }
-
-      const txHash = typedDataEncoder.hash(domain(chainId), { Swap: SWAP_TYPE }, swapCTX.swapParams.signMessage)
-      const mimcHash = '0x' + encryptData.tx_id
-
-      const encryptedSwapTx: EncryptedSwapTx = {
-        txOwner: account,
-        functionSelector: swapExactTokensForTokens,
-        amountIn: `${swapCTX.swapParams.signMessage.amountIn}`,
-        amountOut: `${swapCTX.swapParams.signMessage.amountOut}`,
-        path: encryptedPath,
-        to: account,
-        nonce: swapCTX.swapParams.txNonce,
-        backerIntegrity: swapCTX.swapParams.signMessage.backerIntegrity,
-        availableFrom: swapCTX.swapParams.signMessage.availableFrom,
-        deadline: swapCTX.swapParams.signMessage.deadline,
-        txHash,
-        mimcHash,
-      }
-
-      swapCTX.updateSwapParams({ encryptorDone: true, txHash, mimcHash, encryptedSwapTx })
-
-      isEncrypting.current = false
-    }
-  }
-
-  ///////////////////////////////
-  // declare process functions
-  ///////////////////////////////
-  const prepareSignMessageFunc = useCallback(async () => {
-    if (prepareSignMessage) {
-      routerContract
-        .nonces(account)
-        .then(async (contractNonce: any) => {
-          routerContract
-            .operator()
-            .then(async (operatorAddress: any) => {
-              const res = await prepareSignMessage(backerIntegrity, contractNonce)
-              swapCTX.updateSwapParams({ prepareDone: true, ...res, operatorAddress })
-            })
-            .catch(() => {
-              swapCTX.handleLeftSection('welcome')
-              swapCTX.handleSwapParams({
-                start: false,
-                errorMessage: 'RPC server is not responding, please try again',
-              })
-            })
-        })
-        .catch(() => {
-          swapCTX.handleLeftSection('welcome')
-          swapCTX.handleSwapParams({
-            start: false,
-            errorMessage: 'RPC server is not responding, please try again',
-          })
-        })
-    }
-  }, [prepareSignMessage, swapCTX.swapParams, account, routerContract, backerIntegrity])
-
-  const createEncryptProofFunc = useCallback(async () => {
-    if (chainId && swapCTX.swapParams.signMessage) {
-      if (swapCTX.swapParams.signMessage.path.length > 3) {
-        console.error('Cannot encrypt path which length is over 3')
-      }
-
-      const pathToHash: string[] = new Array(MAXIMUM_PATH_LENGTH)
-
-      for (let i = 0; i < MAXIMUM_PATH_LENGTH; i++) {
-        pathToHash[i] =
-          i < swapCTX.swapParams.signMessage.path.length ? swapCTX.swapParams.signMessage.path[i].split('x')[1] : '0'
-      }
-
-      const txInfoToHash: TxInfo = {
-        tx_owner: swapCTX.swapParams.signMessage.txOwner.split('x')[1],
-        function_selector: swapCTX.swapParams.signMessage.functionSelector.split('x')[1],
-        amount_in: `${swapCTX.swapParams.signMessage.amountIn}`,
-        amount_out: `${swapCTX.swapParams.signMessage.amountOut}`,
-        to: swapCTX.swapParams.signMessage.to.split('x')[1],
-        deadline: `${swapCTX.swapParams.signMessage.deadline}`,
-        nonce: `${swapCTX.swapParams.signMessage.nonce}`,
-        path: pathToHash,
-      }
-
-      worker.postMessage({
-        target: 'encryptor',
-        txInfoToHash,
-        s2_string: swapCTX.swapParams.timeLockPuzzleData.s2_string,
-        s2_field_hex: swapCTX.swapParams.timeLockPuzzleData.s2_field_hex,
-        commitment_hex: swapCTX.swapParams.timeLockPuzzleData.commitment_hex,
-        idPath: swapCTX.swapParams.idPath,
-      })
-    }
-  }, [swapCTX.swapParams, chainId, worker])
-
-  const userSignFunc = useCallback(async () => {
-    if (userSign) {
-      const res = await userSign(swapCTX.swapParams.signMessage)
-      if (res) {
-        swapCTX.updateSwapParams({ signingDone: true, ...res })
-        swapCTX.handleLeftSection('progress')
-      } else {
-        swapCTX.updateSwapParams({ start: false })
-      }
-    }
-  }, [userSign, swapCTX.swapParams])
-
-  const sendEncryptedTxFunc = useCallback(async () => {
-    if (sendEncryptedTx) {
-      sendEncryptedTx(
-        swapCTX.swapParams.txHash,
-        swapCTX.swapParams.mimcHash,
-        swapCTX.swapParams.signMessage,
-        swapCTX.swapParams.encryptedSwapTx,
-        swapCTX.swapParams.sig,
-        swapCTX.swapParams.operatorAddress
-      )
-        .then(async (res) => {
-          onUserInput(Field.INPUT, '')
-          swapCTX.handleSwapParams({ start: false })
-        })
-        .catch(async (e) => {
-          console.error(e)
-          onUserInput(Field.INPUT, '')
-          swapCTX.handleLeftSection('welcome')
-          swapCTX.handleSwapParams({ start: false })
-        })
-    }
-  }, [sendEncryptedTx, onUserInput, swapCTX.swapParams])
-
-  ///////////////////////////////
-  // swap processing
-  ///////////////////////////////
-  const isPreparing = useRef<boolean>(false)
-  useEffect(() => {
-    if (
-      prepareSignMessageFunc !== null &&
-      !isPreparing.current &&
-      swapCTX.swapParams.start &&
-      !swapCTX.swapParams.prepareDone
-    ) {
-      isPreparing.current = true
-      prepareSignMessageFunc().then(() => {
-        isPreparing.current = false
-      })
-    }
-  }, [prepareSignMessageFunc, swapCTX.swapParams.start, swapCTX.swapParams.prepareDone])
-
-  const isEncrypting = useRef<boolean>(false)
-  useEffect(() => {
-    if (
-      createEncryptProofFunc !== null &&
-      !isEncrypting.current &&
-      swapCTX.swapParams.timeLockPuzzleDone &&
-      swapCTX.swapParams.prepareDone &&
-      !swapCTX.swapParams.encryptorDone
-    ) {
-      isEncrypting.current = true
-      createEncryptProofFunc()
-    }
-  }, [swapCTX.swapParams, createEncryptProofFunc, createEncryptProof])
-
-  const isSigning = useRef(false)
-  useEffect(() => {
-    if (
-      !isSigning.current &&
-      swapCTX.swapParams.prepareDone &&
-      swapCTX.swapParams.start &&
-      !swapCTX.swapParams.signingDone
-    ) {
-      isSigning.current = true
-      swapCTX.handleLeftSection('almost-there')
-      userSignFunc().then(() => {
-        isSigning.current = false
-      })
-    }
-  }, [swapCTX.swapParams, userSignFunc])
-
-  const isSending = useRef<boolean>(false)
-  useEffect(() => {
-    if (!isSending.current && swapCTX.swapParams.encryptorDone && swapCTX.swapParams.signingDone) {
-      isSending.current = true
-      console.log('sendEncryptedTxFunc')
-      sendEncryptedTxFunc().then(() => {
-        isSending.current = false
-      })
-    }
-  }, [swapCTX.swapParams, sendEncryptedTxFunc])
 
   const [isExpertMode] = useExpertModeManager()
 
@@ -500,18 +215,13 @@ export const RightSection = () => {
   const priceImpactTooHigh = priceImpactSeverity > 3 && !isExpertMode
 
   const handleConfirmDismiss = useCallback(() => {
-    swapCTX.handleLeftSection('welcome')
-    swapCTX.handleSwapParams({
+    handleLeftSection('welcome')
+    handleSwapParams({
       start: false,
-      timeLockPuzzleData: swapCTX.swapParams.timeLockPuzzleData,
-      timeLockPuzzleDone: swapCTX.swapParams.timeLockPuzzleDone,
+      timeLockPuzzleData: swapParams.timeLockPuzzleData,
+      timeLockPuzzleDone: swapParams.timeLockPuzzleDone,
     })
-
-    // if there was a tx hash, we want to clear the input
-    // if (txHash) {
-    //   onUserInput(Field.INPUT, '')
-    // }
-  }, [onUserInput, swapCTX.swapParams])
+  }, [onUserInput, swapParams])
 
   const handleInputSelect = useCallback(
     (inputCurrency: any) => {
@@ -536,28 +246,28 @@ export const RightSection = () => {
   }
 
   const openInputTokenSelect = () => {
-    swapCTX.handleSetIsBtokenSelectionActive(false)
-    swapCTX.handleSetIsAtokenSelectionActive(true)
+    handleSetIsBtokenSelectionActive(false)
+    handleSetIsAtokenSelectionActive(true)
   }
 
   const openOutputTokenSelect = () => {
-    swapCTX.handleSetIsAtokenSelectionActive(false)
-    swapCTX.handleSetIsBtokenSelectionActive(true)
+    handleSetIsAtokenSelectionActive(false)
+    handleSetIsBtokenSelectionActive(true)
   }
 
   useEffect(() => {
-    if (trade && swapCTX.leftSection === 'welcome') {
-      swapCTX.handleLeftSection('preview')
+    if (trade && leftSection === 'welcome') {
+      handleLeftSection('preview')
     }
-  }, [trade, swapCTX])
+  }, [trade, leftSection, handleLeftSection])
 
   useEffect(() => {
-    if (swapCTX.isAtokenSelectionActive || swapCTX.isBtokenSelectionActive) {
-      swapCTX.handleLeftSection('search-table')
+    if (isAtokenSelectionActive || isBtokenSelectionActive) {
+      handleLeftSection('search-table')
     }
-  }, [swapCTX])
+  }, [isAtokenSelectionActive, isBtokenSelectionActive, handleLeftSection])
 
-  return swapCTX.leftSection === 'progress' || swapCTX.leftSection === 'almost-there' ? (
+  return leftSection === 'progress' || leftSection === 'almost-there' ? (
     <></>
   ) : !showSettings ? (
     <MainWrapper>
@@ -566,7 +276,7 @@ export const RightSection = () => {
         <Cog onClick={handleShowSettings} />
       </Header>
       <TopTokenRow>
-        {swapCTX.isAtokenSelected && (
+        {isAtokenSelected && (
           <SlippageOptions>
             <SlippageOption>MAX</SlippageOption>
             <SlippageOption>50%</SlippageOption>
@@ -575,8 +285,8 @@ export const RightSection = () => {
         )}
         <Aligner>
           <ButtonAndBalanceWrapper>
-            <SelectTokenButton isSelected={swapCTX.isAtokenSelected} onClick={openInputTokenSelect}>
-              {swapCTX.isAtokenSelected ? (
+            <SelectTokenButton isSelected={isAtokenSelected} onClick={openInputTokenSelect}>
+              {isAtokenSelected ? (
                 <TokenWrapper>
                   <Logo />
                   <TokenName>{inputCurrency?.symbol}</TokenName>
@@ -585,12 +295,12 @@ export const RightSection = () => {
                 'Select'
               )}
             </SelectTokenButton>
-            {swapCTX.isAtokenSelected && <Balance>Balance : 0.00225</Balance>}
+            {isAtokenSelected && <Balance>Balance : 0.00225</Balance>}
           </ButtonAndBalanceWrapper>
           <NumericInput
             value={formattedAmounts[Field.INPUT]}
             onUserInput={handleTypeInput}
-            isSelected={swapCTX.isAtokenSelected}
+            isSelected={isAtokenSelected}
           />
         </Aligner>
         <Circle />
@@ -598,8 +308,8 @@ export const RightSection = () => {
       <BottomTokenRow>
         <Aligner>
           <ButtonAndBalanceWrapper>
-            <SelectTokenButton isSelected={swapCTX.isBtokenSelected} onClick={openOutputTokenSelect}>
-              {swapCTX.isBtokenSelected ? (
+            <SelectTokenButton isSelected={isBtokenSelected} onClick={openOutputTokenSelect}>
+              {isBtokenSelected ? (
                 <TokenWrapper>
                   <Logo />
                   <TokenName>{outputCurrency?.symbol}</TokenName>
@@ -608,14 +318,14 @@ export const RightSection = () => {
                 'Select'
               )}
             </SelectTokenButton>
-            {swapCTX.isBtokenSelected && <Balance>Balance : 0.00225</Balance>}
+            {isBtokenSelected && <Balance>Balance : 0.00225</Balance>}
           </ButtonAndBalanceWrapper>
           <NumericInput
             value={formattedAmounts[Field.OUTPUT]}
             onUserInput={() => {
               return
             }}
-            isSelected={swapCTX.isAtokenSelected}
+            isSelected={isAtokenSelected}
           />
         </Aligner>
       </BottomTokenRow>
@@ -650,7 +360,7 @@ export const RightSection = () => {
           <PrimaryButton
             mrgn="0px 0px 12px 0px"
             onClick={() => {
-              swapCTX.updateSwapParams({ start: true })
+              updateSwapParams({ start: true })
             }}
           >
             Swap

@@ -5,7 +5,7 @@ import useAutoSlippageTolerance from 'hooks/useAutoSlippageTolerance'
 import { useBestTrade } from 'hooks/useBestTrade'
 import tryParseCurrencyAmount from 'lib/utils/tryParseCurrencyAmount'
 import { ParsedQs } from 'qs'
-import { ReactNode, useCallback, useEffect, useMemo } from 'react'
+import { ReactNode, useCallback, useContext, useEffect, useMemo } from 'react'
 import { useAppDispatch, useAppSelector } from 'state/hooks'
 import { InterfaceTrade, TradeState } from 'state/routing/types'
 import { useUserSlippageToleranceWithDefault } from 'state/user/hooks'
@@ -19,6 +19,8 @@ import { AppState } from '../index'
 import { useCurrencyBalances } from '../wallet/hooks'
 import { Field, replaceSwapState, selectCurrency, setRecipient, switchCurrencies, typeInput } from './actions'
 import { SwapState } from './reducer'
+import { TimeLockPuzzleResponse } from 'wasm/timeLockPuzzle'
+import SwapContext from 'store/swap-context'
 
 export function useSwapState(): AppState['swap'] {
   return useAppSelector((state) => state.swap)
@@ -256,7 +258,7 @@ export function queryParametersToSwapState(parsedQs: ParsedQs): SwapState {
   }
 }
 
-// updates the swap state to use the defaults for a given network
+// Updates the swap state to use the defaults for a given network
 export function useDefaultsFromURLSearch(): SwapState {
   const { chainId } = useActiveWeb3React()
   const dispatch = useAppDispatch()
@@ -285,4 +287,86 @@ export function useDefaultsFromURLSearch(): SwapState {
   }, [dispatch, chainId])
 
   return parsedSwapState
+}
+
+export function usePrepareSignMessage(
+  isPreparing: React.MutableRefObject<boolean>,
+  prepareSignMessageFunc: () => Promise<void>
+) {
+  const swapCTX = useContext(SwapContext)
+  const { start, prepareDone } = swapCTX
+  useEffect(() => {
+    if (prepareSignMessageFunc !== null && !isPreparing.current && start && !prepareDone) {
+      isPreparing.current = true
+      prepareSignMessageFunc().then(() => {
+        isPreparing.current = false
+      })
+    }
+  }, [prepareSignMessageFunc, start, prepareDone])
+}
+
+// Encrypt transaction
+export function useCreateEncryptProof(
+  isEncrypting: React.MutableRefObject<boolean>,
+  createEncryptProofFunc: () => Promise<void>,
+  createEncryptProof:
+    | ((
+        timeLockPuzzleData: TimeLockPuzzleResponse,
+        txNonce: number,
+        signMessage: any,
+        idPath: string
+      ) => Promise<{
+        txHash: string
+        mimcHash: string
+        encryptedSwapTx: any
+      }>)
+    | undefined
+) {
+  const swapCTX = useContext(SwapContext)
+  const { swapParams, timeLockPuzzleDone, prepareDone, encryptorDone } = swapCTX
+  useEffect(() => {
+    if (
+      createEncryptProofFunc !== null &&
+      !isEncrypting.current &&
+      timeLockPuzzleDone &&
+      prepareDone &&
+      !encryptorDone
+    ) {
+      isEncrypting.current = true
+      createEncryptProofFunc()
+    }
+  }, [swapParams, createEncryptProofFunc, createEncryptProof])
+}
+
+// Sign transaction
+export function useSignTx(isSigning: React.MutableRefObject<boolean>, userSignFunc: () => Promise<void>) {
+  const swapCTX = useContext(SwapContext)
+  const { swapParams, handleLeftSection, prepareDone, signingDone, confirm } = swapCTX
+  useEffect(() => {
+    if (!isSigning.current && prepareDone && confirm && !signingDone) {
+      isSigning.current = true
+      handleLeftSection('almost-there')
+      userSignFunc().then(() => {
+        isSigning.current = false
+      })
+    }
+  }, [swapParams, userSignFunc])
+}
+
+// Send encrypted transaction
+export function useSendEncryptedTx(
+  isSending: React.MutableRefObject<boolean>,
+
+  sendEncryptedTxFunc: () => Promise<void>
+) {
+  const swapCTX = useContext(SwapContext)
+  const { swapParams, encryptorDone, signingDone } = swapCTX
+  useEffect(() => {
+    if (!isSending.current && encryptorDone && signingDone) {
+      isSending.current = true
+      sendEncryptedTxFunc().then(() => {
+        isSending.current = false
+      })
+    }
+  }, [swapParams, sendEncryptedTxFunc])
 }
