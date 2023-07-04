@@ -1,5 +1,5 @@
 import Worker from 'worker-loader!workers/worker'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useContext, useEffect } from 'react'
 import { TxInfo } from '../../lib/hooks/swap/useSendSwapTransaction'
 
 import {
@@ -11,9 +11,10 @@ import { fetchTimeLockPuzzleParam, fetchTimeLockPuzzleSnarkParam } from '../../s
 import { useAppDispatch, useAppSelector } from '../../state/hooks'
 import localForage from 'localforage'
 import { Field } from '../../state/swap/actions'
+import SwapContext from 'store/swap-context'
 
 ///////////////////////////////
-// parameter loading
+// Function for gettng time-lock puzzle parameters
 ///////////////////////////////
 
 export const useGetTimeLockPuzzleParam = () => {
@@ -39,11 +40,39 @@ export const useGetTimeLockPuzzleParam = () => {
 
     return { timeLockPuzzleParam, timeLockPuzzleSnarkParam }
   }, [dispatch, parameters.timeLockPuzzleParam, parameters.timeLockPuzzleSnarkParam])
-  return getTimeLockPuzzleParam()
+  return getTimeLockPuzzleParam
 }
 
 ///////////////////////////////
-// Create a zk proof for time-lock puzzle validity
+// Function for making time-lock puzzle
+///////////////////////////////
+
+export function useMakeTimeLockPuzzle(
+  isPuzzling: React.MutableRefObject<boolean>,
+  timeLockPuzzleData: any,
+  worker: Worker,
+  getTimeLockPuzzleParams: () => Promise<{
+    timeLockPuzzleParam: TimeLockPuzzleParam
+    timeLockPuzzleSnarkParam: string
+  }>
+) {
+  // If there is no timeLockPuzzleData or currently not being made, then  start making it
+  useEffect(() => {
+    if (!timeLockPuzzleData && !isPuzzling.current) {
+      isPuzzling.current = true
+      getTimeLockPuzzleParams().then((res) => {
+        worker.postMessage({
+          target: 'timeLockPuzzle',
+          timeLockPuzzleParam: res.timeLockPuzzleParam,
+          timeLockPuzzleSnarkParam: res.timeLockPuzzleSnarkParam,
+        })
+      })
+    }
+  }, [getTimeLockPuzzleParams, timeLockPuzzleData, worker])
+}
+
+///////////////////////////////
+// Create a function for creating zk proof for time-lock puzzle validity
 ///////////////////////////////
 
 export const useCreateEncryptProofFunc = (
@@ -52,9 +81,10 @@ export const useCreateEncryptProofFunc = (
   MAXIMUM_PATH_LENGTH: number,
   worker: Worker,
   timeLockPuzzleData: any,
-  idPath: any,
-  swapParams: any
+  idPath: any
 ) => {
+  const swapCTX = useContext(SwapContext)
+  const { swapParams } = swapCTX
   const createEncryptProofFunc = useCallback(async () => {
     if (chainId && signMessage) {
       if (signMessage.path.length > 3) {
@@ -104,12 +134,10 @@ export const useSendEncryptedTxFunc = (
   sig: any,
   operatorAddress: any,
   onUserInput: (field: Field, typedValue: string) => void,
-  updateSwapParams: any,
-  fieldInput: Field,
-  handleLeftSection: any,
-  handleSwapParams: any,
-  swapParams: any
+  fieldInput: Field
 ) => {
+  const swapCTX = useContext(SwapContext)
+  const { updateSwapParams, handleLeftSection, handleSwapParams, swapParams } = swapCTX
   const sendEncryptedTxFunc = useCallback(async () => {
     if (sendEncryptedTx) {
       sendEncryptedTx(txHash, mimcHash, signMessage, encryptedSwapTx, sig, operatorAddress)
@@ -127,23 +155,4 @@ export const useSendEncryptedTxFunc = (
     }
   }, [sendEncryptedTx, onUserInput, swapParams])
   return sendEncryptedTxFunc
-}
-
-export function useMakeTimeLockPuzzle(
-  isPuzzling: React.MutableRefObject<boolean>,
-  timeLockPuzzleData: any,
-  timeLockPuzzleParams: any,
-  worker: Worker
-) {
-  // If there is no timeLockPuzzleData or currently not being made, then  start making it
-  useEffect(() => {
-    if (!timeLockPuzzleData && !isPuzzling.current) {
-      isPuzzling.current = true
-      worker.postMessage({
-        target: 'timeLockPuzzle',
-        timeLockPuzzleParam: timeLockPuzzleParams.timeLockPuzzleParam,
-        timeLockPuzzleSnarkParam: timeLockPuzzleParams.timeLockPuzzleSnarkParam,
-      })
-    }
-  }, [timeLockPuzzleParams, timeLockPuzzleData, worker])
 }

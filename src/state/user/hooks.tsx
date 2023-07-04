@@ -6,7 +6,7 @@ import { L2_DEADLINE_FROM_NOW } from 'constants/misc'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import useCurrentBlockTimestamp from 'hooks/useCurrentBlockTimestamp'
 import JSBI from 'jsbi'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { shallowEqual } from 'react-redux'
 import { useAppDispatch, useAppSelector } from 'state/hooks'
 
@@ -29,6 +29,7 @@ import {
   updateUserSlippageTolerance,
 } from './reducer'
 import { SerializedPair, SerializedToken } from './types'
+import SwapContext from 'store/swap-context'
 
 function serializeToken(token: Token): SerializedToken {
   return {
@@ -376,8 +377,10 @@ export function useTrackedTokenPairs(): [Token, Token][] {
   }, [combinedList])
 }
 
-export const useCheckAccountWhiteList = (account: string | null | undefined, swapParams: any) => {
+export const useCheckAccountWhiteList = (account: string | null | undefined) => {
   const [accountWhiteList, setAccountWhiteList] = useState<boolean>(false)
+  const swapCTX = useContext(SwapContext)
+  const { swapParams } = swapCTX
   useEffect(() => {
     if (account) {
       fetch(`${process.env.REACT_APP_360_OPERATOR}/whiteList?walletAddress=` + account)

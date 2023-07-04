@@ -1,97 +1,168 @@
-import { Contract } from '@ethersproject/contracts'
-import { _TypedDataEncoder as typedDataEncoder } from '@ethersproject/hash'
+import { PrimaryButton, SelectTokenButton } from '../UI/Buttons'
+import { NumericInput } from '../UI/Inputs'
 
-import { domain, SWAP_TYPE } from 'constants/eip712'
+import {
+  Header,
+  Aligner,
+  ButtonAndBalanceWrapper,
+  Cog,
+  HeaderTitle,
+  MainWrapper,
+  SlippageOption,
+  SlippageOptions,
+  TokenName,
+  TokenWrapper,
+  TopTokenRow,
+  Logo,
+  Balance,
+  Circle,
+  BottomTokenRow,
+  ButtonRow,
+  InfoMainWrapper,
+  InfoRowWrapper,
+  Description,
+  ValueAndIconWrapper,
+  ImpactAmount,
+  InfoIcon,
+  Divider,
+  MinimumAmount,
+} from './RightSectionStyles'
+
+import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
+import { Trade as V2Trade } from '@uniswap/v2-sdk'
+import { Trade as V3Trade } from '@uniswap/v3-sdk'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useSwapCallback } from 'hooks/useSwapCallback'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { MouseEventHandler, useCallback, useEffect, useMemo, useState } from 'react'
 import { useParameters } from 'state/parameters/hooks'
 
 import { ApprovalState, useApprovalOptimizedTrade, useApproveCallbackFromTrade } from 'hooks/useApproveCallback'
-import { useV2RouterContract } from 'hooks/useContract'
-import { useERC20PermitFromTrade } from 'hooks/useERC20Permit'
-import { EncryptedSwapTx, TxInfo } from 'lib/hooks/swap/useSendSwapTransaction'
+import { useERC20PermitFromTrade, UseERC20PermitState } from 'hooks/useERC20Permit'
 import { Field } from 'state/swap/actions'
 import { useDerivedSwapInfo, useSwapActionHandlers, useSwapState } from 'state/swap/hooks'
+import { maxAmountSpend } from 'utils/maxAmountSpend'
+import { warningSeverity } from 'utils/prices'
+import { useCurrency } from 'hooks/Tokens'
 import { useContext } from 'react'
 import SwapContext from 'store/swap-context'
-import {
-  useGetTimeLockPuzzleParam,
-  // useCreateEncryptProofFunc,
-  // useSendEncryptedTxFunc,
-  useMakeTimeLockPuzzle,
-} from '../../../state/time-lock-puzzling-encryption/hooks'
-// import { usePrepareSignature } from '../../../state/sign/hooks'
-
-import { useCheckAccountWhiteList } from 'state/user/hooks'
+import TradePrice from '../../../components/swap/TradePrice'
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
-import Worker from 'worker-loader!workers/worker'
-
-const MAXIMUM_PATH_LENGTH = 3
-const swapExactTokensForTokens = '0x73a2cff1'
+import Settings from '../Settings/Settings'
+import { useExpertModeManager } from 'state/user/hooks'
 
 export const RightSection = () => {
   const swapCTX = useContext(SwapContext)
-  const { swapParams, updateSwapParams, handleSwapParams, handleLeftSection } = swapCTX
-
-  const {
-    timeLockPuzzleData,
-    signMessage,
-    txNonce,
-    idPath,
-    txHash,
-    mimcHash,
-    encryptedSwapTx,
-    sig,
-    operatorAddress,
-    prepareDone,
-    encryptorDone,
-    start,
-    confirm,
-    signingDone,
-    timeLockPuzzleDone,
-  } = swapParams
   const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
 
-  // TODO: add this to check account in whitelist
+  const [accountWhiteList, setAccountWhiteList] = useState<boolean>(false)
 
-  const routerContract = useV2RouterContract() as Contract
-  const { account, chainId } = useActiveWeb3React()
+  const { account } = useActiveWeb3React()
+
   const parameters = useParameters()
 
-  // const [swapParams, setSwapParams] = useState<any>({ start: false })
+  const [swapParams, setSwapParams] = useState<any>({ start: false })
 
   // TODO:
   const backerIntegrity = true
 
   // swap state
-  const { recipient } = useSwapState()
+  const { independentField, typedValue, recipient, INPUT, OUTPUT } = useSwapState()
+
+  const inputCurrency = useCurrency(INPUT.currencyId)
+  const outputCurrency = useCurrency(OUTPUT.currencyId)
 
   const {
     trade: { trade },
     allowedSlippage,
+    currencyBalances,
+    parsedAmount,
   } = useDerivedSwapInfo()
+
+  const minimum = trade?.minimumAmountOut(allowedSlippage).toSignificant(6).toString()
+
+  const parsedAmounts = {
+    [Field.INPUT]: independentField === Field.INPUT ? parsedAmount : trade?.inputAmount,
+    [Field.OUTPUT]: independentField === Field.OUTPUT ? parsedAmount : trade?.outputAmount,
+  }
 
   const priceImpact = trade?.priceImpact
 
-  const { onUserInput } = useSwapActionHandlers()
+  const { onCurrencySelection, onUserInput, onChangeRecipient } = useSwapActionHandlers()
+  const dependentField: Field = independentField === Field.INPUT ? Field.OUTPUT : Field.INPUT
+
+  const handleTypeInput = useCallback(
+    (value: string) => {
+      onUserInput(Field.INPUT, value)
+    },
+    [onUserInput]
+  )
+
+  const formattedAmounts = useMemo(
+    () => ({
+      [independentField]: typedValue,
+      [dependentField]: parsedAmounts[dependentField]?.toSignificant(6) ?? '',
+    }),
+    [dependentField, independentField, parsedAmounts, typedValue]
+  )
 
   ///////////////////////////////
   // approve
   ///////////////////////////////
   const approvalOptimizedTrade = useApprovalOptimizedTrade(trade, allowedSlippage)
+  const approvalOptimizedTradeString =
+    approvalOptimizedTrade instanceof V2Trade
+      ? 'V2SwapRouter'
+      : approvalOptimizedTrade instanceof V3Trade
+      ? 'V3SwapRouter'
+      : 'SwapRouter'
 
   // check whether the user has approved the router on the input token
   const [approvalState, approveCallback] = useApproveCallbackFromTrade(approvalOptimizedTrade, allowedSlippage)
   const transactionDeadline = useTransactionDeadline()
-  const { signatureData } = useERC20PermitFromTrade(approvalOptimizedTrade, allowedSlippage, transactionDeadline)
+  const {
+    state: signatureState,
+    signatureData,
+    gatherPermitSignature,
+  } = useERC20PermitFromTrade(approvalOptimizedTrade, allowedSlippage, transactionDeadline)
+
+  const handleApprove = useCallback(async () => {
+    if (signatureState === UseERC20PermitState.NOT_SIGNED && gatherPermitSignature) {
+      try {
+        await gatherPermitSignature()
+      } catch (error) {
+        // try to approve if gatherPermitSignature failed for any reason other than the user rejecting it
+        if (error?.code !== 4001) {
+          await approveCallback()
+        }
+      }
+    } else {
+      await approveCallback()
+    }
+  }, [
+    signatureState,
+    gatherPermitSignature,
+    approveCallback,
+    approvalOptimizedTradeString,
+    approvalOptimizedTrade?.inputAmount?.currency.symbol,
+  ])
 
   ///////////////////////////////
   // Check Account in Whitelist
   ///////////////////////////////
-  useCheckAccountWhiteList(account, swapParams)
+
+  useEffect(() => {
+    if (account) {
+      fetch(`${process.env.REACT_APP_360_OPERATOR}/whiteList?walletAddress=` + account)
+        .then(async (is) => {
+          const val = await is.text()
+          if (val === 'false') setAccountWhiteList(false)
+          else setAccountWhiteList(true)
+        })
+        .catch((e) => console.error(e))
+    }
+  }, [account, swapParams])
 
   // mark when a user has submitted an approval, reset onTokenSelection for input field
   useEffect(() => {
@@ -100,8 +171,13 @@ export const RightSection = () => {
     }
   }, [approvalState, approvalSubmitted])
 
+  const maxInputAmount: CurrencyAmount<Currency> | undefined = useMemo(
+    () => maxAmountSpend(currencyBalances[Field.INPUT]),
+    [currencyBalances]
+  )
+
   // the callback to execute the swap
-  const { prepareSignMessage, userSign, createEncryptProof, sendEncryptedTx } = useSwapCallback(
+  const {} = useSwapCallback(
     approvalOptimizedTrade,
     allowedSlippage,
     backerIntegrity, //backer integrity
@@ -110,228 +186,186 @@ export const RightSection = () => {
     parameters
   )
 
-  ///////////////////////////////
-  // Time-lock puzzle creation and encryption proccesses are CPU heavy, thus, this process should happen inside worker
-  ///////////////////////////////
-  const worker = useMemo(() => new Worker(), [])
-
-  ///////////////////////////////
-  // Function that returns parameters for the time-lock puzzle
-  ///////////////////////////////
-  const timeLockPuzzleParams = useGetTimeLockPuzzleParam()
-
-  ///////////////////////////////
-  // Set initial state
-  ///////////////////////////////
-  const isPuzzling = useRef<boolean>(false)
-
-  ///////////////////////////////
-  // Start making the time-lock puzzle inside worker
-  ///////////////////////////////
-  useMakeTimeLockPuzzle(isPuzzling, timeLockPuzzleData, timeLockPuzzleParams, worker)
-
-  ///////////////////////////////
-  // Proceed in accordance with the message passed by the worker into the main thread
-  ///////////////////////////////
-  worker.onmessage = (e: MessageEvent<any>) => {
-    if (e.data.target === 'timeLockPuzzle') {
-      updateSwapParams({ timeLockPuzzleDone: true, timeLockPuzzleData: { ...e.data.data } })
-      isPuzzling.current = false
-    }
-    if (e.data.target === 'encryptor' && account && chainId && timeLockPuzzleData && signMessage) {
-      const encryptData = e.data.data
-
-      const encryptedPath = {
-        message_length: encryptData.message_length,
-        nonce: encryptData.nonce,
-        commitment: timeLockPuzzleData.commitment_hex,
-        cipher_text: [encryptData.cipher_text],
-        r1: timeLockPuzzleData.r1,
-        r3: timeLockPuzzleData.r3,
-        s1: timeLockPuzzleData.s1,
-        s3: timeLockPuzzleData.s3,
-        k: timeLockPuzzleData.k,
-        time_lock_puzzle_snark_proof: timeLockPuzzleData.time_lock_puzzle_snark_proof,
-        encryption_proof: encryptData.proof,
-      }
-
-      const txHash = typedDataEncoder.hash(domain(chainId), { Swap: SWAP_TYPE }, signMessage)
-      const mimcHash = '0x' + encryptData.tx_id
-
-      const encryptedSwapTx: EncryptedSwapTx = {
-        txOwner: account,
-        functionSelector: swapExactTokensForTokens,
-        amountIn: `${signMessage.amountIn}`,
-        amountOut: `${signMessage.amountOut}`,
-        path: encryptedPath,
-        to: account,
-        nonce: txNonce,
-        backerIntegrity: signMessage.backerIntegrity,
-        availableFrom: signMessage.availableFrom,
-        deadline: signMessage.deadline,
-        txHash,
-        mimcHash,
-      }
-
-      updateSwapParams({ encryptorDone: true, txHash, mimcHash, encryptedSwapTx })
-
-      isEncrypting.current = false
-    }
+  const handleSwap = () => {
+    setSwapParams({ ...swapParams, confirm: true })
   }
 
-  ///////////////////////////////
-  // declare process functions
-  ///////////////////////////////
-  const prepareSignMessageFunc = useCallback(async () => {
-    if (prepareSignMessage) {
-      routerContract
-        .nonces(account)
-        .then(async (contractNonce: any) => {
-          routerContract
-            .operator()
-            .then(async (operatorAddress: any) => {
-              const res = await prepareSignMessage(backerIntegrity, contractNonce)
-              updateSwapParams({ prepareDone: true, ...res, operatorAddress })
-            })
-            .catch(() => {
-              handleLeftSection('welcome')
-              handleSwapParams({
-                start: false,
-                errorMessage: 'RPC server is not responding, please try again',
-              })
-            })
-        })
-        .catch(() => {
-          handleLeftSection('welcome')
-          handleSwapParams({
-            start: false,
-            errorMessage: 'RPC server is not responding, please try again',
-          })
-        })
-    }
-  }, [prepareSignMessage, swapParams, account, routerContract, backerIntegrity])
+  const [isExpertMode] = useExpertModeManager()
 
-  const createEncryptProofFunc = useCallback(async () => {
-    if (chainId && signMessage) {
-      if (signMessage.path.length > 3) {
-        console.error('Cannot encrypt path which length is over 3')
-      }
+  // TODO: price impact dangerous level
+  const priceImpactSeverity = useMemo(() => {
+    const executionPriceImpact = trade?.priceImpact
+    return warningSeverity(
+      executionPriceImpact && priceImpact
+        ? executionPriceImpact.greaterThan(priceImpact)
+          ? executionPriceImpact
+          : priceImpact
+        : executionPriceImpact ?? priceImpact
+    )
+  }, [priceImpact, trade])
 
-      const pathToHash: string[] = new Array(MAXIMUM_PATH_LENGTH)
+  const priceImpactTooHigh = priceImpactSeverity > 3 && !isExpertMode
 
-      for (let i = 0; i < MAXIMUM_PATH_LENGTH; i++) {
-        pathToHash[i] = i < signMessage.path.length ? signMessage.path[i].split('x')[1] : '0'
-      }
+  const handleConfirmDismiss = useCallback(() => {
+    swapCTX.handleLeftSection('welcome')
+    setSwapParams({
+      start: false,
+      timeLockPuzzleData: swapParams.timeLockPuzzleData,
+      timeLockPuzzleDone: swapParams.timeLockPuzzleDone,
+    })
+  }, [onUserInput, swapParams])
 
-      const txInfoToHash: TxInfo = {
-        tx_owner: signMessage.txOwner.split('x')[1],
-        function_selector: signMessage.functionSelector.split('x')[1],
-        amount_in: `${signMessage.amountIn}`,
-        amount_out: `${signMessage.amountOut}`,
-        to: signMessage.to.split('x')[1],
-        deadline: `${signMessage.deadline}`,
-        nonce: `${signMessage.nonce}`,
-        path: pathToHash,
-      }
+  const handleInputSelect = useCallback(
+    (inputCurrency: any) => {
+      setApprovalSubmitted(false) // reset 2 step UI for approvals
+      onCurrencySelection(Field.INPUT, inputCurrency)
+    },
+    [onCurrencySelection]
+  )
 
-      worker.postMessage({
-        target: 'encryptor',
-        txInfoToHash,
-        s2_string: timeLockPuzzleData.s2_string,
-        s2_field_hex: timeLockPuzzleData.s2_field_hex,
-        commitment_hex: timeLockPuzzleData.commitment_hex,
-        idPath,
-      })
-    }
-  }, [swapParams, chainId, worker])
+  const handleOutputSelect = useCallback(
+    (outputCurrency: any) => {
+      setApprovalSubmitted(false) // reset 2 step UI for approvals
+      onCurrencySelection(Field.OUTPUT, outputCurrency)
+    },
+    [onCurrencySelection]
+  )
+  const [showSettings, setShowSettings] = useState(false)
+  const [showInverted, setShowInverted] = useState<boolean>(false)
 
-  const userSignFunc = useCallback(async () => {
-    if (userSign) {
-      const res = await userSign(signMessage)
-      if (res) {
-        updateSwapParams({ signingDone: true, ...res })
-        handleLeftSection('progress')
-      } else {
-        updateSwapParams({ confirm: false })
-      }
-    }
-  }, [userSign, swapParams])
+  const handleShowSettings: MouseEventHandler<SVGSVGElement | HTMLImageElement> = () => {
+    setShowSettings((prevState) => !prevState)
+  }
 
-  const sendEncryptedTxFunc = useCallback(async () => {
-    if (sendEncryptedTx) {
-      sendEncryptedTx(txHash, mimcHash, signMessage, encryptedSwapTx, sig, operatorAddress)
-        .then(async (res) => {
-          onUserInput(Field.INPUT, '')
-          updateSwapParams({ sent: true })
-        })
-        .catch(async (e) => {
-          console.error(e)
-          onUserInput(Field.INPUT, '')
-          handleLeftSection('welcome')
-          handleSwapParams({ start: false })
-        })
-    }
-  }, [sendEncryptedTx, onUserInput, swapParams])
+  const openInputTokenSelect = () => {
+    swapCTX.handleSetIsBtokenSelectionActive(false)
+    swapCTX.handleSetIsAtokenSelectionActive(true)
+  }
 
-  ///////////////////////////////
-  // swap processing
-  ///////////////////////////////
-  const isPreparing = useRef<boolean>(false)
-  // When "Preview swap" is clicked, preparation of swap processing starts
-
-  // If it is not prepared, currently not started and not done then start preparing
+  const openOutputTokenSelect = () => {
+    swapCTX.handleSetIsAtokenSelectionActive(false)
+    swapCTX.handleSetIsBtokenSelectionActive(true)
+  }
 
   useEffect(() => {
-    if (prepareSignMessageFunc !== null && !isPreparing.current && start && !prepareDone) {
-      isPreparing.current = true
-      prepareSignMessageFunc().then(() => {
-        isPreparing.current = false
-      })
+    if (swapCTX.isAtokenSelectionActive || swapCTX.isBtokenSelectionActive) {
+      swapCTX.handleLeftSection('search-table')
     }
-  }, [prepareSignMessageFunc, start, prepareDone])
+  }, [swapCTX.isAtokenSelectionActive, swapCTX.isBtokenSelectionActive, swapCTX.handleLeftSection])
 
-  const isEncrypting = useRef<boolean>(false)
-  // Encrypt it
-  useEffect(() => {
-    if (
-      createEncryptProofFunc !== null &&
-      !isEncrypting.current &&
-      timeLockPuzzleDone &&
-      prepareDone &&
-      !encryptorDone
-    ) {
-      isEncrypting.current = true
-      createEncryptProofFunc()
-    }
-  }, [swapParams, createEncryptProofFunc, createEncryptProof])
+  return (
+    (swapCTX.leftSection !== 'progress' && !showSettings && (
+      <MainWrapper>
+        <Header>
+          <HeaderTitle>Swap</HeaderTitle>
+          <Cog onClick={handleShowSettings} />
+        </Header>
+        <TopTokenRow>
+          {swapCTX.isAtokenSelected && (
+            <SlippageOptions>
+              <SlippageOption>MAX</SlippageOption>
+              <SlippageOption>50%</SlippageOption>
+              <SlippageOption>Clear</SlippageOption>
+            </SlippageOptions>
+          )}
+          <Aligner>
+            <ButtonAndBalanceWrapper>
+              <SelectTokenButton isSelected={swapCTX.isAtokenSelected} onClick={openInputTokenSelect}>
+                {swapCTX.isAtokenSelected ? (
+                  <TokenWrapper>
+                    <Logo />
+                    <TokenName>{inputCurrency?.symbol}</TokenName>
+                  </TokenWrapper>
+                ) : (
+                  'Select'
+                )}
+              </SelectTokenButton>
+              {swapCTX.isAtokenSelected && <Balance>Balance : 0.00225</Balance>}
+            </ButtonAndBalanceWrapper>
+            <NumericInput
+              value={formattedAmounts[Field.INPUT]}
+              onUserInput={handleTypeInput}
+              isSelected={swapCTX.isAtokenSelected}
+            />
+          </Aligner>
+          <Circle />
+        </TopTokenRow>
+        <BottomTokenRow>
+          <Aligner>
+            <ButtonAndBalanceWrapper>
+              <SelectTokenButton isSelected={swapCTX.isBtokenSelected} onClick={openOutputTokenSelect}>
+                {swapCTX.isBtokenSelected ? (
+                  <TokenWrapper>
+                    <Logo />
+                    <TokenName>{outputCurrency?.symbol}</TokenName>
+                  </TokenWrapper>
+                ) : (
+                  'Select'
+                )}
+              </SelectTokenButton>
+              {swapCTX.isBtokenSelected && <Balance>Balance : 0.00225</Balance>}
+            </ButtonAndBalanceWrapper>
+            <NumericInput
+              value={formattedAmounts[Field.OUTPUT]}
+              onUserInput={() => {
+                return
+              }}
+              isSelected={swapCTX.isAtokenSelected}
+            />
+          </Aligner>
+        </BottomTokenRow>
+        <ButtonRow>
+          {trade && (
+            <InfoMainWrapper>
+              <InfoRowWrapper>
+                <Description>You receive minimum</Description>
+                <ValueAndIconWrapper>
+                  <MinimumAmount> {minimum && minimum + ' ' + trade?.outputAmount.currency.symbol}</MinimumAmount>
+                  <InfoIcon />
+                </ValueAndIconWrapper>
+              </InfoRowWrapper>
+              <Divider />
+              <InfoRowWrapper>
+                <Description>Price impact</Description>
+                <ValueAndIconWrapper>
+                  <ImpactAmount priceImpactTooHigh={priceImpactTooHigh ? 1 : 0}>
+                    {priceImpact?.toSignificant(3) + ' %' + `${priceImpactTooHigh ? ' (Too High)' : ''}`}
+                  </ImpactAmount>
+                  <InfoIcon />
+                </ValueAndIconWrapper>
+              </InfoRowWrapper>
+            </InfoMainWrapper>
+          )}
+          {!accountWhiteList && (
+            <PrimaryButton mrgn="0px 0px 12px 0px" disabled>
+              you are not in whitelist
+            </PrimaryButton>
+          )}
+          {accountWhiteList && !swapCTX.swapParams.start && (
+            <PrimaryButton
+              mrgn="0px 0px 12px 0px"
+              onClick={() => {
+                swapCTX.handleLeftSection('preview')
+                swapCTX.updateSwapParams({ start: true })
+              }}
+            >
+              Preview Swap
+            </PrimaryButton>
+          )}
+          {accountWhiteList && swapCTX.swapParams.start && !swapCTX.swapParams.confirm && (
+            <PrimaryButton mrgn="0px 0px 12px 0px" onClick={() => swapCTX.updateSwapParams({ confirm: true })}>
+              Swap
+            </PrimaryButton>
+          )}
 
-  const isSigning = useRef(false)
-
-  // Sign it
-  useEffect(() => {
-    if (!isSigning.current && prepareDone && confirm && !signingDone) {
-      isSigning.current = true
-      handleLeftSection('almost-there')
-      userSignFunc().then(() => {
-        isSigning.current = false
-      })
-    }
-  }, [swapParams, userSignFunc])
-
-  const isSending = useRef<boolean>(false)
-
-  // Send it
-  useEffect(() => {
-    if (!isSending.current && encryptorDone && signingDone) {
-      isSending.current = true
-      console.log('sendEncryptedTxFunc')
-      sendEncryptedTxFunc().then(() => {
-        isSending.current = false
-      })
-    }
-  }, [swapParams, sendEncryptedTxFunc])
-
-  return <></>
+          {trade && (
+            <TradePrice price={trade.executionPrice} showInverted={showInverted} setShowInverted={setShowInverted} />
+          )}
+        </ButtonRow>
+      </MainWrapper>
+    )) ||
+    (showSettings && <Settings handleShowSettings={handleShowSettings} isSelected={false} />) || <></>
+  )
 }
 
 export default RightSection
