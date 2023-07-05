@@ -9,6 +9,25 @@ export enum Status {
   REIMBURSED,
 }
 
+export function statusToString(_status: Status) {
+  switch (_status) {
+    case Status.PENDING:
+      return 'Pending'
+    case Status.COMPLETED:
+      return 'Completed'
+    case Status.CANCELED:
+      return 'Canceled'
+    case Status.REJECTED:
+      return 'Rejected'
+    case Status.REIMBURSE_AVAILABLE:
+      return 'Reimburse Available'
+    case Status.REIMBURSED:
+      return 'Reimbursed'
+    default:
+      return 'Pending'
+  }
+}
+
 export interface swap {
   id?: number
   tx?: TX

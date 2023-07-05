@@ -3,7 +3,8 @@ import TransactionList from 'components/v2/Transactions/TransactionList'
 import { useState } from 'react'
 import styled from 'styled-components/macro'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db } from 'utils/db'
+import { db, Status, statusToString } from 'utils/db'
+import moment from 'moment'
 
 const Wrapper = styled.div`
   display: flex;
@@ -52,27 +53,24 @@ const History = () => {
     return history.toArray()
   }, [activePage])
 
-  console.log(rows)
-
-  const txs: { id: string; status: string; date: string; from: string; to: string; reimbursed?: boolean }[] = []
+  const pendingTxs: { id: string; status: string; date: string; from: string; to: string; reimbursed?: boolean }[] = []
+  const completedTxs: { id: string; status: string; date: string; from: string; to: string; reimbursed?: boolean }[] =
+    []
 
   rows?.forEach((row) => {
-    console.log('row', row)
     if (row.fromResult && row.toResult && row.txDate) {
-      console.log(row, token2str(row.fromResult), token2str(row.toResult))
-      txs.push({
+      completedTxs.push({
         id: row.id ? row.id.toString() : '-1',
-        status: 'pending',
-        date: new Date(row.txDate).toDateString(),
+        status: statusToString(row.status as Status),
+        date: moment(new Date(row.txDate * 1000)).format('DD MMMM YYYY - h:mm A'),
         from: token2str(row.fromResult),
         to: token2str(row.toResult),
       })
-    } else if (row.from && row.to && row.txDate) {
-      console.log(row, token2str(row.from), token2str(row.to))
-      txs.push({
+    } else if (row.from && row.to && row.sendDate) {
+      pendingTxs.push({
         id: row.id ? row.id.toString() : '-1',
-        status: 'pending',
-        date: new Date(row.txDate * 1000).toDateString(),
+        status: statusToString(row.status as Status),
+        date: moment(new Date(row.sendDate * 1000)).format('DD MMMM YYYY - h:mm A'),
         from: token2str(row.from),
         to: token2str(row.to),
       })
@@ -95,7 +93,7 @@ const History = () => {
   return (
     <Wrapper>
       <Tabs handleTabClick={handleTabClick} activeTab={activeTab} />
-      <TransactionList txs={txs} status={'In Progress'} />
+      <TransactionList txs={activeTab === 'In Progress' ? pendingTxs : completedTxs} status={activeTab} />
     </Wrapper>
   )
 }
