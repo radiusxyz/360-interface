@@ -373,7 +373,7 @@ export const RightSection = () => {
       </ButtonRow>
     </MainWrapper>
   ) : (
-    <Settings handleShowSettings={handleShowSettings} isSelected={false} />
+    <Settings placeholderSlippage={allowedSlippage} handleShowSettings={handleShowSettings} isSelected={false} />
   )
 }
 
