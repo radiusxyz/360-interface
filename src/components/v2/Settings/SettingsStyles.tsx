@@ -92,7 +92,6 @@ export const InputWrapper = styled.div`
 
 export const Input = styled.input.attrs({
   type: 'number',
-  placeholder: '0.10',
   inputMode: 'decimal',
   spellCheck: 'false',
   minLength: 1,
