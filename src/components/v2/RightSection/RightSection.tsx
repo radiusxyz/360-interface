@@ -261,7 +261,7 @@ export const RightSection = () => {
     setClearSelected((prevState) => !prevState)
     setMaxSelected(false)
     setHalfSelected(false)
-    maxInputAmount && onUserInput(Field.INPUT, '')
+    maxInputAmount && onUserInput(Field.INPUT, formattedAmounts[Field.INPUT])
   }, [maxInputAmount, onUserInput])
 
   const handleShowSettings: MouseEventHandler<SVGSVGElement | HTMLImageElement> = () => {
