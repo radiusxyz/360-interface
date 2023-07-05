@@ -66,8 +66,12 @@ const Footer = styled.div`
 
 const Button = styled(PrimaryButton)`
   background: #ffffff;
-  border: 1px solid #6b11ff;
-  color: #6b11ff;
+  color: #333;
+  border: 1px solid #dde0ff;
+  &:hover {
+    color: #6b11ff;
+    border: 1px solid #6b11ff;
+  }
 `
 
 export default function PendingView({
