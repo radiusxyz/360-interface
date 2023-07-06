@@ -44,18 +44,23 @@ export const SlippageOptions = styled.div`
   width: 100%;
 `
 
-export const SlippageOption = styled.button`
+export const SlippageOption = styled.button<{ selected?: boolean }>`
   display: flex;
   justify-content: center;
   align-items: center;
   background-color: transparent;
-  border: 1px solid #ebebeb;
+  border: ${({ selected }) => (selected && '1px solid var(--primary-color, #6b11ff)') || '1px solid #ebebeb'};
   max-width: 52px;
   width: 100%;
   max-height: 20px;
   padding: 3px;
   border-radius: 66px;
-  color: #999999;
+  color: ${({ selected }) => (selected && '#6b11ff') || '#999999'};
+  &:hover {
+    cursor: pointer;
+    color: #6b11ff;
+    border: 1px solid var(--primary-color, #6b11ff);
+  }
 `
 
 export const TopTokenRow = styled.div`

@@ -92,9 +92,13 @@ const Container = styled.div`
 
 const Button = styled(PrimaryButton)`
   background: #ffffff;
-  border: 1px solid #6b11ff;
-  color: #6b11ff;
   margin-top: 10px;
+  color: #333;
+  border: 1px solid #dde0ff;
+  &:hover {
+    color: #6b11ff;
+    border: 1px solid #6b11ff;
+  }
 `
 
 const OptionGrid = styled.div`

@@ -238,8 +238,31 @@ export const RightSection = () => {
     },
     [onCurrencySelection]
   )
+
   const [showSettings, setShowSettings] = useState(false)
   const [showInverted, setShowInverted] = useState<boolean>(false)
+  const [maxSelected, setMaxSelected] = useState(false)
+  const [halfSelected, setHalfSelected] = useState(false)
+  const [clearSelected, setClearSelected] = useState(false)
+
+  const handleMaxInput = useCallback(() => {
+    maxInputAmount && onUserInput(Field.INPUT, maxInputAmount.toExact())
+    setMaxSelected((prevState) => !prevState)
+    setHalfSelected(false)
+  }, [maxInputAmount, onUserInput])
+
+  const handleHalfInput = useCallback(() => {
+    setHalfSelected((prevState) => !prevState)
+    setMaxSelected(false)
+    maxInputAmount && onUserInput(Field.INPUT, maxInputAmount.divide(2).toExact())
+  }, [maxInputAmount, onUserInput])
+
+  const handleClear = useCallback(() => {
+    setClearSelected((prevState) => !prevState)
+    setMaxSelected(false)
+    setHalfSelected(false)
+    maxInputAmount && onUserInput(Field.INPUT, formattedAmounts[Field.INPUT])
+  }, [maxInputAmount, onUserInput])
 
   const handleShowSettings: MouseEventHandler<SVGSVGElement | HTMLImageElement> = () => {
     setShowSettings((prevState) => !prevState)
@@ -276,11 +299,15 @@ export const RightSection = () => {
         <Cog onClick={handleShowSettings} />
       </Header>
       <TopTokenRow>
-        {isAtokenSelected && (
+        {true && (
           <SlippageOptions>
-            <SlippageOption>MAX</SlippageOption>
-            <SlippageOption>50%</SlippageOption>
-            <SlippageOption>Clear</SlippageOption>
+            <SlippageOption selected={maxSelected} onClick={handleMaxInput}>
+              MAX
+            </SlippageOption>
+            <SlippageOption selected={halfSelected} onClick={handleHalfInput}>
+              50%
+            </SlippageOption>
+            <SlippageOption onClick={handleClear}>Clear</SlippageOption>
           </SlippageOptions>
         )}
         <Aligner>
@@ -373,7 +400,7 @@ export const RightSection = () => {
       </ButtonRow>
     </MainWrapper>
   ) : (
-    <Settings handleShowSettings={handleShowSettings} isSelected={false} />
+    <Settings placeholderSlippage={allowedSlippage} handleShowSettings={handleShowSettings} isSelected={false} />
   )
 }
 

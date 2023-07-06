@@ -77,6 +77,10 @@ export const Option = styled.div`
   height: 32px;
   border-radius: 31px;
   border: 1px solid #dde0ff;
+  &:hover {
+    color: #6b11ff;
+    border: 1px solid var(--primary-color, #6b11ff);
+  }
 `
 
 export const InputWrapper = styled.div`
@@ -92,7 +96,6 @@ export const InputWrapper = styled.div`
 
 export const Input = styled.input.attrs({
   type: 'number',
-  placeholder: '0.10',
   inputMode: 'decimal',
   spellCheck: 'false',
   minLength: 1,

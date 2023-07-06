@@ -52,13 +52,14 @@ const CloseColor = styled(Close)`
 
 const WalletAction = styled(PrimaryButton)`
   width: 100%;
-  color: #333;
-  border: 1px solid #dde0ff;
   font-size: 16px;
   border-radius: 4px;
   background: transparent;
-  :hover {
-    text-decoration: underline;
+  color: #333;
+  border: 1px solid #dde0ff;
+  &:hover {
+    color: #6b11ff;
+    border: 1px solid #6b11ff;
   }
 `
 
