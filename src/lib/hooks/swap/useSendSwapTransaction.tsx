@@ -172,10 +172,10 @@ export default function useSendSwapTransaction(
           `${process.env.REACT_APP_360_OPERATOR}/tx/pendingTxCnt?chainId=${chainId}&walletAddress=${account}`
         )
         const text = await operatorPendingTxCnt.text()
-        console.log('test', contractNonce, text)
+        // console.log('test', contractNonce, text)
 
         const txNonce = parseInt(contractNonce) + parseInt(text)
-        console.log('test2', txNonce)
+        // console.log('test2', txNonce)
 
         const signMessage = {
           txOwner: signAddress,
@@ -205,11 +205,11 @@ export default function useSendSwapTransaction(
         })
         const signer = library.getSigner()
         const signAddress = await signer.getAddress()
-        console.log('aaa')
+        // console.log('aaa')
 
         const now = Date.now()
 
-        console.log('now', now)
+        // console.log('now', now)
         const sig = await signWithEIP712(library, signAddress, typedData).catch((e) => {
           console.log(e)
           return null

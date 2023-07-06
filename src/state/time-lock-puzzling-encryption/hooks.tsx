@@ -57,7 +57,7 @@ export function useMakeTimeLockPuzzle(
 ) {
   // If there is no timeLockPuzzleData or currently not being made, then  start making it
   const swapCTX = useContext(SwapContext)
-  const { timeLockPuzzleData } = swapCTX
+  const { timeLockPuzzleData } = swapCTX.swapParams
   useEffect(() => {
     if (!timeLockPuzzleData && !isPuzzling.current) {
       isPuzzling.current = true
@@ -78,7 +78,8 @@ export function useMakeTimeLockPuzzle(
 
 export const useCreateEncryptProofFunc = (chainId: number | undefined, MAXIMUM_PATH_LENGTH: number, worker: Worker) => {
   const swapCTX = useContext(SwapContext)
-  const { swapParams, signMessage, timeLockPuzzleData, idPath } = swapCTX
+  const { signMessage, timeLockPuzzleData, idPath } = swapCTX.swapParams
+
   const createEncryptProofFunc = useCallback(async () => {
     if (chainId && signMessage) {
       if (signMessage.path.length > 3) {
@@ -111,7 +112,7 @@ export const useCreateEncryptProofFunc = (chainId: number | undefined, MAXIMUM_P
         idPath,
       })
     }
-  }, [swapParams, chainId, worker])
+  }, [swapCTX.swapParams, chainId, worker])
   return createEncryptProofFunc
 }
 
@@ -125,18 +126,8 @@ export const useSendEncryptedTxFunc = (
   fieldInput: Field
 ) => {
   const swapCTX = useContext(SwapContext)
-  const {
-    updateSwapParams,
-    handleLeftSection,
-    handleSwapParams,
-    swapParams,
-    txHash,
-    mimcHash,
-    signMessage,
-    encryptedSwapTx,
-    sig,
-    operatorAddress,
-  } = swapCTX
+  const { updateSwapParams, handleLeftSection, handleSwapParams, swapParams } = swapCTX
+  const { txHash, mimcHash, signMessage, encryptedSwapTx, sig, operatorAddress } = swapParams
   const sendEncryptedTxFunc = useCallback(async () => {
     if (sendEncryptedTx) {
       sendEncryptedTx(txHash, mimcHash, signMessage, encryptedSwapTx, sig, operatorAddress)
