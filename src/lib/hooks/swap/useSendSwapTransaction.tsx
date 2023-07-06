@@ -273,7 +273,7 @@ export default function useSendSwapTransaction(
           nonce: `${signMessage.nonce}`,
           path: pathToHash,
         }
-        console.log('🚀 ~ file: useSendSwapTransaction.tsx:511 ~ returnuseMemo ~ txInfoToHash', txInfoToHash)
+        // console.log('🚀 ~ file: useSendSwapTransaction.tsx:511 ~ returnuseMemo ~ txInfoToHash', txInfoToHash)
 
         const time = Date.now()
         const encryptData = await poseidonEncryptWithTxHash(
@@ -284,7 +284,7 @@ export default function useSendSwapTransaction(
           idPath
         )
         console.log('encrypt time', Date.now() - time)
-        console.log('🚀 ~ file: useSendSwapTransaction.tsx:520 ~ returnuseMemo ~ encryptData', encryptData)
+        // console.log('🚀 ~ file: useSendSwapTransaction.tsx:520 ~ returnuseMemo ~ encryptData', encryptData)
 
         const encryptedPath = {
           message_length: encryptData.message_length,
@@ -456,7 +456,7 @@ export async function sendEIP712Tx(
         encryptedSwapTx.mimcHash === res.txOrderMsg.mimcHash
       ) {
         // console.log('clear disableTxHash tx')
-        console.log('txOrderMsg', res.txOrderMsg)
+        console.log('txOrderMsg', res.txOrderMsg, swap)
 
         await db.updateSwap(
           {
