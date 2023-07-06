@@ -61,7 +61,7 @@ const TableRow = ({
       </DetailsWrapper>
       <BalanceWrapper>
         {(showCurrencyAmount && balance && <Balance>{balance.toSignificant(4)}</Balance>) || (account && <Loading />)}
-        <BalanceInUSD>$100</BalanceInUSD>
+        {showCurrencyAmount && balance && <BalanceInUSD>$100</BalanceInUSD>}
       </BalanceWrapper>
     </Wrapper>
   )
