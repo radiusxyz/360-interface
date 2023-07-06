@@ -83,7 +83,7 @@ function Web3StatusInner() {
         ) : (
           <>
             {hasSocks ? <Sock /> : null}
-            <Text>{ENSName || 'Connected' || shortenAddress(account)}</Text>
+            <Text>{ENSName || shortenAddress(account)}</Text>
           </>
         )}
       </Web3StatusConnected>
