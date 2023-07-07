@@ -8,6 +8,7 @@ import {
   Info,
   Note,
   Emoji,
+  GrimacingFace,
   Finish,
   Middle,
   SVG,
@@ -17,25 +18,40 @@ import {
 import { useContext } from 'react'
 import SwapContext from 'store/swap-context'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db, Status } from 'utils/db'
+import { db, Status, TokenAmount } from 'utils/db'
 
 type Props = {
   percentage: number
+  id: number
 }
 
-export const CurvedProgress = ({ percentage }: Props) => {
+function token2str(row: { amount: string; decimal: string; token: string }) {
+  const amount = Number(row.amount) / Number(row.decimal)
+  return amount.toString() + ' ' + row.token
+}
+export const CurvedProgress = ({ percentage, id }: Props) => {
   const swapCTX = useContext(SwapContext)
 
-  const status = useLiveQuery(async () => {
-    const tx = await db.getRecentTxHistory()
-    if (!tx) return -1
-    return tx.status
+  const tx = useLiveQuery(async () => {
+    // const txs = await db.swap.where({ id }).toArray()
+    const tx = await db.getRecentSwap()
+    // if (txs.length !== 0) return txs[0]
+    if (!tx)
+      return {
+        status: 0,
+        from: { amount: '0', decimal: '0', token: '' },
+        to: { amount: '0', decimal: '0', token: '' },
+      }
+    return tx
   })
 
   let progress = 0
-  if (status === Status.PENDING) progress = 50
-  if (status === Status.COMPLETED) progress = 100
-  if (status === Status.REJECTED) progress = 100
+  if (tx?.status === Status.PENDING) progress = 50
+  if (tx?.status === Status.CANCELED) progress = 100
+  if (tx?.status === Status.COMPLETED) progress = 100
+  if (tx?.status === Status.REJECTED) progress = 100
+  if (tx?.status === Status.REIMBURSE_AVAILABLE) progress = 100
+  if (tx?.status === Status.REIMBURSED) progress = 100
 
   const width = 232
   const r = 108.5
@@ -45,6 +61,8 @@ export const CurvedProgress = ({ percentage }: Props) => {
   // if (row && row[0].status === Status.PENDING) setProgress(50)
   // if (row && row[0].status === Status.COMPLETED) setProgress(100)
   // if (row && row[0].status === Status.REJECTED) setProgress(100)
+
+  const somethingWrong = tx?.status !== Status.COMPLETED && tx?.status !== Status.PENDING
 
   return (
     <Wrapper>
@@ -84,7 +102,7 @@ export const CurvedProgress = ({ percentage }: Props) => {
               strokeWidth="15px"
               r={r}
               fill="none"
-              stroke="#6B11FF"
+              stroke={somethingWrong ? '#FF8686' : '#6B11FF'}
               strokeDasharray={strokeDasharray}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
@@ -92,14 +110,14 @@ export const CurvedProgress = ({ percentage }: Props) => {
               transform={`rotate(-180 ${width / 2} ${width / 2})`}
             />
           </SVG>
-          <Emoji />
-          <Start>1.006 ETH</Start>
-          <Middle passed={progress >= 50}> NO FEE</Middle>
-          <Finish passed={progress === 100}>0.100 DAI</Finish>
+          {(!somethingWrong && <Emoji />) || (somethingWrong && <GrimacingFace />)}
+          <Start passed={!somethingWrong}>{tx && token2str(tx?.from as TokenAmount)}</Start>
+          <Middle passed={!somethingWrong}>NO FEE</Middle>
+          <Finish passed={!somethingWrong}>{tx && token2str(tx?.to as TokenAmount)}</Finish>
         </ProgressBarWithSpans>
 
-        {(progress === 100 && <Note>Your wallet is getting heavier!</Note>) ||
-          (progress >= 50 && (
+        {(tx?.status === Status.COMPLETED && <Note>Your wallet is getting heavier!</Note>) ||
+          (tx?.status === Status.PENDING && (
             <Note>
               Almost there!
               <br />
@@ -107,9 +125,10 @@ export const CurvedProgress = ({ percentage }: Props) => {
             </Note>
           )) || (
             <Note>
-              Curious about what&apos;s happening with your transaction?
+              Something Wrong
+              {/* Curious about what&apos;s happening with your transaction?
               <br />
-              Here&apos;s what we&apos;re up to!
+              Here&apos;s what we&apos;re up to! */}
             </Note>
           )}
       </Body>

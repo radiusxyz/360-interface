@@ -17,7 +17,9 @@ const Progress = ({ page }: Props) => {
   }, [percentage])
 
   return (
-    (page === 'history' && <StraightProgress percentage={percentage} />) || <CurvedProgress percentage={percentage} />
+    (page === 'history' && <StraightProgress percentage={percentage} />) || (
+      <CurvedProgress percentage={percentage} id={0} />
+    )
   )
 }
 

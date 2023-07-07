@@ -1,6 +1,7 @@
 import styled from 'styled-components/macro'
 import { PrimaryButton } from '../UI/Buttons'
 import emoji from '../../../assets/v2/images/emoji.svg'
+import grimacing_face from '../../../assets/v2/images/grimacing-face.svg'
 
 export const Wrapper = styled.div`
   display: flex;
@@ -78,13 +79,12 @@ export const Status = styled.span<{ passed?: boolean }>`
   font-size: 18px;
   line-height: 21px;
   position: absolute;
-  color: ${({ passed }) => (passed && '#6b11ff') || '#eee4ff'};
+  color: ${({ passed }) => (passed && '#6b11ff') || '#d9d9d9'};
 `
 
 export const Start = styled(Status)`
   font-weight: 600;
   font-size: 18px;
-  color: #6b11ff;
   top: 50%;
   left: -46px;
   transform: translate(-100%, -50%);
@@ -110,18 +110,27 @@ export const Emoji = styled.img.attrs({
   transform: translate(-50%, -50%);
 `
 
+export const GrimacingFace = styled.img.attrs({
+  src: grimacing_face,
+})`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+`
+
 export const SVG = styled.svg.attrs({
   viewBox: '0 0 232 232',
   width: 232,
   height: 232,
 })``
 
-export const Note = styled.p`
+export const Note = styled.p<{ passed?: boolean }>`
   font-weight: 400;
   font-size: 16px;
   line-height: 144.52%;
   text-align: center;
-  color: #6b11ff;
+  color: ${({ passed }) => (passed && '#6b11ff') || '#703c00'};
   position: absolute;
   bottom: 68px;
   left: 50%;

@@ -22,6 +22,8 @@ export const LeftSection = () => {
   //   if (target.textContent === '') setLeftSection('almost-there')
   // }
 
+  const { id } = swapCTX.swapParams
+
   const { onCurrencySelection } = useSwapActionHandlers()
   const { typedValue } = useSwapState()
 
