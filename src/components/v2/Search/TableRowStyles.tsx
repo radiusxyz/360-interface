@@ -5,6 +5,7 @@ export const Wrapper = styled.div`
   justify-content: space-between;
   width: 100%;
   background: #ffffff;
+  min-height: 76px;
   &: hover {
     background: #ededff;
     cursor: pointer;
@@ -46,6 +47,7 @@ export const Description = styled.span`
 export const BalanceWrapper = styled.div`
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 2px;
 `
 
