@@ -3,7 +3,7 @@ import TransactionList from 'components/v2/Transactions/TransactionList'
 import { useState } from 'react'
 import styled from 'styled-components/macro'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db, Status, statusToString } from 'utils/db'
+import { db, Status, statusToString, TokenAmount } from 'utils/db'
 import moment from 'moment'
 
 const Wrapper = styled.div`
@@ -58,13 +58,13 @@ const History = () => {
     []
 
   rows?.forEach((row) => {
-    if (row.fromResult && row.toResult && row.txDate) {
+    if (row.txDate) {
       completedTxs.push({
         id: row.id ? row.id.toString() : '-1',
         status: statusToString(row.status as Status),
         date: moment(new Date(row.txDate * 1000)).format('DD MMMM YYYY - h:mm A'),
-        from: token2str(row.fromResult),
-        to: token2str(row.toResult),
+        ...(row.fromResult ? { from: token2str(row.fromResult) } : { from: token2str(row.from as TokenAmount) }),
+        ...(row.toResult ? { to: token2str(row.toResult) } : { to: token2str(row.to as TokenAmount) }),
       })
     } else if (row.from && row.to && row.sendDate) {
       pendingTxs.push({

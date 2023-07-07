@@ -233,7 +233,7 @@ export async function CheckPendingTx({
           console.log('txHashes', txHashes)
 
           let hashChain = '0x0000000000000000000000000000000000000000000000000000000000000000'
-          if (swapTx.order && swapTx.order + 1 <= txHashes.length) {
+          if (swapTx.order !== undefined && swapTx.order + 1 <= txHashes.length) {
             for (let i = 0; i < swapTx.order; i++) {
               hashChain = solidityKeccak256(['bytes32', 'bytes32'], [hashChain, txHashes[i]])
             }

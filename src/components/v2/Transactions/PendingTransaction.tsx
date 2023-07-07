@@ -11,7 +11,8 @@ import {
   TXPreview,
   TXStatus,
 } from './PendingTransactionStyles'
-import Progress from '../Progress/Progress'
+import StraightProgress from './StraightProgress'
+import { Status, stringToStatus } from 'utils/db'
 
 type Props = { tx: { id: string; status: string; date: string; from: string; to: string; reimbursed?: boolean } }
 
@@ -20,6 +21,15 @@ const PendingTransaction = ({ tx: { status, date, from, to } }: Props) => {
   const handleExpand = () => {
     setIsExpand((state: boolean) => !state)
   }
+
+  let progress = 0
+  if (stringToStatus(status) === Status.PENDING) progress = 50
+  if (stringToStatus(status) === Status.CANCELED) progress = 100
+  if (stringToStatus(status) === Status.COMPLETED) progress = 100
+  if (stringToStatus(status) === Status.REJECTED) progress = 100
+  if (stringToStatus(status) === Status.REIMBURSE_AVAILABLE) progress = 100
+  if (stringToStatus(status) === Status.REIMBURSED) progress = 100
+
   return (
     <TX>
       <TXPreview>
@@ -36,7 +46,7 @@ const PendingTransaction = ({ tx: { status, date, from, to } }: Props) => {
       </TXPreview>
       {isExpanded && (
         <ProgressWrapper>
-          <Progress page="history" />
+          <StraightProgress percentage={progress} />
         </ProgressWrapper>
       )}
     </TX>

@@ -27,6 +27,24 @@ export function statusToString(_status: Status) {
       return 'Pending'
   }
 }
+export function stringToStatus(_status: string) {
+  switch (_status) {
+    case 'Pending':
+      return Status.PENDING
+    case 'Completed':
+      return Status.COMPLETED
+    case 'Canceled':
+      return Status.CANCELED
+    case 'Rejected':
+      return Status.REJECTED
+    case 'Reimburse Available':
+      return Status.REIMBURSE_AVAILABLE
+    case 'Reimbursed':
+      return Status.REIMBURSED
+    default:
+      return 'Pending'
+  }
+}
 
 export interface swap {
   id?: number
@@ -197,20 +215,20 @@ export class MySubClassedDexie extends Dexie {
       return undefined
     } else {
       const swapParam: any = {}
-      _swap.tx && (swapParam['tx'] = _swap.tx)
-      _swap.mimcHash && (swapParam['mimcHash'] = _swap.mimcHash)
-      _swap.from && (swapParam['from'] = _swap.from)
-      _swap.to && (swapParam['to'] = _swap.to)
-      _swap.fromResult && (swapParam['fromResult'] = _swap.fromResult)
-      _swap.toResult && (swapParam['toResult'] = _swap.toResult)
-      _swap.sendDate && (swapParam['sendDate'] = _swap.sendDate)
-      _swap.round && (swapParam['round'] = _swap.round)
-      _swap.order && (swapParam['order'] = _swap.order)
-      _swap.proofHash && (swapParam['proofHash'] = _swap.proofHash)
-      _swap.operatorSignature && (swapParam['operatorSignature'] = _swap.operatorSignature)
-      _swap.txId && (swapParam['txId'] = _swap.txId)
-      _swap.txDate && (swapParam['txDate'] = _swap.txDate)
-      _swap.status && (swapParam['status'] = _swap.status)
+      _swap.tx !== undefined && (swapParam['tx'] = _swap.tx)
+      _swap.mimcHash !== undefined && (swapParam['mimcHash'] = _swap.mimcHash)
+      _swap.from !== undefined && (swapParam['from'] = _swap.from)
+      _swap.to !== undefined && (swapParam['to'] = _swap.to)
+      _swap.fromResult !== undefined && (swapParam['fromResult'] = _swap.fromResult)
+      _swap.toResult !== undefined && (swapParam['toResult'] = _swap.toResult)
+      _swap.sendDate !== undefined && (swapParam['sendDate'] = _swap.sendDate)
+      _swap.round !== undefined && (swapParam['round'] = _swap.round)
+      _swap.order !== undefined && (swapParam['order'] = _swap.order)
+      _swap.proofHash !== undefined && (swapParam['proofHash'] = _swap.proofHash)
+      _swap.operatorSignature !== undefined && (swapParam['operatorSignature'] = _swap.operatorSignature)
+      _swap.txId !== undefined && (swapParam['txId'] = _swap.txId)
+      _swap.txDate !== undefined && (swapParam['txDate'] = _swap.txDate)
+      _swap.status !== undefined && (swapParam['status'] = _swap.status)
 
       return await db.swap.where(_where.field).equals(_where.value).modify(swapParam)
     }
@@ -223,6 +241,17 @@ export class MySubClassedDexie extends Dexie {
     if (exist === 0) return await db.swap.add({ ..._swap, txHash: _swap.txHash as string })
     return undefined
     // })
+  }
+
+  async getRecentSwap() {
+    const txs = await this.swap.orderBy('id').reverse().limit(1)
+    const tx = (await txs.toArray())[0]
+
+    if (tx) {
+      return tx
+    } else {
+      return undefined
+    }
   }
 
   async addReadyTx(_readyTx: ReadyTx) {

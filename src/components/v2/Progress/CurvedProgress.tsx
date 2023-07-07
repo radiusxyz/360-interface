@@ -27,15 +27,18 @@ export const CurvedProgress = ({ percentage }: Props) => {
   const swapCTX = useContext(SwapContext)
 
   const status = useLiveQuery(async () => {
-    const tx = await db.getRecentTxHistory()
+    const tx = await db.getRecentSwap()
     if (!tx) return -1
     return tx.status
   })
 
   let progress = 0
   if (status === Status.PENDING) progress = 50
+  if (status === Status.CANCELED) progress = 100
   if (status === Status.COMPLETED) progress = 100
   if (status === Status.REJECTED) progress = 100
+  if (status === Status.REIMBURSE_AVAILABLE) progress = 100
+  if (status === Status.REIMBURSED) progress = 100
 
   const width = 232
   const r = 108.5

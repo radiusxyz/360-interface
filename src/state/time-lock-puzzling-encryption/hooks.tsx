@@ -126,14 +126,13 @@ export const useSendEncryptedTxFunc = (
   fieldInput: Field
 ) => {
   const swapCTX = useContext(SwapContext)
-  const { updateSwapParams, handleLeftSection, handleSwapParams, swapParams } = swapCTX
+  const { handleLeftSection, handleSwapParams, swapParams } = swapCTX
   const { txHash, mimcHash, signMessage, encryptedSwapTx, sig, operatorAddress } = swapParams
   const sendEncryptedTxFunc = useCallback(async () => {
     if (sendEncryptedTx) {
       sendEncryptedTx(txHash, mimcHash, signMessage, encryptedSwapTx, sig, operatorAddress)
         .then(async () => {
           onUserInput(fieldInput, '')
-          updateSwapParams({ sent: true })
           // handleLeftSection('welcome')
           // handleSwapParams({ start: false })
         })
