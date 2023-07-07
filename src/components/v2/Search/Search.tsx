@@ -164,7 +164,11 @@ const Search = ({ onCurrencySelection }: any) => {
           />
         </Wrapper>
       </Paddinger>
-      <FrequentTokens />
+      <FrequentTokens
+        currencies={filteredSortedTokens}
+        onCurrencySelect={onCurrencySelection}
+        selectedCurrency={null}
+      />
       <Table
         currencies={filteredSortedTokens}
         otherListTokens={filteredInactiveTokens}

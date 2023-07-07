@@ -3,7 +3,7 @@ import { Message, Wrapper, TopMostWrapper, ImageWrapper } from './InstructionSty
 import ferris_wheel from '../../../assets/v2/images/ferris_wheel.svg'
 import finger_right from '../../../assets/v2/images/finger_right.svg'
 import clapping_hands from '../../../assets/v2/images/clapping_hands.svg'
-import hot_cup from '../../../assets/v2/images/hot_cup.svg'
+import hot_cup_loading from '../../../assets/v2/images/hot_cup_loading.gif'
 import thought_baloon from '../../../assets/v2/images/thought_baloon.svg'
 // import SwapContext from 'store/swap-context'
 // import { useSwapState } from 'state/swap/hooks'
@@ -48,7 +48,7 @@ const Instruction = ({
     }
     // check for all the required info for loading
     else if (isAtokenSelected && isBtokenSelected && typedValue) {
-      setImgURL(hot_cup)
+      setImgURL(hot_cup_loading)
       setBackground('#fff6f6')
       setMessage('Calculating the optimal price...')
     } else {
@@ -62,7 +62,7 @@ const Instruction = ({
     <TopMostWrapper>
       <Wrapper background={background}>
         <ImageWrapper>
-          <img src={imgURL} />
+          <img src={imgURL} width={imgURL === ferris_wheel ? '60px' : '111px'} />
         </ImageWrapper>
         <Message>{message}</Message>
       </Wrapper>

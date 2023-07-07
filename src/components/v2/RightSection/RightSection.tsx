@@ -13,7 +13,6 @@ import {
   TokenName,
   TokenWrapper,
   TopTokenRow,
-  Logo,
   Balance,
   Circle,
   BottomTokenRow,
@@ -51,6 +50,8 @@ import TradePrice from '../../../components/swap/TradePrice'
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import Settings from '../Settings/Settings'
 import { useExpertModeManager } from 'state/user/hooks'
+import CurrencyLogo from 'components/CurrencyLogo'
+import useCurrencyBalance from 'lib/hooks/useCurrencyBalance'
 
 export const RightSection = () => {
   const swapCTX = useContext(SwapContext)
@@ -82,8 +83,8 @@ export const RightSection = () => {
   // swap state
   const { independentField, typedValue, recipient, INPUT, OUTPUT } = useSwapState()
 
-  const inputCurrency = useCurrency(INPUT.currencyId)
-  const outputCurrency = useCurrency(OUTPUT.currencyId)
+  const inputCurrency = useCurrency(INPUT.currencyId) || undefined
+  const outputCurrency = useCurrency(OUTPUT.currencyId) || undefined
 
   const {
     trade: { trade },
@@ -290,6 +291,9 @@ export const RightSection = () => {
     }
   }, [isAtokenSelectionActive, isBtokenSelectionActive, handleLeftSection])
 
+  const balanceInput = useCurrencyBalance(account ?? undefined, inputCurrency)
+  const balanceOutput = useCurrencyBalance(account ?? undefined, outputCurrency)
+
   return leftSection === 'progress' || leftSection === 'almost-there' ? (
     <></>
   ) : !showSettings ? (
@@ -315,14 +319,15 @@ export const RightSection = () => {
             <SelectTokenButton isSelected={isAtokenSelected} onClick={openInputTokenSelect}>
               {isAtokenSelected ? (
                 <TokenWrapper>
-                  <Logo />
+                  <CurrencyLogo currency={inputCurrency} size={'28px'} />
                   <TokenName>{inputCurrency?.symbol}</TokenName>
                 </TokenWrapper>
               ) : (
                 'Select'
               )}
             </SelectTokenButton>
-            {isAtokenSelected && <Balance>Balance : 0.00225</Balance>}
+            {(isAtokenSelected && balanceOutput && <Balance>Balance: {balanceOutput.toSignificant(4)}</Balance>) ||
+              (account && <></>)}
           </ButtonAndBalanceWrapper>
           <NumericInput
             value={formattedAmounts[Field.INPUT]}
@@ -338,14 +343,15 @@ export const RightSection = () => {
             <SelectTokenButton isSelected={isBtokenSelected} onClick={openOutputTokenSelect}>
               {isBtokenSelected ? (
                 <TokenWrapper>
-                  <Logo />
+                  <CurrencyLogo currency={outputCurrency} size={'28px'} />
                   <TokenName>{outputCurrency?.symbol}</TokenName>
                 </TokenWrapper>
               ) : (
                 'Select'
               )}
             </SelectTokenButton>
-            {isBtokenSelected && <Balance>Balance : 0.00225</Balance>}
+            {(isBtokenSelected && balanceOutput && <Balance>Balance: {balanceOutput.toSignificant(4)}</Balance>) ||
+              (account && <></>)}
           </ButtonAndBalanceWrapper>
           <NumericInput
             value={formattedAmounts[Field.OUTPUT]}
