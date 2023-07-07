@@ -17,7 +17,6 @@ const Table = ({
   onCurrencySelect,
   otherCurrency,
   fixedListRef,
-
   showCurrencyAmount,
 }: {
   currencies: Currency[]
