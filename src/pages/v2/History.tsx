@@ -53,14 +53,30 @@ const History = () => {
     return history.toArray()
   }, [activePage])
 
-  const pendingTxs: { id: string; status: string; date: string; from: string; to: string; reimbursed?: boolean }[] = []
-  const completedTxs: { id: string; status: string; date: string; from: string; to: string; reimbursed?: boolean }[] =
-    []
+  const pendingTxs: {
+    id: string
+    hash: string
+    status: string
+    date: string
+    from: string
+    to: string
+    reimbursed?: boolean
+  }[] = []
+  const completedTxs: {
+    id: string
+    hash: string
+    status: string
+    date: string
+    from: string
+    to: string
+    reimbursed?: boolean
+  }[] = []
 
   rows?.forEach((row) => {
     if (row.txDate) {
       completedTxs.push({
         id: row.id ? row.id.toString() : '-1',
+        hash: row.txId as string,
         status: statusToString(row.status as Status),
         date: moment(new Date(row.txDate * 1000)).format('DD MMMM YYYY - h:mm A'),
         ...(row.fromResult ? { from: token2str(row.fromResult) } : { from: token2str(row.from as TokenAmount) }),
@@ -69,6 +85,7 @@ const History = () => {
     } else if (row.from && row.to && row.sendDate) {
       pendingTxs.push({
         id: row.id ? row.id.toString() : '-1',
+        hash: row.txId as string,
         status: statusToString(row.status as Status),
         date: moment(new Date(row.sendDate * 1000)).format('DD MMMM YYYY - h:mm A'),
         from: token2str(row.from),

@@ -12,6 +12,7 @@ type Props = {
   status: string
   txs: {
     id: string
+    hash: string
     status: string
     date: string
     from: string
