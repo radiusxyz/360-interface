@@ -21,6 +21,8 @@ export const LeftSection = () => {
   //   if (target.textContent === '') setLeftSection('almost-there')
   // }
 
+  const { id } = swapCTX.swapParams
+
   const { onCurrencySelection } = useSwapActionHandlers()
   const { typedValue } = useSwapState()
 
@@ -40,7 +42,7 @@ export const LeftSection = () => {
         (swapCTX.leftSection === 'search-table' && <Search onCurrencySelection={onCurrencySelection} />) ||
         (swapCTX.leftSection === 'preview' && <Preview />) ||
         (swapCTX.leftSection === 'almost-there' && <AlmostThere />) ||
-        (swapCTX.leftSection === 'progress' && <CurvedProgress percentage={0} />)}
+        (swapCTX.leftSection === 'progress' && <CurvedProgress percentage={0} id={id as number} />)}
     </>
   )
 }

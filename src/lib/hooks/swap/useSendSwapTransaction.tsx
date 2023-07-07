@@ -366,7 +366,7 @@ export default function useSendSwapTransaction(
               operatorAddress
             )
 
-            return sendResponse
+            return { ...sendResponse, dbId: i }
           })
         return sendResponse
         // })

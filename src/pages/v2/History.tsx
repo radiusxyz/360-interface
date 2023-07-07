@@ -94,11 +94,6 @@ const History = () => {
     }
   })
 
-  function token2str(row: { amount: string; decimal: string; token: string }) {
-    const amount = Number(row.amount) / Number(row.decimal)
-    return amount.toString() + ' ' + row.token
-  }
-
   /* {
     id: cuid(),
     status: 'Pending',
@@ -113,6 +108,11 @@ const History = () => {
       <TransactionList txs={activeTab === 'In Progress' ? pendingTxs : completedTxs} status={activeTab} />
     </Wrapper>
   )
+}
+
+function token2str(row: { amount: string; decimal: string; token: string }) {
+  const amount = Number(row.amount) / Number(row.decimal)
+  return amount.toString() + ' ' + row.token
 }
 
 export default History
