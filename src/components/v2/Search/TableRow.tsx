@@ -1,4 +1,4 @@
-import { Balance, BalanceInUSD, BalanceWrapper, Description, DetailsWrapper, Title, RowWrapper } from './TableRowStyles'
+import { Balance, BalanceWrapper, Description, DetailsWrapper, Title, RowWrapper } from './TableRowStyles'
 import CurrencyLogo from '../../../components/CurrencyLogo/index'
 import { Currency } from '@uniswap/sdk-core'
 import { useCombinedActiveList } from '../../../state/lists/hooks'
@@ -70,7 +70,7 @@ const TableRow = ({
       </DetailsWrapper>
       <BalanceWrapper>
         {(showCurrencyAmount && balance && <Balance>{balance.toSignificant(4)}</Balance>) || (account && <Loading />)}
-        {showCurrencyAmount && balance && <BalanceInUSD>$100</BalanceInUSD>}
+        {/* {showCurrencyAmount && balance && <BalanceInUSD>$100</BalanceInUSD>} */}
       </BalanceWrapper>
     </RowWrapper>
   )

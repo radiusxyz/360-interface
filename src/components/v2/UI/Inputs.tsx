@@ -136,7 +136,7 @@ export const NumericInput = React.memo(function InnerInput({
         maxLength={79}
         spellCheck="false"
       />
-      {isSelected && <BalanceUSD>$0.00</BalanceUSD>}
+      {/* {isSelected && <BalanceUSD>$0.00</BalanceUSD>} */}
     </InputWrapper>
   )
 })

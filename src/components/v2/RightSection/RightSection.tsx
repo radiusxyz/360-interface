@@ -33,7 +33,7 @@ import { Trade as V3Trade } from '@uniswap/v3-sdk'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useSwapCallback } from 'hooks/useSwapCallback'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
-import { MouseEventHandler, useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParameters } from 'state/parameters/hooks'
 
 import { ApprovalState, useApprovalOptimizedTrade, useApproveCallbackFromTrade } from 'hooks/useApproveCallback'
@@ -215,31 +215,6 @@ export const RightSection = () => {
 
   const priceImpactTooHigh = priceImpactSeverity > 3 && !isExpertMode
 
-  const handleConfirmDismiss = useCallback(() => {
-    handleLeftSection('welcome')
-    handleSwapParams({
-      start: false,
-      timeLockPuzzleData: swapParams.timeLockPuzzleData,
-      timeLockPuzzleDone: swapParams.timeLockPuzzleDone,
-    })
-  }, [onUserInput, swapParams])
-
-  const handleInputSelect = useCallback(
-    (inputCurrency: any) => {
-      setApprovalSubmitted(false) // reset 2 step UI for approvals
-      onCurrencySelection(Field.INPUT, inputCurrency)
-    },
-    [onCurrencySelection]
-  )
-
-  const handleOutputSelect = useCallback(
-    (outputCurrency: any) => {
-      setApprovalSubmitted(false) // reset 2 step UI for approvals
-      onCurrencySelection(Field.OUTPUT, outputCurrency)
-    },
-    [onCurrencySelection]
-  )
-
   const [showSettings, setShowSettings] = useState(false)
   const [showInverted, setShowInverted] = useState<boolean>(false)
   const [maxSelected, setMaxSelected] = useState(false)
@@ -265,7 +240,7 @@ export const RightSection = () => {
     maxInputAmount && onUserInput(Field.INPUT, formattedAmounts[Field.INPUT])
   }, [maxInputAmount, onUserInput])
 
-  const handleShowSettings: MouseEventHandler<SVGSVGElement | HTMLImageElement> = () => {
+  const handleShowSettings = () => {
     setShowSettings((prevState) => !prevState)
   }
 
@@ -303,7 +278,7 @@ export const RightSection = () => {
         <Cog onClick={handleShowSettings} />
       </Header>
       <TopTokenRow>
-        {true && (
+        {(isASelected || isBSelected) && (
           <SlippageOptions>
             <SlippageOption selected={maxSelected} onClick={handleMaxInput}>
               MAX

@@ -35,7 +35,7 @@ enum DeadlineError {
 
 type Props = {
   isSelected?: boolean
-  handleShowSettings?: (e: React.MouseEvent<HTMLImageElement | SVGSVGElement>) => void
+  handleShowSettings: () => void
   placeholderSlippage: Percent
 }
 
@@ -173,7 +173,13 @@ const Settings = ({ isSelected, handleShowSettings, placeholderSlippage }: Props
         </MevSettingWrapper>
       </Body>
       <Footer>
-        <PrimaryButton>OK</PrimaryButton>
+        <PrimaryButton
+          onClick={() => {
+            handleShowSettings()
+          }}
+        >
+          OK
+        </PrimaryButton>
       </Footer>
     </Wrapper>
   )
