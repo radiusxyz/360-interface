@@ -34,9 +34,6 @@ export const LeftSection = () => {
         (leftSection === 'preview' && <Preview />) ||
         (leftSection === 'almost-there' && <AlmostThere />) ||
         (leftSection === 'progress' && <CurvedProgress percentage={0} />)}
-      {/* <FabItem status={0} />
-      <FabItem status={1} />
-      <FabItem status={2} /> */}
     </>
   )
 }

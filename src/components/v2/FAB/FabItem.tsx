@@ -3,10 +3,14 @@ import styled, { css, keyframes } from 'styled-components/macro'
 import completed from '../../../assets/v2/images/completed.svg'
 import pending from '../../../assets/v2/images/pending.svg'
 import failed from '../../../assets/v2/images/failed.svg'
+import { NavLink } from 'react-router-dom'
 
 type Status = { status: number }
 
 const Wrapper = styled.div`
+  position: absolute;
+  bottom: 200px;
+  right: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -63,10 +67,12 @@ const FabItem = ({ status }: Status) => {
   }
 
   return (
-    <Wrapper onMouseEnter={handleHint} onMouseLeave={handleHint}>
-      {hint && <Hint status={status}>{hint}</Hint>}
-      {!hint && <Icon status={status} />}
-    </Wrapper>
+    <NavLink to="/history">
+      <Wrapper onMouseEnter={handleHint} onMouseLeave={handleHint}>
+        {hint && <Hint status={status}>{hint}</Hint>}
+        {!hint && <Icon status={status} />}
+      </Wrapper>
+    </NavLink>
   )
 }
 
