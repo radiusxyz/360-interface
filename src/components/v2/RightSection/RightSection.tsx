@@ -60,13 +60,13 @@ export const RightSection = () => {
     updateSwapParams,
     handleSwapParams,
     handleLeftSection,
-    isAtokenSelectionActive,
-    handleSetIsAtokenSelectionActive,
-    isBtokenSelectionActive,
-    handleSetIsBtokenSelectionActive,
+    isAActive,
+    handleSetIsAActive,
+    isBActive,
+    handleSetIsBActive,
     leftSection,
-    isAtokenSelected,
-    isBtokenSelected,
+    isASelected,
+    isBSelected,
   } = swapCTX
 
   const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
@@ -270,13 +270,13 @@ export const RightSection = () => {
   }
 
   const openInputTokenSelect = () => {
-    handleSetIsBtokenSelectionActive(false)
-    handleSetIsAtokenSelectionActive(true)
+    handleSetIsBActive(false)
+    handleSetIsAActive(true)
   }
 
   const openOutputTokenSelect = () => {
-    handleSetIsAtokenSelectionActive(false)
-    handleSetIsBtokenSelectionActive(true)
+    handleSetIsAActive(false)
+    handleSetIsBActive(true)
   }
 
   useEffect(() => {
@@ -286,10 +286,10 @@ export const RightSection = () => {
   }, [trade, leftSection, handleLeftSection])
 
   useEffect(() => {
-    if (isAtokenSelectionActive || isBtokenSelectionActive) {
+    if (isAActive || isBActive) {
       handleLeftSection('search-table')
     }
-  }, [isAtokenSelectionActive, isBtokenSelectionActive, handleLeftSection])
+  }, [isAActive, isBActive, handleLeftSection])
 
   const balanceInput = useCurrencyBalance(account ?? undefined, inputCurrency)
   const balanceOutput = useCurrencyBalance(account ?? undefined, outputCurrency)
@@ -316,8 +316,8 @@ export const RightSection = () => {
         )}
         <Aligner>
           <ButtonAndBalanceWrapper>
-            <SelectTokenButton isSelected={isAtokenSelected} onClick={openInputTokenSelect}>
-              {isAtokenSelected ? (
+            <SelectTokenButton isSelected={isASelected} onClick={openInputTokenSelect}>
+              {isASelected ? (
                 <TokenWrapper>
                   <CurrencyLogo currency={inputCurrency} size={'28px'} />
                   <TokenName>{inputCurrency?.symbol}</TokenName>
@@ -326,22 +326,18 @@ export const RightSection = () => {
                 'Select'
               )}
             </SelectTokenButton>
-            {(isAtokenSelected && balanceOutput && <Balance>Balance: {balanceOutput.toSignificant(4)}</Balance>) ||
+            {(isASelected && balanceOutput && <Balance>Balance: {balanceOutput.toSignificant(4)}</Balance>) ||
               (account && <></>)}
           </ButtonAndBalanceWrapper>
-          <NumericInput
-            value={formattedAmounts[Field.INPUT]}
-            onUserInput={handleTypeInput}
-            isSelected={isAtokenSelected}
-          />
+          <NumericInput value={formattedAmounts[Field.INPUT]} onUserInput={handleTypeInput} isSelected={isASelected} />
         </Aligner>
         <Circle />
       </TopTokenRow>
       <BottomTokenRow>
         <Aligner>
           <ButtonAndBalanceWrapper>
-            <SelectTokenButton isSelected={isBtokenSelected} onClick={openOutputTokenSelect}>
-              {isBtokenSelected ? (
+            <SelectTokenButton isSelected={isBSelected} onClick={openOutputTokenSelect}>
+              {isBSelected ? (
                 <TokenWrapper>
                   <CurrencyLogo currency={outputCurrency} size={'28px'} />
                   <TokenName>{outputCurrency?.symbol}</TokenName>
@@ -350,7 +346,7 @@ export const RightSection = () => {
                 'Select'
               )}
             </SelectTokenButton>
-            {(isBtokenSelected && balanceOutput && <Balance>Balance: {balanceOutput.toSignificant(4)}</Balance>) ||
+            {(isBSelected && balanceOutput && <Balance>Balance: {balanceOutput.toSignificant(4)}</Balance>) ||
               (account && <></>)}
           </ButtonAndBalanceWrapper>
           <NumericInput
@@ -358,7 +354,7 @@ export const RightSection = () => {
             onUserInput={() => {
               return
             }}
-            isSelected={isAtokenSelected}
+            isSelected={isASelected}
           />
         </Aligner>
       </BottomTokenRow>

@@ -7,24 +7,24 @@ type swapProps = {
 }
 
 const SwapProvider = ({ children }: { children: ReactNode }) => {
-  const [isAtokenSelected, setIsAtokenSelected] = useState(false)
-  const [isBtokenSelected, setIsBtokenSelected] = useState(false)
-  const [isAtokenSelectionActive, setIsAtokenSelectionActive] = useState(false)
-  const [isBtokenSelectionActive, setIsBtokenSelectionActive] = useState(false)
+  const [isASelected, setIsASelected] = useState(false)
+  const [isBSelected, setIsBSelected] = useState(false)
+  const [isAActive, setIsAActive] = useState(false)
+  const [isBActive, setIsBActive] = useState(false)
   const [leftSection, setLeftSection] = useState('welcome')
   const [swapParams, setSwapParams] = useState<any>({ start: false })
 
-  const handleSetIsAtokenSelected = () => {
-    setIsAtokenSelected(true)
+  const handleSetIsASelected = (value: boolean) => {
+    setIsASelected(value)
   }
-  const handleSetIsBtokenSelected = () => {
-    setIsBtokenSelected(true)
+  const handleSetIsBSelected = (value: boolean) => {
+    setIsBSelected(value)
   }
-  const handleSetIsAtokenSelectionActive = (value: boolean) => {
-    setIsAtokenSelectionActive(value)
+  const handleSetIsAActive = (value: boolean) => {
+    setIsAActive(value)
   }
-  const handleSetIsBtokenSelectionActive = (value: boolean) => {
-    setIsBtokenSelectionActive(value)
+  const handleSetIsBActive = (value: boolean) => {
+    setIsBActive(value)
   }
 
   const handleLeftSection = (value: string) => {
@@ -39,14 +39,14 @@ const SwapProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const swapContext = {
-    isAtokenSelected,
-    handleSetIsAtokenSelected,
-    isBtokenSelected,
-    handleSetIsBtokenSelected,
-    isAtokenSelectionActive,
-    handleSetIsAtokenSelectionActive,
-    isBtokenSelectionActive,
-    handleSetIsBtokenSelectionActive,
+    isASelected,
+    handleSetIsASelected,
+    isBSelected,
+    handleSetIsBSelected,
+    isAActive,
+    handleSetIsAActive,
+    isBActive,
+    handleSetIsBActive,
     leftSection,
     handleLeftSection,
     swapParams,

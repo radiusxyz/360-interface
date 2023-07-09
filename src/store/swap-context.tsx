@@ -1,23 +1,23 @@
 import React from 'react'
 
 const SwapContext = React.createContext<any>({
-  isAtokenSelected: false,
-  isBtokenSelected: false,
-  isAtokenSelectionActive: false,
-  isBtokenSelectionActive: false,
+  isASelected: false,
+  isBSelected: false,
+  isAActive: false,
+  isBActive: false,
   leftSection: 'welcome',
   swapParams: {},
 
-  handleSetIsAtokenSelected: () => {
+  handleSetIsASelected: (value: boolean) => {
     return
   },
-  handleSetIsBtokenSelected: () => {
+  handleSetIsBSelected: (value: boolean) => {
     return
   },
-  handleSetIsAtokenSelectionActive: (value: boolean) => {
+  handleSetIsAActive: (value: boolean) => {
     return
   },
-  handleSetIsBtokenSelectionActive: (value: boolean) => {
+  handleSetIsBActive: (value: boolean) => {
     return
   },
   handleLeftSection: (target: string) => {
