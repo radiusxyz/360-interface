@@ -15,10 +15,7 @@ const Wrapper = styled.div`
   height: 100%;
 `
 
-const MainWrapper = styled.div`
-  width: 100;
-  height: 100vh;
-`
+const MainWrapper = styled.div``
 
 const Root = () => {
   const currentLocation = useLocation()
