@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
-import styled from 'styled-components/macro'
+import styled, { css, keyframes } from 'styled-components/macro'
 import completed from '../../../assets/v2/images/completed.svg'
 import pending from '../../../assets/v2/images/pending.svg'
 import failed from '../../../assets/v2/images/failed.svg'
+
+type Status = { status: number }
 
 const Wrapper = styled.div`
   display: flex;
@@ -21,7 +23,14 @@ const Wrapper = styled.div`
   }
 `
 
-type Status = { status: number }
+const rotate = keyframes`
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+`
 
 const Hint = styled.p<Status>`
   display: flex;
@@ -32,6 +41,12 @@ const Hint = styled.p<Status>`
   font-weight: 500;
   line-height: normal;
   color: ${({ status }) => (status === 0 && '#00b84a') || (status === 1 && '#6B11FF') || '#FF5C00'};
+`
+
+const Icon = styled.img.attrs(({ status }: Status) => ({
+  src: (status === 0 && completed) || (status === 1 && pending) || failed,
+}))<Status>`
+  animation: ${({ status }) => status === 1 && css`2s ${rotate} linear infinite`};
 `
 
 const FabItem = ({ status }: Status) => {
@@ -50,7 +65,7 @@ const FabItem = ({ status }: Status) => {
   return (
     <Wrapper onMouseEnter={handleHint} onMouseLeave={handleHint}>
       {hint && <Hint status={status}>{hint}</Hint>}
-      {!hint && <img src={(status === 0 && completed) || (status === 1 && pending) || failed} />}
+      {!hint && <Icon status={status} />}
     </Wrapper>
   )
 }
