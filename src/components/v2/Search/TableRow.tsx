@@ -1,4 +1,4 @@
-import { Balance, BalanceInUSD, BalanceWrapper, Description, DetailsWrapper, Title, Wrapper } from './TableRowStyles'
+import { Balance, BalanceInUSD, BalanceWrapper, Description, DetailsWrapper, Title, RowWrapper } from './TableRowStyles'
 import CurrencyLogo from '../../../components/CurrencyLogo/index'
 import { Currency } from '@uniswap/sdk-core'
 import { useCombinedActiveList } from '../../../state/lists/hooks'
@@ -25,20 +25,29 @@ const TableRow = ({
   showCurrencyAmount?: boolean
 }) => {
   const swapCTX = useContext(SwapContext)
+  const {
+    handleSetIsASelected,
+    handleSetIsAActive,
+    handleSetIsBSelected,
+    handleSetIsBActive,
+    handleLeftSection,
+    isAActive,
+    isBActive,
+  } = swapCTX
   const otherSelected = Boolean(currency && otherCurrency && otherCurrency.equals(currency))
   const isSelected = Boolean(currency && selectedCurrency && selectedCurrency.equals(currency))
   const handleSelect = () => {
-    if (currency && swapCTX.isAtokenSelectionActive) {
+    if (currency && isAActive) {
       onCurrencySelect(Field.INPUT, currency)
-      swapCTX.handleSetIsAtokenSelected()
-      swapCTX.handleSetIsAtokenSelectionActive(false)
-      swapCTX.handleLeftSection('welcome')
+      handleSetIsASelected(true)
+      handleSetIsAActive(false)
+      handleLeftSection('welcome')
     }
-    if (currency && swapCTX.isBtokenSelectionActive) {
+    if (currency && isBActive) {
       onCurrencySelect(Field.OUTPUT, currency)
-      swapCTX.handleSetIsBtokenSelected()
-      swapCTX.handleSetIsBtokenSelectionActive(false)
-      swapCTX.handleLeftSection('welcome')
+      handleSetIsBSelected(true)
+      handleSetIsBActive(false)
+      handleLeftSection('welcome')
     }
   }
 
@@ -49,7 +58,7 @@ const TableRow = ({
   const balance = useCurrencyBalance(account ?? undefined, currency)
 
   return (
-    <Wrapper onClick={() => (isSelected ? null : handleSelect())}>
+    <RowWrapper onClick={() => (isSelected ? null : handleSelect())}>
       <DetailsWrapper>
         <CurrencyLogo currency={currency} size={'23px'} />
         <Title>{currency.symbol}</Title>
@@ -63,7 +72,7 @@ const TableRow = ({
         {(showCurrencyAmount && balance && <Balance>{balance.toSignificant(4)}</Balance>) || (account && <Loading />)}
         {showCurrencyAmount && balance && <BalanceInUSD>$100</BalanceInUSD>}
       </BalanceWrapper>
-    </Wrapper>
+    </RowWrapper>
   )
 }
 
