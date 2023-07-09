@@ -55,6 +55,8 @@ const Icon = styled.img.attrs(({ status }: Status) => ({
 
 const FabItem = ({ status }: Status) => {
   const [hint, setHint] = useState('')
+  const url = `/history/${status === 1 ? 'in-progress' : 'completed'}`
+
   const handleHint = (e: any) => {
     if (e.type === 'mouseenter') {
       if (status === 0) setHint('View completed swaps')
@@ -67,7 +69,7 @@ const FabItem = ({ status }: Status) => {
   }
 
   return (
-    <NavLink to="/history">
+    <NavLink to={url}>
       <Wrapper onMouseEnter={handleHint} onMouseLeave={handleHint}>
         {hint && <Hint status={status}>{hint}</Hint>}
         {!hint && <Icon status={status} />}

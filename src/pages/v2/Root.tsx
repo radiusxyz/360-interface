@@ -24,7 +24,7 @@ const Root = () => {
   const currentLocation = useLocation()
   const isHistoryPage = currentLocation.pathname.includes('/history')
   const { chainId, library } = useActiveWeb3React()
-  const [status, setStatus] = useState(-1)
+  const [status, setStatus] = useState(1)
 
   const router = useV2RouterContract()
   const recorder = useRecorderContract()
@@ -38,11 +38,11 @@ const Root = () => {
 
   return (
     <MainWrapper>
-      <AppBar status={1} />
+      <AppBar />
       <Wrapper>
         <Outlet />
       </Wrapper>
-      {!isHistoryPage && status !== -1 && <FabItem status={status} />}
+      {!isHistoryPage && status !== -1 && <FabItem status={2} />}
     </MainWrapper>
   )
 }

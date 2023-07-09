@@ -1,19 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Item, LinkList, Span360, StyledNavLink, Wrapper, MenuIcon, MainWrapper, Backdrop } from './AppBarStyles'
 import Web3Status from 'components/Web3Status'
 
-const AppBar = ({ status }: { status: number }) => {
+const AppBar = () => {
   const [displayMenu, setDisplayMenu] = useState(false)
 
   const handleMenu = () => {
     setDisplayMenu((displayMenu) => !displayMenu)
   }
-
-  const [historyPageTab, setHistoryPageTab] = useState(`/history/${status === 1 ? 'in-progress' : 'completed'}`)
-
-  useEffect(() => {
-    setHistoryPageTab(`/history/${status === 1 ? 'in-progress' : 'completed'}`)
-  }, [status])
 
   return (
     <MainWrapper>
@@ -27,7 +21,7 @@ const AppBar = ({ status }: { status: number }) => {
             <StyledNavLink to="/about">
               <Item>About</Item>
             </StyledNavLink>
-            <StyledNavLink to={historyPageTab}>
+            <StyledNavLink to="/history/in-progress">
               <Item>History</Item>
             </StyledNavLink>
             <StyledNavLink to="/my-profit">
