@@ -16,7 +16,7 @@ export const usePrepareSignMessageFunc = (
     | undefined,
   routerContract: Contract,
   account: string | null | undefined,
-  backerIntegrity: true
+  backerIntegrity: boolean
 ) => {
   const swapCTX = useContext(SwapContext)
 

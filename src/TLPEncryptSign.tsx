@@ -54,9 +54,6 @@ export const TLPEncryptSign = () => {
   const { account, chainId } = useActiveWeb3React()
   const parameters = useParameters()
 
-  // TODO:
-  const backerIntegrity = true
-
   // swap state
   const { recipient } = useSwapState()
 
@@ -87,6 +84,8 @@ export const TLPEncryptSign = () => {
     }
   }, [approvalState, approvalSubmitted])
 
+  const backerIntegrity = localStorage.getItem('backerIntegrity') === 'true' ? true : false
+
   // the callback to execute the swap
   const { prepareSignMessage, userSign, createEncryptProof, sendEncryptedTx } = useSwapCallback(
     approvalOptimizedTrade,
@@ -97,7 +96,7 @@ export const TLPEncryptSign = () => {
     parameters
   )
 
-  // Time-lock puzzle creation and encryption proccesses are CPU heavy, thus, this process should happen inside worker
+  // Time-lock puzzle creation and encryption processes are CPU heavy, thus, this process should happen inside worker
 
   const worker = useMemo(() => new Worker(), [])
 

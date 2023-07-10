@@ -1,5 +1,5 @@
 import Switch from '../UI/Switch'
-import { useSetUserSlippageTolerance, useUserSlippageTolerance, useUserTransactionTTL } from 'state/user/hooks'
+import { useSetUserSlippageTolerance, useUserSlippageTolerance } from 'state/user/hooks'
 import { InfoIcon } from '../RightSection/RightSectionStyles'
 import { PrimaryButton } from '../UI/Buttons'
 import {
@@ -21,15 +21,9 @@ import {
 } from './SettingsStyles'
 
 import { Percent } from '@uniswap/sdk-core'
-import { DEFAULT_DEADLINE_FROM_NOW } from 'constants/misc'
 import { useState } from 'react'
-import ms from 'ms.macro'
 
 enum SlippageError {
-  InvalidInput = 'InvalidInput',
-}
-
-enum DeadlineError {
   InvalidInput = 'InvalidInput',
 }
 
@@ -39,19 +33,12 @@ type Props = {
   placeholderSlippage: Percent
 }
 
-const THREE_DAYS_IN_SECONDS = ms`3 days` / 1000
-
 const Settings = ({ isSelected, handleShowSettings, placeholderSlippage }: Props) => {
   const userSlippageTolerance = useUserSlippageTolerance()
   const setUserSlippageTolerance = useSetUserSlippageTolerance()
 
-  const [deadline, setDeadline] = useUserTransactionTTL()
-
   const [slippageInput, setSlippageInput] = useState('')
   const [slippageError, setSlippageError] = useState<SlippageError | false>(false)
-
-  const [deadlineInput, setDeadlineInput] = useState('')
-  const [deadlineError, setDeadlineError] = useState<DeadlineError | false>(false)
 
   function parseSlippageInput(value: string) {
     // populate what the user typed and clear the error
@@ -76,31 +63,6 @@ const Settings = ({ isSelected, handleShowSettings, placeholderSlippage }: Props
 
   const tooLow = userSlippageTolerance !== 'auto' && userSlippageTolerance.lessThan(new Percent(5, 10_000))
   const tooHigh = userSlippageTolerance !== 'auto' && userSlippageTolerance.greaterThan(new Percent(1, 100))
-
-  function parseCustomDeadline(value: string) {
-    // populate what the user typed and clear the error
-    setDeadlineInput(value)
-    setDeadlineError(false)
-
-    if (value.length === 0) {
-      setDeadline(DEFAULT_DEADLINE_FROM_NOW)
-    } else {
-      try {
-        const parsed: number = Math.floor(Number.parseFloat(value) * 60)
-        if (!Number.isInteger(parsed) || parsed < 60 || parsed > THREE_DAYS_IN_SECONDS) {
-          setDeadlineError(DeadlineError.InvalidInput)
-        } else {
-          setDeadline(parsed)
-        }
-      } catch (error) {
-        console.error(error)
-        setDeadlineError(DeadlineError.InvalidInput)
-      }
-    }
-  }
-
-  // const showCustomDeadlineRow = Boolean(chainId && !L2_CHAIN_IDS.includes(chainId))
-  const showCustomDeadlineRow = false
 
   return (
     <Wrapper longerVersion={isSelected}>

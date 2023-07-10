@@ -17,10 +17,28 @@ const Wrapper = styled.div`
   padding: 18px 0px;
 `
 
+const Pagination = styled.div`
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+`
+
+const Page = styled.button`
+  border: none;
+  background-color: transparent;
+  padding: 10px;
+  color: skyblue;
+`
+
 const History = () => {
-  // const [txs, setTxs] = useState(data)
+  const [activePage, setActivePage] = useState(0)
+  const [pages, setPages] = useState<number[]>([])
+
   const params = useParams()
   const { status } = params
+
   const handleTabClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     const target = event.target as HTMLButtonElement
     setActiveTab(target.textContent as string)
@@ -37,23 +55,30 @@ const History = () => {
   //   handleTXlist(activeTab)
   // }, [activeTab])
 
-  const activePage = 0
-  const rowsPerPage = 30
+  const rowsPerPage = 10
 
   const rows = useLiveQuery(async () => {
+    const totalCnt = await db.swap.count()
+    const doneCnt = await db.swap.where('txDate').noneOf([0]).count()
+
+    let cnt = 0
+    if (activeTab === 'In Progress') cnt = totalCnt - doneCnt
+    else cnt = doneCnt
+
+    const array = []
+    for (let i = 0; i < cnt / 10; i++) {
+      array.push(i + 1)
+    }
+    setPages(array)
+
     const history = await db.swap
       .orderBy('id')
       .reverse()
       .offset(activePage * rowsPerPage)
       .limit(rowsPerPage)
 
-    // await history.each(async (obj, cursor) => {
-    //   console.log(obj, cursor)
-    //   const a = await db.getTxHistoryWithPendingTxById(obj.id as number)
-    //   console.log(a)
-    // })
     return history.toArray()
-  }, [activePage])
+  }, [activePage, activeTab])
 
   const pendingTxs: {
     id: string
@@ -112,6 +137,13 @@ const History = () => {
     <Wrapper>
       <Tabs handleTabClick={handleTabClick} activeTab={activeTab} />
       <TransactionList txs={activeTab === 'In Progress' ? pendingTxs : completedTxs} status={activeTab} />
+      <Pagination>
+        {pages.map((i) => (
+          <Page key={i} onClick={() => setActivePage(i - 1)}>
+            {i}
+          </Page>
+        ))}
+      </Pagination>
     </Wrapper>
   )
 }

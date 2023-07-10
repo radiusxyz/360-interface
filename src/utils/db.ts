@@ -184,7 +184,7 @@ export class MySubClassedDexie extends Dexie {
       readyTxs: '++id, txHash, progressHere',
       pendingTxs: '++id, readyTxId, sendDate, txOwner, nonce, round, order, txHash, progressHere',
       txHistory: '++id, pendingTxId, txDate, txId, fromToken, toToken',
-      swap: '++id, &txHash, status',
+      swap: '++id, &txHash, status, txDate',
     })
   }
 
