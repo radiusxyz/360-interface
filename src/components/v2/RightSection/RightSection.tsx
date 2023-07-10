@@ -31,7 +31,6 @@ import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'
 import { Trade as V3Trade } from '@uniswap/v3-sdk'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
-import { useSwapCallback } from 'hooks/useSwapCallback'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParameters } from 'state/parameters/hooks'
@@ -190,14 +189,14 @@ export const RightSection = () => {
   )
 
   // the callback to execute the swap
-  const {} = useSwapCallback(
-    approvalOptimizedTrade,
-    allowedSlippage,
-    backerIntegrity, //backer integrity
-    recipient,
-    signatureData,
-    parameters
-  )
+  // const {} = useSwapCallback(
+  //   approvalOptimizedTrade,
+  //   allowedSlippage,
+  //   backerIntegrity, //backer integrity
+  //   recipient,
+  //   signatureData,
+  //   parameters
+  // )
 
   const [isExpertMode] = useExpertModeManager()
 

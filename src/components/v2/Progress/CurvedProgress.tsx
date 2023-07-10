@@ -33,17 +33,20 @@ export const CurvedProgress = ({ percentage, id }: Props) => {
   const swapCTX = useContext(SwapContext)
 
   const tx = useLiveQuery(async () => {
-    // const txs = await db.swap.where({ id }).toArray()
-    const tx = await db.getRecentSwap()
-    // if (txs.length !== 0) return txs[0]
-    if (!tx)
-      return {
-        status: 0,
-        from: { amount: '0', decimal: '0', token: '' },
-        to: { amount: '0', decimal: '0', token: '' },
-      }
-    return tx
-  })
+    if (id) {
+      const txs = await db.swap.where({ id }).toArray()
+      // const tx = await db.getRecentSwap()
+      if (txs.length !== 0) return txs[0]
+      // if (!tx)
+      // return {
+      //   status: 0,
+      //   from: { amount: '0', decimal: '0', token: '' },
+      //   to: { amount: '0', decimal: '0', token: '' },
+      // }
+      // return tx
+    }
+    return undefined
+  }, [id])
 
   let progress = 0
   if (tx?.status === Status.PENDING) progress = 50
@@ -58,11 +61,7 @@ export const CurvedProgress = ({ percentage, id }: Props) => {
   const strokeDasharray = 2 * Math.PI * r
   const strokeDashoffset = strokeDasharray - (strokeDasharray * progress) / 200
 
-  // if (row && row[0].status === Status.PENDING) setProgress(50)
-  // if (row && row[0].status === Status.COMPLETED) setProgress(100)
-  // if (row && row[0].status === Status.REJECTED) setProgress(100)
-
-  const somethingWrong = tx?.status !== Status.COMPLETED && tx?.status !== Status.PENDING
+  const somethingWrong = tx?.status !== undefined && tx?.status !== Status.COMPLETED && tx?.status !== Status.PENDING
 
   return (
     <Wrapper>
@@ -111,21 +110,29 @@ export const CurvedProgress = ({ percentage, id }: Props) => {
             />
           </SVG>
           {(!somethingWrong && <Emoji />) || (somethingWrong && <GrimacingFace />)}
-          <Start passed={!somethingWrong}>{tx && token2str(tx?.from as TokenAmount)}</Start>
+          <Start passed={!somethingWrong}>{tx !== undefined ? token2str(tx?.from as TokenAmount) : 'from'}</Start>
           <Middle passed={!somethingWrong}>NO FEE</Middle>
-          <Finish passed={!somethingWrong}>{tx && token2str(tx?.to as TokenAmount)}</Finish>
+          <Finish passed={!somethingWrong}>{tx !== undefined ? token2str(tx?.to as TokenAmount) : 'to'}</Finish>
         </ProgressBarWithSpans>
 
-        {(tx?.status === Status.COMPLETED && <Note>Your wallet is getting heavier!</Note>) ||
-          (tx?.status === Status.PENDING && (
+        {(tx !== undefined && tx?.status === Status.COMPLETED && <Note>Your wallet is getting heavier!</Note>) ||
+          (tx !== undefined && tx?.status === Status.PENDING && (
             <Note>
               Almost there!
               <br />
               We&apos;re busy destroying the fees!
             </Note>
-          )) || (
+          )) ||
+          (tx !== undefined && tx?.status && (
             <Note>
               Something Wrong
+              {/* Curious about what&apos;s happening with your transaction?
+              <br />
+              Here&apos;s what we&apos;re up to! */}
+            </Note>
+          )) || (
+            <Note>
+              Sending
               {/* Curious about what&apos;s happening with your transaction?
               <br />
               Here&apos;s what we&apos;re up to! */}
