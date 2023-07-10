@@ -42,7 +42,7 @@ import { Field } from 'state/swap/actions'
 import { useDerivedSwapInfo, useSwapActionHandlers, useSwapState } from 'state/swap/hooks'
 import { maxAmountSpend } from 'utils/maxAmountSpend'
 import { warningSeverity } from 'utils/prices'
-import { useCurrency } from 'hooks/Tokens'
+import { useCurrency } from '../../../hooks/Tokens'
 import { useContext } from 'react'
 import SwapContext from 'store/swap-context'
 import TradePrice from '../../../components/swap/TradePrice'
@@ -301,7 +301,7 @@ export const RightSection = () => {
                 'Select'
               )}
             </SelectTokenButton>
-            {(isASelected && balanceOutput && <Balance>Balance: {balanceOutput.toSignificant(4)}</Balance>) ||
+            {(isASelected && balanceInput && <Balance>Balance: {balanceInput.toSignificant(4)}</Balance>) ||
               (account && <></>)}
           </ButtonAndBalanceWrapper>
           <NumericInput value={formattedAmounts[Field.INPUT]} onUserInput={handleTypeInput} isSelected={isASelected} />
