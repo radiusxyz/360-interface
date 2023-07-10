@@ -301,8 +301,7 @@ export const RightSection = () => {
                 'Select'
               )}
             </SelectTokenButton>
-            {(isASelected && balanceInput && <Balance>Balance: {balanceInput.toSignificant(4)}</Balance>) ||
-              (account && <></>)}
+            {isASelected && balanceInput && <Balance>Balance: {balanceInput.toSignificant(4)}</Balance>}
           </ButtonAndBalanceWrapper>
           <NumericInput value={formattedAmounts[Field.INPUT]} onUserInput={handleTypeInput} isSelected={isASelected} />
         </Aligner>
@@ -321,8 +320,7 @@ export const RightSection = () => {
                 'Select'
               )}
             </SelectTokenButton>
-            {(isBSelected && balanceOutput && <Balance>Balance: {balanceOutput.toSignificant(4)}</Balance>) ||
-              (account && <></>)}
+            {isBSelected && balanceOutput && <Balance>Balance: {balanceOutput.toSignificant(4)}</Balance>}
           </ButtonAndBalanceWrapper>
           <NumericInput
             value={formattedAmounts[Field.OUTPUT]}
