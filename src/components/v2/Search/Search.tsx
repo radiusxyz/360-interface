@@ -32,6 +32,7 @@ const Search = ({ onCurrencySelection }: any) => {
   const { INPUT, OUTPUT } = useSwapState()
 
   const swapCTX = useContext(SwapContext)
+  const { isAActive, isBActive } = swapCTX
 
   // const { chainId } = useActiveWeb3React()
   // const theme = useTheme()
@@ -52,14 +53,18 @@ const Search = ({ onCurrencySelection }: any) => {
   const allTokens = useAllTokens()
 
   useEffect(() => {
-    if (aTokenAddress) {
+    if (aTokenAddress && isAActive && bTokenAddress) {
+      setAllToken(aTokens)
+    } else if (aTokenAddress && isBActive && bTokenAddress) {
       setAllToken(bTokens)
-    } else if (bTokenAddress) {
+    } else if (aTokenAddress && isBActive && !bTokenAddress) {
+      setAllToken(bTokens)
+    } else if (bTokenAddress && isAActive && !aTokenAddress) {
       setAllToken(aTokens)
     } else {
       setAllToken(allTokens)
     }
-  }, [aTokenAddress, bTokenAddress, aTokens, bTokens, allTokens])
+  }, [aTokenAddress, bTokenAddress, aTokens, bTokens, allTokens, isAActive, isBActive])
 
   // if they input an address, use it
   const isAddressSearch = isAddress(debouncedQuery)

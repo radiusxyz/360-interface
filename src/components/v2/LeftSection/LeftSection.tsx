@@ -9,18 +9,7 @@ import Instruction from '../Instruction/Instruction'
 
 export const LeftSection = () => {
   const swapCTX = useContext(SwapContext)
-  const { isAtokenSelected, isBtokenSelected, leftSection } = swapCTX
-  // const [leftSection, setLeftSection] = useState('welcome')
-
-  // const handleDisplaySearchTable = () => {}
-
-  // const handleClickSelect = (e: React.MouseEvent<HTMLElement>) => {
-  //   const target = e.target as HTMLButtonElement
-
-  //   if (target.textContent === 'Select Token') setLeftSection('search-table')
-  //   if (target.textContent === 'Connect Wallet') setLeftSection('preview')
-  //   if (target.textContent === '') setLeftSection('almost-there')
-  // }
+  const { isASelected, isBSelected, leftSection } = swapCTX
 
   const { id } = swapCTX.swapParams
 
@@ -30,7 +19,7 @@ export const LeftSection = () => {
   return (
     <>
       {(leftSection === 'welcome' && (
-        <Instruction isAtokenSelected={isAtokenSelected} isBtokenSelected={isBtokenSelected} typedValue={typedValue} />
+        <Instruction isASelected={isASelected} isBSelected={isBSelected} typedValue={typedValue} />
       )) ||
         (leftSection === 'search-table' && <Search onCurrencySelection={onCurrencySelection} />) ||
         (leftSection === 'preview' && <Preview />) ||

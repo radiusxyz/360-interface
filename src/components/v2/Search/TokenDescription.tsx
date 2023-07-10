@@ -15,19 +15,28 @@ const TokenDescription = ({
   onCurrencySelect: (field: any, currency: Currency | null) => void
 }) => {
   const swapCTX = useContext(SwapContext)
+  const {
+    handleSetIsASelected,
+    handleSetIsAActive,
+    handleSetIsBSelected,
+    handleSetIsBActive,
+    handleLeftSection,
+    isAActive,
+    isBActive,
+  } = swapCTX
   const isSelected = Boolean(currency && selectedCurrency && selectedCurrency.equals(currency))
   const handleSelect = () => {
-    if (currency && swapCTX.isAtokenSelectionActive) {
+    if (currency && isAActive) {
       onCurrencySelect(Field.INPUT, currency)
-      swapCTX.handleSetIsAtokenSelected()
-      swapCTX.handleSetIsAtokenSelectionActive(false)
-      swapCTX.handleLeftSection('welcome')
+      handleSetIsASelected(true)
+      handleSetIsAActive(false)
+      handleLeftSection('welcome')
     }
-    if (currency && swapCTX.isBtokenSelectionActive) {
+    if (currency && isBActive) {
       onCurrencySelect(Field.OUTPUT, currency)
-      swapCTX.handleSetIsBtokenSelected()
-      swapCTX.handleSetIsBtokenSelectionActive(false)
-      swapCTX.handleLeftSection('welcome')
+      handleSetIsBSelected(true)
+      handleSetIsBActive(false)
+      handleLeftSection('welcome')
     }
   }
   return (

@@ -33,7 +33,7 @@ import { Trade as V3Trade } from '@uniswap/v3-sdk'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { useSwapCallback } from 'hooks/useSwapCallback'
 import useTransactionDeadline from 'hooks/useTransactionDeadline'
-import { MouseEventHandler, useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useParameters } from 'state/parameters/hooks'
 
 import { ApprovalState, useApprovalOptimizedTrade, useApproveCallbackFromTrade } from 'hooks/useApproveCallback'
@@ -60,13 +60,13 @@ export const RightSection = () => {
     updateSwapParams,
     handleSwapParams,
     handleLeftSection,
-    isAtokenSelectionActive,
-    handleSetIsAtokenSelectionActive,
-    isBtokenSelectionActive,
-    handleSetIsBtokenSelectionActive,
+    isAActive,
+    handleSetIsAActive,
+    isBActive,
+    handleSetIsBActive,
     leftSection,
-    isAtokenSelected,
-    isBtokenSelected,
+    isASelected,
+    isBSelected,
   } = swapCTX
 
   const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
@@ -215,31 +215,6 @@ export const RightSection = () => {
 
   const priceImpactTooHigh = priceImpactSeverity > 3 && !isExpertMode
 
-  const handleConfirmDismiss = useCallback(() => {
-    handleLeftSection('welcome')
-    handleSwapParams({
-      start: false,
-      timeLockPuzzleData: swapParams.timeLockPuzzleData,
-      timeLockPuzzleDone: swapParams.timeLockPuzzleDone,
-    })
-  }, [onUserInput, swapParams])
-
-  const handleInputSelect = useCallback(
-    (inputCurrency: any) => {
-      setApprovalSubmitted(false) // reset 2 step UI for approvals
-      onCurrencySelection(Field.INPUT, inputCurrency)
-    },
-    [onCurrencySelection]
-  )
-
-  const handleOutputSelect = useCallback(
-    (outputCurrency: any) => {
-      setApprovalSubmitted(false) // reset 2 step UI for approvals
-      onCurrencySelection(Field.OUTPUT, outputCurrency)
-    },
-    [onCurrencySelection]
-  )
-
   const [showSettings, setShowSettings] = useState(false)
   const [showInverted, setShowInverted] = useState<boolean>(false)
   const [maxSelected, setMaxSelected] = useState(false)
@@ -265,18 +240,18 @@ export const RightSection = () => {
     maxInputAmount && onUserInput(Field.INPUT, formattedAmounts[Field.INPUT])
   }, [maxInputAmount, onUserInput])
 
-  const handleShowSettings: MouseEventHandler<SVGSVGElement | HTMLImageElement> = () => {
+  const handleShowSettings = () => {
     setShowSettings((prevState) => !prevState)
   }
 
   const openInputTokenSelect = () => {
-    handleSetIsBtokenSelectionActive(false)
-    handleSetIsAtokenSelectionActive(true)
+    handleSetIsBActive(false)
+    handleSetIsAActive(true)
   }
 
   const openOutputTokenSelect = () => {
-    handleSetIsAtokenSelectionActive(false)
-    handleSetIsBtokenSelectionActive(true)
+    handleSetIsAActive(false)
+    handleSetIsBActive(true)
   }
 
   useEffect(() => {
@@ -286,10 +261,10 @@ export const RightSection = () => {
   }, [trade, leftSection, handleLeftSection])
 
   useEffect(() => {
-    if (isAtokenSelectionActive || isBtokenSelectionActive) {
+    if (isAActive || isBActive) {
       handleLeftSection('search-table')
     }
-  }, [isAtokenSelectionActive, isBtokenSelectionActive, handleLeftSection])
+  }, [isAActive, isBActive, handleLeftSection])
 
   const balanceInput = useCurrencyBalance(account ?? undefined, inputCurrency)
   const balanceOutput = useCurrencyBalance(account ?? undefined, outputCurrency)
@@ -303,7 +278,7 @@ export const RightSection = () => {
         <Cog onClick={handleShowSettings} />
       </Header>
       <TopTokenRow>
-        {true && (
+        {(isASelected || isBSelected) && (
           <SlippageOptions>
             <SlippageOption selected={maxSelected} onClick={handleMaxInput}>
               MAX
@@ -316,8 +291,8 @@ export const RightSection = () => {
         )}
         <Aligner>
           <ButtonAndBalanceWrapper>
-            <SelectTokenButton isSelected={isAtokenSelected} onClick={openInputTokenSelect}>
-              {isAtokenSelected ? (
+            <SelectTokenButton isSelected={isASelected} onClick={openInputTokenSelect}>
+              {isASelected ? (
                 <TokenWrapper>
                   <CurrencyLogo currency={inputCurrency} size={'28px'} />
                   <TokenName>{inputCurrency?.symbol}</TokenName>
@@ -326,22 +301,18 @@ export const RightSection = () => {
                 'Select'
               )}
             </SelectTokenButton>
-            {(isAtokenSelected && balanceOutput && <Balance>Balance: {balanceOutput.toSignificant(4)}</Balance>) ||
+            {(isASelected && balanceOutput && <Balance>Balance: {balanceOutput.toSignificant(4)}</Balance>) ||
               (account && <></>)}
           </ButtonAndBalanceWrapper>
-          <NumericInput
-            value={formattedAmounts[Field.INPUT]}
-            onUserInput={handleTypeInput}
-            isSelected={isAtokenSelected}
-          />
+          <NumericInput value={formattedAmounts[Field.INPUT]} onUserInput={handleTypeInput} isSelected={isASelected} />
         </Aligner>
         <Circle />
       </TopTokenRow>
       <BottomTokenRow>
         <Aligner>
           <ButtonAndBalanceWrapper>
-            <SelectTokenButton isSelected={isBtokenSelected} onClick={openOutputTokenSelect}>
-              {isBtokenSelected ? (
+            <SelectTokenButton isSelected={isBSelected} onClick={openOutputTokenSelect}>
+              {isBSelected ? (
                 <TokenWrapper>
                   <CurrencyLogo currency={outputCurrency} size={'28px'} />
                   <TokenName>{outputCurrency?.symbol}</TokenName>
@@ -350,7 +321,7 @@ export const RightSection = () => {
                 'Select'
               )}
             </SelectTokenButton>
-            {(isBtokenSelected && balanceOutput && <Balance>Balance: {balanceOutput.toSignificant(4)}</Balance>) ||
+            {(isBSelected && balanceOutput && <Balance>Balance: {balanceOutput.toSignificant(4)}</Balance>) ||
               (account && <></>)}
           </ButtonAndBalanceWrapper>
           <NumericInput
@@ -358,7 +329,7 @@ export const RightSection = () => {
             onUserInput={() => {
               return
             }}
-            isSelected={isAtokenSelected}
+            isSelected={isASelected}
           />
         </Aligner>
       </BottomTokenRow>

@@ -1,5 +1,5 @@
 import styled from 'styled-components/macro'
-export const Wrapper = styled.div`
+export const RowWrapper = styled.div`
   padding: 19px 53px;
   display: flex;
   justify-content: space-between;

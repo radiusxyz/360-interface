@@ -85,6 +85,9 @@ export const Button = styled.button`
   font-size: 14px;
   line-height: 17px;
   color: #ffffff;
+  &:hover {
+    cursor: pointer;
+  }
 `
 
 export const MenuIcon = styled.svg.attrs({

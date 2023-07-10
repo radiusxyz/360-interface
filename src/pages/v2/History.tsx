@@ -5,6 +5,7 @@ import styled from 'styled-components/macro'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, Status, statusToString, TokenAmount } from 'utils/db'
 import moment from 'moment'
+import { useParams } from 'react-router-dom'
 
 const Wrapper = styled.div`
   display: flex;
@@ -18,13 +19,14 @@ const Wrapper = styled.div`
 
 const History = () => {
   // const [txs, setTxs] = useState(data)
-
+  const params = useParams()
+  const { status } = params
   const handleTabClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     const target = event.target as HTMLButtonElement
     setActiveTab(target.textContent as string)
   }
 
-  const [activeTab, setActiveTab] = useState('In Progress')
+  const [activeTab, setActiveTab] = useState(status === 'in-progress' ? 'In Progress' : 'Completed')
 
   // const handleTXlist = (activeTab: string) => {
   //   if (activeTab === 'In Progress') setTxs(() => data.filter((tx) => tx.status === 'Pending'))

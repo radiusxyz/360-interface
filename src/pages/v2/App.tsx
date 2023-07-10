@@ -12,7 +12,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Swap /> },
       { path: 'about', element: <About /> },
-      { path: 'history', element: <History /> },
+      { path: 'history/:status', element: <History /> },
       { path: 'my-profit', element: <MyProfit /> },
     ],
   },

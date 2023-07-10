@@ -6,11 +6,16 @@ import styled, { css } from 'styled-components/macro'
 const AnimatedDialogOverlay = animated(DialogOverlay)
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const StyledDialogOverlay = styled(AnimatedDialogOverlay)`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+
   &[data-reach-dialog-overlay] {
     z-index: 2;
     background: rgba(128, 128, 128, 0.5);
     overflow: hidden;
-
     display: flex;
     align-items: center;
     justify-content: center;
@@ -29,13 +34,13 @@ const StyledDialogContent = styled(({ minHeight, maxHeight, mobile, isOpen, widt
   overflow-y: auto;
 
   &[data-reach-dialog-content] {
-    margin: 0 0 2rem 0;
+    margin: 180px 0 2rem 0;
     background: rgba(44, 47, 63);
     padding: 0px;
     overflow-y: auto;
     overflow-x: hidden;
 
-    align-self: ${({ mobile }) => (mobile ? 'flex-end' : 'center')};
+    align-self: flex-start;
 
     max-width: 840px;
     ${({ maxHeight }) =>

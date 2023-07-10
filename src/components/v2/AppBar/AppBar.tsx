@@ -18,10 +18,10 @@ const AppBar = () => {
             <StyledNavLink to="/">
               <Item>Swap</Item>
             </StyledNavLink>
-            <StyledNavLink to="/about">
+            <StyledNavLink to="https://www.360dex.io/">
               <Item>About</Item>
             </StyledNavLink>
-            <StyledNavLink to="/history">
+            <StyledNavLink to="/history/in-progress">
               <Item>History</Item>
             </StyledNavLink>
             <StyledNavLink to="/my-profit">
