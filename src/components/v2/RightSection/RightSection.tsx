@@ -359,7 +359,7 @@ export const RightSection = () => {
         )}
         {accountWhiteList && (
           <PrimaryButton
-            disabled={trade ? false : true}
+            disabled={isASelected && isBSelected && typedValue ? false : true}
             mrgn="0px 0px 12px 0px"
             onClick={() => {
               updateSwapParams({ start: true })
