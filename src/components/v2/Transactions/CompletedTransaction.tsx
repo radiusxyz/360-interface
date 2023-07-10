@@ -14,10 +14,19 @@ import { Status, statusToString } from 'utils/db'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
 
 type Props = {
-  tx: { id: string; hash: string; status: string; date: string; from: string; to: string; reimbursed?: boolean }
+  tx: {
+    id: string
+    hash: string
+    status: string
+    date: string
+    from: string
+    to: string
+    reimbursed?: boolean
+    tx: any
+  }
 }
 
-const CompletedTransaction = ({ tx: { status, hash, date, from, to, reimbursed } }: Props) => {
+const CompletedTransaction = ({ tx: { status, hash, date, from, to, reimbursed, tx } }: Props) => {
   const { chainId } = useActiveWeb3React()
 
   const [showReimbursementModal, setShowReimbursementModal] = useState(false)
@@ -92,7 +101,7 @@ const CompletedTransaction = ({ tx: { status, hash, date, from, to, reimbursed }
           </BottomRowSpan>
         </TXBottomRow>
       </TxCompleted>
-      {showReimbursementModal && <ReimbursementModal handleModal={handleReimbursementModal} />}
+      {showReimbursementModal && <ReimbursementModal handleModal={handleReimbursementModal} tx={tx} />}
       {showReimbursementDetailsModal && <ReimbursementDetailsModal handleModal={handleReimbursementDetailsModal} />}
     </>
   )

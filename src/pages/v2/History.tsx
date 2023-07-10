@@ -38,7 +38,7 @@ const History = () => {
   // }, [activeTab])
 
   const activePage = 0
-  const rowsPerPage = 10
+  const rowsPerPage = 30
 
   const rows = useLiveQuery(async () => {
     const history = await db.swap
@@ -63,6 +63,7 @@ const History = () => {
     from: string
     to: string
     reimbursed?: boolean
+    tx: any
   }[] = []
   const completedTxs: {
     id: string
@@ -72,6 +73,7 @@ const History = () => {
     from: string
     to: string
     reimbursed?: boolean
+    tx: any
   }[] = []
 
   rows?.forEach((row) => {
@@ -83,6 +85,7 @@ const History = () => {
         date: moment(new Date(row.txDate * 1000)).format('DD MMMM YYYY - h:mm A'),
         ...(row.fromResult ? { from: token2str(row.fromResult) } : { from: token2str(row.from as TokenAmount) }),
         ...(row.toResult ? { to: token2str(row.toResult) } : { to: token2str(row.to as TokenAmount) }),
+        tx: row,
       })
     } else if (row.from && row.to && row.sendDate) {
       pendingTxs.push({
@@ -92,6 +95,7 @@ const History = () => {
         date: moment(new Date(row.sendDate * 1000)).format('DD MMMM YYYY - h:mm A'),
         from: token2str(row.from),
         to: token2str(row.to),
+        tx: row,
       })
     }
   })

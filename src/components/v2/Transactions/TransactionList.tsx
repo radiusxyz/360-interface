@@ -18,6 +18,7 @@ type Props = {
     from: string
     to: string
     reimbursed?: boolean
+    tx: any
   }[]
 }
 
