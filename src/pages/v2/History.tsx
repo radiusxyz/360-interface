@@ -66,7 +66,7 @@ const History = () => {
     else cnt = doneCnt
 
     const array = []
-    for (let i = 0; i < cnt / 10; i++) {
+    for (let i = 0; i < cnt / rowsPerPage; i++) {
       array.push(i + 1)
     }
     setPages(array)

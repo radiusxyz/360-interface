@@ -68,8 +68,6 @@ export const RightSection = () => {
     isBSelected,
   } = swapCTX
 
-  const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
-
   const [accountWhiteList, setAccountWhiteList] = useState<boolean>(false)
 
   const { account } = useActiveWeb3React()
@@ -120,8 +118,29 @@ export const RightSection = () => {
   )
 
   ///////////////////////////////
+  // priceImpact
+  ///////////////////////////////
+  const [isExpertMode] = useExpertModeManager()
+
+  // TODO: price impact dangerous level
+  const priceImpactSeverity = useMemo(() => {
+    const executionPriceImpact = trade?.priceImpact
+    return warningSeverity(
+      executionPriceImpact && priceImpact
+        ? executionPriceImpact.greaterThan(priceImpact)
+          ? executionPriceImpact
+          : priceImpact
+        : executionPriceImpact ?? priceImpact
+    )
+  }, [priceImpact, trade])
+
+  const priceImpactTooHigh = priceImpactSeverity > 3 && !isExpertMode
+
+  ///////////////////////////////
   // approve
   ///////////////////////////////
+  const [approvalSubmitted, setApprovalSubmitted] = useState<boolean>(false)
+
   const approvalOptimizedTrade = useApprovalOptimizedTrade(trade, allowedSlippage)
   const approvalOptimizedTradeString =
     approvalOptimizedTrade instanceof V2Trade
@@ -160,6 +179,18 @@ export const RightSection = () => {
     approvalOptimizedTrade?.inputAmount?.currency.symbol,
   ])
 
+  useEffect(() => {
+    if (approvalState === ApprovalState.PENDING) {
+      setApprovalSubmitted(true)
+    }
+  }, [approvalState, approvalSubmitted])
+
+  const showApproveFlow =
+    (approvalState === ApprovalState.NOT_APPROVED ||
+      approvalState === ApprovalState.PENDING ||
+      (approvalSubmitted && approvalState === ApprovalState.APPROVED)) &&
+    !(priceImpactSeverity > 3)
+
   ///////////////////////////////
   // Check Account in Whitelist
   ///////////////////////////////
@@ -197,22 +228,6 @@ export const RightSection = () => {
   //   signatureData,
   //   parameters
   // )
-
-  const [isExpertMode] = useExpertModeManager()
-
-  // TODO: price impact dangerous level
-  const priceImpactSeverity = useMemo(() => {
-    const executionPriceImpact = trade?.priceImpact
-    return warningSeverity(
-      executionPriceImpact && priceImpact
-        ? executionPriceImpact.greaterThan(priceImpact)
-          ? executionPriceImpact
-          : priceImpact
-        : executionPriceImpact ?? priceImpact
-    )
-  }, [priceImpact, trade])
-
-  const priceImpactTooHigh = priceImpactSeverity > 3 && !isExpertMode
 
   const [showSettings, setShowSettings] = useState(false)
   const [showInverted, setShowInverted] = useState<boolean>(false)
@@ -352,12 +367,15 @@ export const RightSection = () => {
             </InfoRowWrapper>
           </InfoMainWrapper>
         )}
-        {!accountWhiteList && (
+        {showApproveFlow ? (
+          <PrimaryButton mrgn="0px 0px 12px 0px" onClick={handleApprove}>
+            Token approve needed
+          </PrimaryButton>
+        ) : !accountWhiteList ? (
           <PrimaryButton mrgn="0px 0px 12px 0px" disabled>
             you are not in whitelist
           </PrimaryButton>
-        )}
-        {accountWhiteList && (
+        ) : (
           <PrimaryButton
             disabled={trade ? false : true}
             mrgn="0px 0px 12px 0px"
