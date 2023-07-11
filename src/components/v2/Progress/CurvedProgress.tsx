@@ -19,16 +19,13 @@ import { useContext } from 'react'
 import SwapContext from 'store/swap-context'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, Status, TokenAmount } from 'utils/db'
+import { token2str } from 'utils'
 
 type Props = {
   percentage: number
   id: number
 }
 
-function token2str(row: { amount: string; decimal: string; token: string }) {
-  const amount = Number(row.amount) / Number(row.decimal)
-  return amount.toString() + ' ' + row.token
-}
 export const CurvedProgress = ({ percentage, id }: Props) => {
   const swapCTX = useContext(SwapContext)
 

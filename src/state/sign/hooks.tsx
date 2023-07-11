@@ -63,7 +63,7 @@ export const useUserSignFunc = (
 ) => {
   const swapCTX = useContext(SwapContext)
 
-  const { updateSwapParams, handleLeftSection, swapParams } = swapCTX
+  const { updateSwapParams, handleSwapParams, handleLeftSection, swapParams } = swapCTX
 
   const userSignFunc = useCallback(async () => {
     if (userSign) {
@@ -72,7 +72,8 @@ export const useUserSignFunc = (
         updateSwapParams({ signingDone: true, ...res })
         handleLeftSection('progress')
       } else {
-        updateSwapParams({ start: false })
+        handleSwapParams({ start: false })
+        handleLeftSection('welcome')
       }
     }
   }, [userSign, swapParams])

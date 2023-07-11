@@ -6,6 +6,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db, Status, statusToString, TokenAmount } from 'utils/db'
 import moment from 'moment'
 import { useParams } from 'react-router-dom'
+import { token2str } from 'utils'
 
 const Wrapper = styled.div`
   display: flex;
@@ -146,11 +147,6 @@ const History = () => {
       </Pagination>
     </Wrapper>
   )
-}
-
-function token2str(row: { amount: string; decimal: string; token: string }) {
-  const amount = Number(row.amount) / Number(row.decimal)
-  return amount.toString() + ' ' + row.token
 }
 
 export default History

@@ -201,6 +201,7 @@
     "@web3-react/types": "^8.0.12-beta.0",
     "@web3-react/url": "^8.0.17-beta.0",
     "ajv": "^6.12.3",
+    "bignumber.js": "^9.1.1",
     "cids": "^1.0.0",
     "cuid": "^3.0.0",
     "dexie": "^3.2.2",
