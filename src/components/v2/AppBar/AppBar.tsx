@@ -24,9 +24,6 @@ const AppBar = () => {
             <StyledNavLink to="/history/in-progress">
               <Item>History</Item>
             </StyledNavLink>
-            <StyledNavLink to="/my-profit">
-              <Item>My Profit</Item>
-            </StyledNavLink>
           </LinkList>
         )}
 
@@ -52,9 +49,6 @@ const AppBar = () => {
             </StyledNavLink>
             <StyledNavLink onClick={handleMenu} to="/history">
               <Item>History</Item>
-            </StyledNavLink>
-            <StyledNavLink onClick={handleMenu} to="/my-profit">
-              <Item>My Profit</Item>
             </StyledNavLink>
           </LinkList>
         </>
