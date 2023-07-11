@@ -134,7 +134,7 @@ export const useSendEncryptedTxFunc = (
         .then(async (i: any) => {
           onUserInput(fieldInput, '')
           // handleLeftSection('welcome')
-          if (i.dbId) updateSwapParams({ id: i.dbId })
+          if (i.dbId) updateSwapParams({ id: i.dbId, sent: true })
         })
         .catch(async () => {
           onUserInput(fieldInput, '')

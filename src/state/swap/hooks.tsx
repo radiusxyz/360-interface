@@ -361,9 +361,9 @@ export function useSendEncryptedTx(
   sendEncryptedTxFunc: () => Promise<void>
 ) {
   const swapCTX = useContext(SwapContext)
-  const { encryptorDone, signingDone } = swapCTX.swapParams
+  const { encryptorDone, signingDone, sent } = swapCTX.swapParams
   useEffect(() => {
-    if (!isSending.current && encryptorDone && signingDone) {
+    if (!isSending.current && encryptorDone && signingDone && !sent) {
       isSending.current = true
       sendEncryptedTxFunc().then(() => {
         isSending.current = false
