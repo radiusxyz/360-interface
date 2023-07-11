@@ -15,11 +15,12 @@ import {
   Start,
   ProgressBarWithSpans,
 } from './CurvedProgressStyles'
-import { useContext } from 'react'
-import SwapContext from 'store/swap-context'
+import React from 'react'
+import { useContext, useEffect, useState } from 'react'
+import SwapContext from '../../../store/swap-context'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { db, Status, TokenAmount } from 'utils/db'
-import { token2str } from 'utils'
+import { db, Status, TokenAmount } from '../../../utils/db'
+import { token2str } from '../../../utils'
 
 type Props = {
   percentage: number
@@ -45,18 +46,54 @@ export const CurvedProgress = ({ percentage, id }: Props) => {
     return undefined
   }, [id])
 
+  // const [tx, setTx] = useState({
+  //   status: 0,
+  //   from: { amount: '0', decimal: '0', token: '' },
+  //   to: { amount: '0', decimal: '0', token: '' },
+  // })
+
+  // useEffect(() => {
+  //   const identifier = setTimeout(() => {
+  //     setTx({
+  //       status: 4,
+  //       from: { amount: '0', decimal: '0', token: '' },
+  //       to: { amount: '0', decimal: '0', token: '' },
+  //     })
+  //   }, 2000)
+  //   return () => {
+  //     clearTimeout(identifier)
+  //   }
+  // }, [])
+
   let progress = 0
-  if (tx?.status === Status.PENDING) progress = 50
+
+  if (tx?.status === Status.PENDING) progress = 95
   if (tx?.status === Status.CANCELED) progress = 100
   if (tx?.status === Status.COMPLETED) progress = 100
   if (tx?.status === Status.REJECTED) progress = 100
   if (tx?.status === Status.REIMBURSE_AVAILABLE) progress = 100
   if (tx?.status === Status.REIMBURSED) progress = 100
+  const [progressDynamic, setProgressDynamic] = useState(0)
+
+  useEffect(() => {
+    if (tx?.status === 0) {
+      const identifier = setInterval(() => {
+        if (progressDynamic <= progress) setProgressDynamic((prevState) => prevState + 1)
+        else return
+      }, 500)
+      return () => {
+        clearInterval(identifier)
+      }
+    } else {
+      setProgressDynamic(100)
+      return
+    }
+  }, [progressDynamic, progress])
 
   const width = 232
   const r = 108.5
   const strokeDasharray = 2 * Math.PI * r
-  const strokeDashoffset = strokeDasharray - (strokeDasharray * progress) / 200
+  const strokeDashoffset = strokeDasharray - (strokeDasharray * progressDynamic) / 200
 
   const somethingWrong = tx?.status !== undefined && tx?.status !== Status.COMPLETED && tx?.status !== Status.PENDING
 
