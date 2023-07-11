@@ -13,8 +13,31 @@ import {
   Value,
   Wrapper,
 } from './AlmostThereStyles'
+import { useDerivedSwapInfo } from 'state/swap/hooks'
+import JSBI from 'jsbi'
+import { token2str } from 'utils'
 
 const AlmostThere = () => {
+  const {
+    trade: { trade },
+    allowedSlippage,
+  } = useDerivedSwapInfo()
+
+  let input = trade?.inputAmount?.numerator
+  let output = trade?.outputAmount?.numerator
+  input = !input ? JSBI.BigInt(0) : input
+  output = !output ? JSBI.BigInt(0) : output
+
+  const inDecimal = trade?.inputAmount?.decimalScale !== undefined ? trade?.inputAmount?.decimalScale : JSBI.BigInt(1)
+  const outDecimal =
+    trade?.outputAmount?.decimalScale !== undefined ? trade?.outputAmount?.decimalScale : JSBI.BigInt(1)
+
+  const inSymbol = trade?.inputAmount?.currency?.symbol !== undefined ? trade?.inputAmount?.currency?.symbol : ''
+  const outSymbol = trade?.outputAmount?.currency?.symbol !== undefined ? trade?.outputAmount?.currency?.symbol : ''
+
+  const from = { token: inSymbol, amount: input.toString(), decimal: inDecimal.toString() }
+  const to = { token: outSymbol, amount: output.toString(), decimal: outDecimal.toString() }
+
   return (
     <Wrapper>
       <FoxImg />
@@ -25,7 +48,7 @@ const AlmostThere = () => {
       <TokenPair>
         <Token>
           <TokenLogo />
-          <TokenName>0.225 DAI</TokenName>
+          <TokenName>{token2str(from)}</TokenName>
         </Token>
         <SwapIcon>
           <path d="M0 6.04H16.2L11.16 1" stroke="#8864EF" strokeWidth="1.5" />
@@ -33,7 +56,7 @@ const AlmostThere = () => {
         </SwapIcon>
         <Token>
           <TokenLogo />
-          <TokenName>0.225 MATIC</TokenName>
+          <TokenName>{token2str(to)}</TokenName>
         </Token>
       </TokenPair>
       <Details>
@@ -43,15 +66,15 @@ const AlmostThere = () => {
         </DetailsRow>
         <DetailsRow>
           <PropertyName>Slippage</PropertyName>
-          <Value>0.01%</Value>
+          <Value>{allowedSlippage.toSignificant(2)}</Value>
         </DetailsRow>
         <DetailsRow>
           <PropertyName>Extra profit</PropertyName>
-          <Value>0.012 MATIC</Value>
+          <Value>{}</Value>
         </DetailsRow>
         <DetailsRow>
           <PropertyName>Your save</PropertyName>
-          <Value>0.058 MATIC</Value>
+          <Value>{}</Value>
         </DetailsRow>
       </Details>
     </Wrapper>

@@ -27,6 +27,7 @@ import ERC20_ABI from 'abis/erc20.json'
 import { getContract, shortenAddress, shortenTxId } from 'utils'
 import { db, Status } from 'utils/db'
 import moment from 'moment'
+import { token2str } from 'utils'
 
 type Props = {
   handleModal: () => void
@@ -139,11 +140,6 @@ const ReimbursementModal = ({ handleModal, tx }: Props) => {
       )}
     </Positioner>
   )
-}
-
-function token2str(row: { amount: string; decimal: string; token: string }) {
-  const amount = Number(row.amount) / Number(row.decimal)
-  return amount.toString() + ' ' + row.token
 }
 
 export default ReimbursementModal

@@ -207,7 +207,7 @@ export default function useSendSwapTransaction(
         const signAddress = await signer.getAddress()
         // console.log('aaa')
 
-        const now = Date.now()
+        // const now = Date.now()
 
         // console.log('now', now)
         const sig = await signWithEIP712(library, signAddress, typedData).catch((e) => {
@@ -215,9 +215,9 @@ export default function useSendSwapTransaction(
           return null
         })
 
-        if (now + 5000 < Date.now()) {
-          return null
-        }
+        // if (now + 10000 < Date.now()) {
+        //   return null
+        // }
 
         return sig ? { sig } : null
       },
