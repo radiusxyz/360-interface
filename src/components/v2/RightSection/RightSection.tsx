@@ -383,7 +383,8 @@ export const RightSection = () => {
         ) : (
           <PrimaryButton
             disabled={
-              (isASelected && isBSelected && typedValue && false) || (approvalState === ApprovalState.APPROVED && true)
+              (isASelected && isBSelected && typedValue && false) ||
+              (approvalState === ApprovalState.APPROVED && approvalSubmitted && true)
             }
             mrgn="0px 0px 12px 0px"
             onClick={() => {
