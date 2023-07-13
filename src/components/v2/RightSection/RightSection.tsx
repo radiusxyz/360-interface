@@ -332,7 +332,7 @@ export const RightSection = () => {
           </ButtonAndBalanceWrapper>
           <NumericInput
             error={isInputGreaterThanBalance}
-            value={formattedAmounts[Field.INPUT]}
+            value={formattedAmounts[Field.INPUT].replace(/^00/, '0.')}
             onUserInput={handleTypeInput}
             isSelected={isASelected}
           />
