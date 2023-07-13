@@ -100,7 +100,7 @@ const Search = ({ onCurrencySelection }: any) => {
 
   const balances = useAllTokenBalances()
   const sortedTokens: Token[] = useMemo(() => {
-    return filteredTokens.sort(tokenComparator.bind(null, balances))
+    return [...filteredTokens.sort(tokenComparator.bind(null, balances))]
   }, [balances, filteredTokens])
 
   const filteredSortedTokens = useSortTokensByQuery(debouncedQuery, sortedTokens)
