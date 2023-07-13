@@ -122,6 +122,7 @@ export const ButtonAndBalanceWrapper = styled.div`
   align-items: start;
   width: 100%;
   max-width: 129px;
+  position: relative;
 `
 
 export const Balance = styled.span`
@@ -130,6 +131,9 @@ export const Balance = styled.span`
   line-height: 144.52%;
   color: #848484;
   margin-left: 3px;
+  position: absolute;
+  top: 100%;
+  left: 0px;
 `
 
 export const TokenWrapper = styled.div`

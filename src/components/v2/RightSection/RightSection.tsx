@@ -1,5 +1,6 @@
 import { PrimaryButton, SelectTokenButton } from '../UI/Buttons'
 import { NumericInput } from '../UI/Inputs'
+import React from 'react'
 
 import {
   Header,
@@ -30,27 +31,31 @@ import {
 import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
 import { Trade as V2Trade } from '@uniswap/v2-sdk'
 import { Trade as V3Trade } from '@uniswap/v3-sdk'
-import useActiveWeb3React from 'hooks/useActiveWeb3React'
-import useTransactionDeadline from 'hooks/useTransactionDeadline'
+import useActiveWeb3React from '../../../hooks/useActiveWeb3React'
+import useTransactionDeadline from '../../../hooks/useTransactionDeadline'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useParameters } from 'state/parameters/hooks'
+import { useParameters } from '../../../state/parameters/hooks'
 
-import { ApprovalState, useApprovalOptimizedTrade, useApproveCallbackFromTrade } from 'hooks/useApproveCallback'
-import { useERC20PermitFromTrade, UseERC20PermitState } from 'hooks/useERC20Permit'
-import { Field } from 'state/swap/actions'
-import { useDerivedSwapInfo, useSwapActionHandlers, useSwapState } from 'state/swap/hooks'
-import { maxAmountSpend } from 'utils/maxAmountSpend'
-import { warningSeverity } from 'utils/prices'
+import {
+  ApprovalState,
+  useApprovalOptimizedTrade,
+  useApproveCallbackFromTrade,
+} from '../../../hooks/useApproveCallback'
+import { useERC20PermitFromTrade, UseERC20PermitState } from '../../../hooks/useERC20Permit'
+import { Field } from '../../../state/swap/actions'
+import { useDerivedSwapInfo, useSwapActionHandlers, useSwapState } from '../../../state/swap/hooks'
+import { maxAmountSpend } from '../../../utils/maxAmountSpend'
+import { warningSeverity } from '../../../utils/prices'
 import { useCurrency } from '../../../hooks/Tokens'
 import { useContext } from 'react'
-import SwapContext from 'store/swap-context'
+import SwapContext from '../../../store/swap-context'
 import TradePrice from '../../../components/swap/TradePrice'
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import Settings from '../Settings/Settings'
-import { useExpertModeManager } from 'state/user/hooks'
-import CurrencyLogo from 'components/CurrencyLogo'
-import useCurrencyBalance from 'lib/hooks/useCurrencyBalance'
+import { useExpertModeManager } from '../../../state/user/hooks'
+import CurrencyLogo from '../../../components/CurrencyLogo'
+import useCurrencyBalance from '../../../lib/hooks/useCurrencyBalance'
 
 export const RightSection = () => {
   const swapCTX = useContext(SwapContext)
