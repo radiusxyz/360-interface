@@ -12,14 +12,14 @@ const InputWrapper = styled.div<{ error?: boolean; children?: ReactNode; parentS
   padding: 5px;
   border-radius: 2px;
   border: ${({ error, parentStyles }) => (error && '1px solid #FF9C9C') || parentStyles?.border};
-  color: ${({ error, parentStyles }) => (error && '#FF9C9C') || parentStyles?.color};
-  background: ${({ error, parentStyles }) => (error && '#FFF4F4') || parentStyles?.background};
+  color: ${({ error, parentStyles }) => (error && '#FF9C9C') || parentStyles?.color || '#6b11ff'};
+  background: ${({ error, parentStyles }) => (error && '#FFF4F4') || parentStyles?.background || '#f5f4ff'};
   &: hover {
     background: ${({ error }) => (error && '#FFF4F4') || '#F5F4FF'};
     border: ${({ error }) => (error && '1px solid #FF9C9C') || '1px solid #DDE0FF'};
   }
-  background: #f5f4ff;
-  color: #6b11ff;
+  // background: #f5f4ff;
+  // color: #6b11ff;
   border: 1px solid #dde0ff;
 `
 
