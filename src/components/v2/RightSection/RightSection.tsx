@@ -374,7 +374,7 @@ export const RightSection = () => {
         )}
         {showApproveFlow ? (
           <PrimaryButton mrgn="0px 0px 12px 0px" onClick={handleApprove}>
-            Token approve needed
+            Request approval
           </PrimaryButton>
         ) : !accountWhiteList ? (
           <PrimaryButton mrgn="0px 0px 12px 0px" disabled>
