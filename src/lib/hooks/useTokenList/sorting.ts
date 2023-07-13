@@ -31,7 +31,9 @@ export function tokenComparator(balances: TokenBalances, a: Token, b: Token) {
 }
 
 /** Sorts tokens by query, giving precedence to exact matches and partial matches. */
-export function useSortTokensByQuery<T extends Token | TokenInfo>(query: string, tokens?: T[]): T[] {
+export function useSortTokensByQuery<T extends Token | TokenInfo>(query: string, tokens: T[]): T[] {
+  const tokensNew = [...tokens]
+
   return useMemo(() => {
     if (!tokens) {
       return []
@@ -50,8 +52,8 @@ export function useSortTokensByQuery<T extends Token | TokenInfo>(query: string,
     const symbolSubtrings: T[] = []
     const rest: T[] = []
 
-    // sort tokens by exact match -> subtring on symbol match -> rest
     tokens.map((token) => {
+      console.log(token.symbol)
       if (token.symbol?.toLowerCase() === matches[0]) {
         return exactMatches.push(token)
       } else if (token.symbol?.toLowerCase().startsWith(query.toLowerCase().trim())) {
@@ -60,7 +62,6 @@ export function useSortTokensByQuery<T extends Token | TokenInfo>(query: string,
         return rest.push(token)
       }
     })
-
     return [...exactMatches, ...symbolSubtrings, ...rest]
-  }, [tokens, query])
+  }, [tokensNew, query])
 }
