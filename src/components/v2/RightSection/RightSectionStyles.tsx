@@ -113,6 +113,7 @@ export const ButtonRow = styled.div`
   height: 100%;
   min-height: 116px;
   padding: 0 24px 12px 24px;
+  position: relative;
 `
 
 export const ButtonAndBalanceWrapper = styled.div`
@@ -235,6 +236,21 @@ export const ExchangeRate = styled.span`
   line-height: 144.52%;
   text-align: right;
   color: #626262;
+`
+
+export const ErrorMessage = styled.p`
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #ff9c9c;
+  text-align: center;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 144.523%;
 `
 
 export const InfoIcon = () => (
