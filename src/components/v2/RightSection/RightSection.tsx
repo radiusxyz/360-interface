@@ -382,7 +382,9 @@ export const RightSection = () => {
           </PrimaryButton>
         ) : (
           <PrimaryButton
-            disabled={isASelected && isBSelected && typedValue ? false : true}
+            disabled={
+              (isASelected && isBSelected && typedValue && false) || (approvalState === ApprovalState.APPROVED && true)
+            }
             mrgn="0px 0px 12px 0px"
             onClick={() => {
               updateSwapParams({ start: true })
