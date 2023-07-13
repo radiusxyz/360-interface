@@ -50,7 +50,18 @@ const Search = ({ onCurrencySelection }: any) => {
 
   const bTokens = useBTokens(aTokenAddress)
   const aTokens = useATokens(bTokenAddress)
-  const allTokens = useAllTokens()
+  const allTokensWithWELT = useAllTokens()
+
+  const allTokens: {
+    [address: string]: Token
+  } = useMemo(
+    () =>
+      Object.keys(allTokensWithWELT).reduce((result, key) => {
+        if (key !== '0x23E8B6A3f6891254988B84Da3738D2bfe5E703b9') return { ...result, [key]: allTokensWithWELT[key] }
+        else return { ...result }
+      }, {}),
+    [allTokensWithWELT]
+  )
 
   useEffect(() => {
     if (aTokenAddress && isAActive && bTokenAddress) {
@@ -89,10 +100,11 @@ const Search = ({ onCurrencySelection }: any) => {
 
   const balances = useAllTokenBalances()
   const sortedTokens: Token[] = useMemo(() => {
-    return filteredTokens.sort(tokenComparator.bind(null, balances))
+    return [...filteredTokens.sort(tokenComparator.bind(null, balances))]
   }, [balances, filteredTokens])
 
   const filteredSortedTokens = useSortTokensByQuery(debouncedQuery, sortedTokens)
+  // console.log(filteredSortedTokens.map((item) => item.symbol))
 
   const native = useNativeCurrency()
 

@@ -26,6 +26,7 @@ import {
   InfoIcon,
   Divider,
   MinimumAmount,
+  ErrorMessage,
 } from './RightSectionStyles'
 
 import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
@@ -288,6 +289,13 @@ export const RightSection = () => {
   const balanceInput = useCurrencyBalance(account ?? undefined, inputCurrency)
   const balanceOutput = useCurrencyBalance(account ?? undefined, outputCurrency)
 
+  const [isInputGreaterThanBalance, setIsInputGreaterThanBalance] = useState(false)
+  useEffect(() => {
+    balanceInput && formattedAmounts[Field.INPUT] > balanceInput?.toSignificant(4)
+      ? setIsInputGreaterThanBalance(true)
+      : setIsInputGreaterThanBalance(false)
+  }, [formattedAmounts, Field.INPUT, balanceInput])
+
   return leftSection === 'progress' || leftSection === 'almost-there' ? (
     <></>
   ) : !showSettings ? (
@@ -322,7 +330,12 @@ export const RightSection = () => {
             </SelectTokenButton>
             {isASelected && balanceInput && <Balance>Balance: {balanceInput.toSignificant(4)}</Balance>}
           </ButtonAndBalanceWrapper>
-          <NumericInput value={formattedAmounts[Field.INPUT]} onUserInput={handleTypeInput} isSelected={isASelected} />
+          <NumericInput
+            error={isInputGreaterThanBalance}
+            value={formattedAmounts[Field.INPUT].replace(/^00/, '0.')}
+            onUserInput={handleTypeInput}
+            isSelected={isASelected}
+          />
         </Aligner>
         <Circle />
       </TopTokenRow>
@@ -383,7 +396,8 @@ export const RightSection = () => {
         ) : (
           <PrimaryButton
             disabled={
-              (isASelected && isBSelected && typedValue && false) || (approvalState === ApprovalState.APPROVED && true)
+              (isASelected && isBSelected && typedValue && false) ||
+              (approvalState === ApprovalState.APPROVED && approvalSubmitted && true)
             }
             mrgn="0px 0px 12px 0px"
             onClick={() => {
@@ -397,6 +411,7 @@ export const RightSection = () => {
         {trade && (
           <TradePrice price={trade.executionPrice} showInverted={showInverted} setShowInverted={setShowInverted} />
         )}
+        {isInputGreaterThanBalance && <ErrorMessage>Please enter smaller amount</ErrorMessage>}
       </ButtonRow>
     </MainWrapper>
   ) : (
