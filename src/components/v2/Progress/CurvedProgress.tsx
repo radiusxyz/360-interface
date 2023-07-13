@@ -65,18 +65,37 @@ export const CurvedProgress = ({ percentage, id }: Props) => {
   //   }
   // }, [])
 
-  let progress = 0
+  const [progress, setProgress] = useState(0)
 
-  if (tx?.status === Status.PENDING) progress = 95
-  if (tx?.status === Status.CANCELED) progress = 100
-  if (tx?.status === Status.COMPLETED) progress = 100
-  if (tx?.status === Status.REJECTED) progress = 100
-  if (tx?.status === Status.REIMBURSE_AVAILABLE) progress = 100
-  if (tx?.status === Status.REIMBURSED) progress = 100
+  useEffect(() => {
+    switch (tx?.status) {
+      case Status.PENDING:
+        setProgress(98)
+        break
+      case Status.CANCELED:
+        setProgress(100)
+        break
+      case Status.COMPLETED:
+        setProgress(100)
+        break
+      case Status.REJECTED:
+        setProgress(100)
+        break
+      case Status.REIMBURSE_AVAILABLE:
+        setProgress(100)
+        break
+      case Status.REIMBURSED:
+        setProgress(100)
+        break
+      default:
+        setProgress(0)
+    }
+  }, [tx?.status])
+
   const [progressDynamic, setProgressDynamic] = useState(0)
 
   useEffect(() => {
-    if (tx?.status === 0) {
+    if (tx?.status === 0 || tx?.status === undefined) {
       const identifier = setInterval(() => {
         if (progressDynamic <= progress) setProgressDynamic((prevState) => prevState + 1)
         else return

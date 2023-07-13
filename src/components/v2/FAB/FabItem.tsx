@@ -46,11 +46,12 @@ const Hint = styled.p<StatusType>`
   font-size: 16px;
   font-weight: 500;
   line-height: normal;
-  color: ${({ status }) => (status === 1 && '#00b84a') || (status === 0 && '#6B11FF') || '#FF5C00'};
+  color: ${({ status }) =>
+    (status === 1 && '#00b84a') || ((status === 0 || status === undefined) && '#6B11FF') || '#FF5C00'};
 `
 
 const Icon = styled.img.attrs(({ status }: StatusType) => ({
-  src: (status === 1 && completed) || (status === 0 && pending) || failed,
+  src: (status === 1 && completed) || ((status === 0 || status === undefined) && pending) || failed,
 }))<StatusType>`
   animation: ${({ status }) => status === 0 && css`2s ${rotate} linear infinite`};
 `
@@ -61,7 +62,7 @@ const FabItem = () => {
 
     if (!tx)
       return {
-        status: 0,
+        status: -1,
         from: { amount: '0', decimal: '0', token: '' },
         to: { amount: '0', decimal: '0', token: '' },
       }
@@ -73,9 +74,11 @@ const FabItem = () => {
 
   const handleHint = (e: any) => {
     if (e.type === 'mouseenter') {
-      if (tx?.status === Status.PENDING) setHint('View pending swaps')
+      if (tx?.status === Status.PENDING || tx?.status === undefined) setHint('View pending swaps')
       else if (tx?.status === Status.COMPLETED) setHint('View completed swaps')
-      else setHint('View failed swaps')
+      else {
+        setHint('View failed swaps')
+      }
     }
     if (e.type === 'mouseleave') {
       setHint('')
@@ -83,12 +86,14 @@ const FabItem = () => {
   }
 
   return (
-    <NavLink to={url}>
-      <Wrapper onMouseEnter={handleHint} onMouseLeave={handleHint}>
-        {hint && <Hint status={tx?.status}>{hint}</Hint>}
-        {!hint && <Icon status={tx?.status} />}
-      </Wrapper>
-    </NavLink>
+    (tx?.status !== -1 && (
+      <NavLink to={url}>
+        <Wrapper onMouseEnter={handleHint} onMouseLeave={handleHint}>
+          {hint && <Hint status={tx?.status}>{hint}</Hint>}
+          {!hint && <Icon status={tx?.status} />}
+        </Wrapper>
+      </NavLink>
+    )) || <></>
   )
 }
 
