@@ -133,7 +133,7 @@ export const NumericInput = React.memo(function InnerInput({
         pattern="^[0-9]*[.,]?[0-9]*$"
         placeholder={placeHolder === '' ? '' : '0.0'}
         minLength={1}
-        maxLength={79}
+        maxLength={12}
         spellCheck="false"
       />
       {/* {isSelected && <BalanceUSD>$0.00</BalanceUSD>} */}
