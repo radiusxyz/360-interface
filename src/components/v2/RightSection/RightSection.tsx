@@ -23,10 +23,12 @@ import {
   Description,
   ValueAndIconWrapper,
   ImpactAmount,
-  InfoIcon,
   Divider,
   MinimumAmount,
   ErrorMessage,
+  InfoIcon,
+  InfoIconWrapper,
+  Tooltip,
 } from './RightSectionStyles'
 
 import { Currency, CurrencyAmount } from '@uniswap/sdk-core'
@@ -378,7 +380,13 @@ export const RightSection = () => {
               <Description>You receive minimum</Description>
               <ValueAndIconWrapper>
                 <MinimumAmount> {minimum && minimum + ' ' + trade?.outputAmount.currency.symbol}</MinimumAmount>
-                <InfoIcon />
+                <InfoIconWrapper>
+                  <Tooltip>
+                    The minimum amount of tokens you will receive after slippage. You may receive a greater amount
+                    depending on the market conditions as your transaction is pending.
+                  </Tooltip>
+                  <InfoIcon />
+                </InfoIconWrapper>
               </ValueAndIconWrapper>
             </InfoRowWrapper>
             <Divider />
@@ -388,7 +396,10 @@ export const RightSection = () => {
                 <ImpactAmount priceImpactTooHigh={priceImpactTooHigh ? 1 : 0}>
                   {priceImpact?.toSignificant(3) + ' %' + `${priceImpactTooHigh ? ' (Too High)' : ''}`}
                 </ImpactAmount>
-                <InfoIcon />
+                <InfoIconWrapper>
+                  <Tooltip>The change in market price of the asset due to the impact of your trade.</Tooltip>
+                  <InfoIcon />
+                </InfoIconWrapper>
               </ValueAndIconWrapper>
             </InfoRowWrapper>
           </InfoMainWrapper>

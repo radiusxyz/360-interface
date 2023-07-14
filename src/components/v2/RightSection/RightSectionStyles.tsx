@@ -183,6 +183,7 @@ export const ValueAndIconWrapper = styled.div`
   display: flex;
   gap: 8px;
   align-items: center;
+  position: relative;
 `
 
 export const MinimumAmount = styled.span`
@@ -260,3 +261,45 @@ export const InfoIcon = () => (
     <rect x="7.27271" y="4.36365" width="1.45455" height="1.45455" fill="#9B9B9B" />
   </InfoIconSVG>
 )
+
+const ToolTipWrapper = styled.div`
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  bottom: 25px;
+  right: 50%;
+  transform: translateX(50%);
+  width: 100%;
+  min-width: 237px;
+  padding: 12px 14px;
+  z-index: 999;
+  background: #fff;
+  border-radius: 4px;
+  border: 1px solid #dde0ff;
+  filter: drop-shadow(0px 4px 21px rgba(90, 18, 61, 0.1));
+  color: #622bff;
+  font-family: Pretendard;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  visibility: hidden;
+  line-height: 144%;
+`
+
+export const InfoIconWrapper = styled.div`
+  position: relative;
+  display: flex;
+  &:hover {
+    ${ToolTipWrapper} {
+      visibility: visible;
+    }
+  }
+`
+
+export const Tooltip = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <ToolTipWrapper>
+      <p>{children}</p>
+    </ToolTipWrapper>
+  )
+}

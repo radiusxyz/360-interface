@@ -1,6 +1,6 @@
 import Switch from '../UI/Switch'
 import { useSetUserSlippageTolerance, useUserSlippageTolerance } from 'state/user/hooks'
-import { InfoIcon } from '../RightSection/RightSectionStyles'
+import { InfoIcon, InfoIconWrapper, Tooltip } from '../RightSection/RightSectionStyles'
 import { PrimaryButton } from '../UI/Buttons'
 import {
   Body,
@@ -82,6 +82,13 @@ const Settings = ({ isSelected, handleShowSettings, placeholderSlippage }: Props
         <SlippageSettingWrapper>
           <TopDescWrapper>
             <Description>Slippage tolerance</Description>
+            <InfoIconWrapper>
+              <Tooltip>
+                The maximum price slippage you are willing to accept. If the price slips further, your transaction will
+                revert.
+              </Tooltip>
+              <InfoIcon />
+            </InfoIconWrapper>
           </TopDescWrapper>
           <OptionsRow>
             <Option
@@ -129,7 +136,14 @@ const Settings = ({ isSelected, handleShowSettings, placeholderSlippage }: Props
         <MevSettingWrapper>
           <BottomDescWrapper>
             <Description>MEV Protection Guarantee</Description>
-            <InfoIcon />
+            <InfoIconWrapper>
+              <Tooltip>
+                Protect Your Swap: Turn On for full protection against malicious MEV activity. Your transation may
+                revert if at risk to an attack. Turn OFF to proceed the swap with potential exposure to MEV and
+                lower-price swaps.
+              </Tooltip>
+              <InfoIcon />
+            </InfoIconWrapper>
           </BottomDescWrapper>
           <Switch />
         </MevSettingWrapper>
