@@ -59,6 +59,7 @@ export const TopDescWrapper = styled.div`
   justify-content: flex-start;
   align-items: center;
   width: 100%;
+  gap: 6px;
 `
 
 export const Description = styled.span`
