@@ -3,9 +3,9 @@ const self = globalThis as unknown as DedicatedWorkerGlobalScope
 
 self.addEventListener('message', async (e) => {
   if (e.data.target === 'encryptor') {
-    const poseidon = await import('wasm-encryptor-zkp')
+    const poseidon = await import('@radiusxyz/wasm-encryptor-zkp')
     console.log('in encryptor', e, e.data)
-    const data = await poseidon.encrypt_with_tx_hash(
+    const data = await poseidon.encrypt_threesixty_tx(
       e.data.txInfoToHash,
       e.data.s2_string,
       e.data.s2_field_hex,
@@ -16,7 +16,7 @@ self.addEventListener('message', async (e) => {
     self.postMessage({ target: 'encryptor', data })
   }
   if (e.data.target === 'timeLockPuzzle') {
-    const timeLockPuzzle = await import('wasm-time-lock-puzzle-zkp')
+    const timeLockPuzzle = await import('@radiusxyz/wasm-time-lock-puzzle-zkp')
 
     console.log('in timeLockPuzzle', e, e.data)
     const data = await timeLockPuzzle.get_time_lock_puzzle_proof(
