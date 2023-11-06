@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { AutoColumn } from 'components/Column'
 import { PrivacyPolicy } from 'components/PrivacyPolicy'
 import Row, { AutoRow } from 'components/Row'

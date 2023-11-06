@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { FeeAmount } from '@uniswap/v3-sdk'
 import { ButtonRadioChecked } from 'components/Button'
 import { AutoColumn } from 'components/Column'

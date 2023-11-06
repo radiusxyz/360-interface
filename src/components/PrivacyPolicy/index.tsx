@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import Card, { DarkGreyCard } from 'components/Card'
 import Row, { AutoRow, RowBetween } from 'components/Row'
 import { useEffect, useRef } from 'react'

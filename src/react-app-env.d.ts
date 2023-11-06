@@ -6,6 +6,14 @@ declare module '@metamask/jazzicon' {
 
 declare module 'fortmatic'
 
+// typings/custom.d.ts
+declare module 'worker-loader!*' {
+  class WebpackWorker extends Worker {
+    constructor()
+  }
+
+  export default WebpackWorker
+}
 interface Window {
   // walletLinkExtension is injected by the Coinbase Wallet extension
   walletLinkExtension?: any
@@ -18,7 +26,9 @@ interface Window {
   web3?: Record<string, unknown>
 }
 
-declare module 'content-hash' {
+// Commented out by Gylman
+
+/* declare module 'content-hash' {
   declare function decode(x: string): string
   declare function getCodec(x: string): string
 }
@@ -26,4 +36,9 @@ declare module 'content-hash' {
 declare module 'multihashes' {
   declare function decode(buff: Uint8Array): { code: number; name: string; length: number; digest: Uint8Array }
   declare function toB58String(hash: Uint8Array): string
-}
+} */
+
+declare module '*.png'
+declare module '*.svg'
+declare module '*.jpeg'
+declare module '*.jpg'

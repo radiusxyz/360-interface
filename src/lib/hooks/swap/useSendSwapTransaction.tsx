@@ -13,10 +13,8 @@ import { SwapCall } from 'hooks/useSwapCallArguments'
 import JSBI from 'jsbi'
 import localForage from 'localforage'
 import { useMemo } from 'react'
-import { addPopup } from 'state/application/reducer'
 import { useAppDispatch } from 'state/hooks'
 import { useCancelManager } from 'state/modal/hooks'
-import { setProgress } from 'state/modal/reducer'
 import { fetchTimeLockPuzzleParam, fetchTimeLockPuzzleSnarkParam } from 'state/parameters/fetch'
 import {
   ParameterState,
@@ -25,7 +23,7 @@ import {
   TimeLockPuzzleParam,
 } from 'state/parameters/reducer'
 import { swapErrorToUserReadableMessage } from 'utils/swapErrorToUserReadableMessage'
-import { poseidonEncryptWithTxHash } from 'wasm/encrypt'
+import { poseidonEncrypt } from 'wasm/encrypt'
 import { getTimeLockPuzzleProof } from 'wasm/timeLockPuzzle'
 
 import { useRecorderContract, useV2RouterContract } from '../../../hooks/useContract'
@@ -50,7 +48,7 @@ export interface TxInfo {
 
 const MAXIMUM_PATH_LENGTH = 3
 
-interface EncryptedSwapTx {
+export interface EncryptedSwapTx {
   txOwner: string
   functionSelector: string
   amountIn: string
@@ -115,32 +113,25 @@ export default function useSendSwapTransaction(
   swapCalls: Promise<SwapCall[]>,
   deadline: BigNumber | undefined,
   allowedSlippage: Percent,
-  parameters: ParameterState,
-  sigHandler: () => void
+  parameters: ParameterState
 ): {
-  callback: null | (() => Promise<RadiusSwapResponse>)
-  split1?: (
+  prepareSignMessage?: (
     backerIntegrity: boolean,
     nonce: string
   ) => Promise<{
     signMessage: any
-    timeLockPuzzleParam: TimeLockPuzzleParam
-    timeLockPuzzleSnarkParam: string
     txNonce: number
     idPath: string
   }>
-  split2?: (signMessage: any) => Promise<{ sig: Signature } | null>
-  split3?: (
-    timeLockPuzzleParam: TimeLockPuzzleParam,
-    timeLockPuzzleSnarkParam: string
-  ) => Promise<{ timeLockPuzzleData: TimeLockPuzzleResponse }>
-  split4?: (
+  userSign?: (signMessage: any) => Promise<{ sig: Signature } | null>
+  getTimeLockPuzzle?: () => Promise<{ timeLockPuzzleData: TimeLockPuzzleResponse }>
+  createEncryptProof?: (
     timeLockPuzzleData: TimeLockPuzzleResponse,
     txNonce: number,
     signMessage: any,
     idPath: string
   ) => Promise<{ txHash: string; mimcHash: string; encryptedSwapTx: any }>
-  split5?: (
+  sendEncryptedTx?: (
     txHash: string,
     mimcHash: string,
     signMessage: any,
@@ -154,260 +145,20 @@ export default function useSendSwapTransaction(
   const routerContract = useV2RouterContract() as Contract
   const recorderContract = useRecorderContract() as Contract
   const [cancel, setCancel] = useCancelManager()
-  // const progress = useProgress()
-
-  const emptyResponse = {
-    data: {
-      txOrderMsg: {
-        round: 0,
-        order: 0,
-        mimcHash: '',
-        txHash: '',
-        proofHash: '',
-      },
-      signature: {
-        r: '',
-        s: '',
-        v: 27,
-      },
-    },
-    msg: 'timeOver',
-  }
 
   return useMemo(() => {
     if (!trade || !library || !account || !chainId) {
       return { callback: null }
     }
     return {
-      callback: async function onSwap(): Promise<RadiusSwapResponse> {
-        let timeLockPuzzleParam: TimeLockPuzzleParam | null = await localForage.getItem('time_lock_puzzle_param')
-        let timeLockPuzzleSnarkParam: string | null = await localForage.getItem('time_lock_puzzle_snark_param')
-
-        // if save flag is false or getItem result is null
-        if (!parameters.timeLockPuzzleParam || !timeLockPuzzleParam) {
-          timeLockPuzzleParam = await fetchTimeLockPuzzleParam((newParam: boolean) => {
-            dispatch(setTimeLockPuzzleParam({ newParam }))
-          })
-        }
-
-        if (!parameters.timeLockPuzzleSnarkParam || !timeLockPuzzleSnarkParam) {
-          timeLockPuzzleSnarkParam = await fetchTimeLockPuzzleSnarkParam((newParam: boolean) => {
-            dispatch(setTimeLockPuzzleSnarkParam({ newParam }))
-          })
-        }
-        // TODO: hard coded
-        const backerIntegrity = true
-        const operatorAddress = ''
-
-        const resolvedCalls = await swapCalls
-
-        const signer = library.getSigner()
-        const signAddress = await signer.getAddress()
-
-        console.log('resolvedCalls', resolvedCalls)
-
-        const { deadline, availableFrom, amountIn, amountOut, path, idPath } = resolvedCalls[0]
-
-        // TODO: get nonce from Swap index
-        const contractNonce = await routerContract.nonces(account)
-
-        const operatorPendingTxCnt = await fetch(
-          `${process.env.REACT_APP_360_OPERATOR}/tx/pendingTxCnt?chainId=${chainId}&walletAddress=${account}`
-        )
-        const text = await operatorPendingTxCnt.text()
-
-        const txNonce = parseInt(contractNonce) + parseInt(text)
-
-        const signMessage = {
-          txOwner: signAddress,
-          functionSelector: swapExactTokensForTokens,
-          amountIn: `${amountIn}`,
-          amountOut: `${amountOut}`,
-          path,
-          to: signAddress,
-          nonce: txNonce,
-          backerIntegrity,
-          deadline,
-          availableFrom,
-        }
-
-        sigHandler()
-
-        // const disableTxHash = serialize(tx, sign)
-
-        // console.log('disableTxHash', disableTxHash)
-        // console.log(signer, signAddress)
-        // const availableFrom = Math.floor(Date.now() / 1000) + 70
-        dispatch(setProgress({ newParam: 1 }))
-
-        const typedData = JSON.stringify({
-          types: {
-            EIP712Domain: DOMAIN_TYPE,
-            Swap: SWAP_TYPE,
-          },
-          primaryType: 'Swap',
-          domain: domain(chainId),
-          message: signMessage,
-        })
-
-        const now = Date.now()
-
-        const sig = await signWithEIP712(library, signAddress, typedData)
-
-        if (now + 10000 < Date.now()) {
-          dispatch(setProgress({ newParam: 8 }))
-          return emptyResponse
-        }
-
-        dispatch(setProgress({ newParam: 2 }))
-
-        const timeLockPuzzleData = await getTimeLockPuzzleProof(timeLockPuzzleParam, timeLockPuzzleSnarkParam)
-
-        // console.log(timeLockPuzzleData)
-
-        dispatch(setProgress({ newParam: 3 }))
-
-        if (path.length > 3) {
-          console.error('Cannot encrypt path which length is over 3')
-        }
-
-        const pathToHash: string[] = new Array(MAXIMUM_PATH_LENGTH)
-
-        for (let i = 0; i < MAXIMUM_PATH_LENGTH; i++) {
-          pathToHash[i] = i < path.length ? path[i].split('x')[1] : '0'
-        }
-
-        const txInfoToHash: TxInfo = {
-          tx_owner: signAddress.split('x')[1],
-          function_selector: swapExactTokensForTokens.split('x')[1],
-          amount_in: `${amountIn}`,
-          amount_out: `${amountOut}`,
-          to: signAddress.split('x')[1],
-          deadline: `${deadline}`,
-          nonce: `${txNonce}`,
-          path: pathToHash,
-        }
-
-        const encryptData = await poseidonEncryptWithTxHash(
-          txInfoToHash,
-          timeLockPuzzleData.s2_string,
-          timeLockPuzzleData.s2_field_hex,
-          timeLockPuzzleData.commitment_hex,
-          idPath
-        )
-
-        // console.log(encryptData)
-
-        const encryptedPath = {
-          message_length: encryptData.message_length,
-          nonce: encryptData.nonce,
-          commitment: timeLockPuzzleData.commitment_hex,
-          cipher_text: [encryptData.cipher_text],
-          r1: timeLockPuzzleData.r1,
-          r3: timeLockPuzzleData.r3,
-          s1: timeLockPuzzleData.s1,
-          s3: timeLockPuzzleData.s3,
-          k: timeLockPuzzleData.k,
-          time_lock_puzzle_snark_proof: timeLockPuzzleData.time_lock_puzzle_snark_proof,
-          encryption_proof: encryptData.proof,
-        }
-
-        // console.log(sig)
-
-        const txHash = typedDataEncoder.hash(domain(chainId), { Swap: SWAP_TYPE }, signMessage)
-
-        const encryptedSwapTx: EncryptedSwapTx = {
-          txOwner: signAddress,
-          functionSelector: swapExactTokensForTokens,
-          amountIn: `${amountIn}`,
-          amountOut: `${amountOut}`,
-          path: encryptedPath,
-          to: signAddress,
-          nonce: txNonce,
-          backerIntegrity,
-          availableFrom,
-          deadline,
-          txHash,
-          mimcHash: '0x' + encryptData.tx_id,
-        }
-
-        let input = trade?.inputAmount?.numerator
-        let output = trade?.outputAmount?.numerator
-        input = !input ? JSBI.BigInt(0) : input
-        output = !output ? JSBI.BigInt(0) : output
-
-        const inDecimal =
-          trade?.inputAmount?.decimalScale !== undefined ? trade?.inputAmount?.decimalScale : JSBI.BigInt(1)
-        const outDecimal =
-          trade?.outputAmount?.decimalScale !== undefined ? trade?.outputAmount?.decimalScale : JSBI.BigInt(1)
-
-        const inSymbol = trade?.inputAmount?.currency?.symbol !== undefined ? trade?.inputAmount?.currency?.symbol : ''
-        const outSymbol =
-          trade?.outputAmount?.currency?.symbol !== undefined ? trade?.outputAmount?.currency?.symbol : ''
-
-        const readyTxId = await db.readyTxs.add({
-          txHash,
-          mimcHash: '0x' + encryptData.tx_id,
-          tx: signMessage,
-          progressHere: 1,
-          from: { token: inSymbol, amount: input.toString(), decimal: inDecimal.toString() },
-          to: { token: outSymbol, amount: output.toString(), decimal: outDecimal.toString() },
-        })
-
-        const sendResponse = await sendEIP712Tx(
-          chainId,
-          routerContract,
-          recorderContract,
-          encryptedSwapTx,
-          sig,
-          dispatch,
-          setCancel,
-          operatorAddress
-        )
-
-        console.log(`popup add ${sendResponse.data.txOrderMsg.round}-${sendResponse.data.txOrderMsg.order}`)
-        dispatch(
-          addPopup({
-            content: {
-              title: 'Transaction pending',
-              status: 'pending',
-              data: { readyTxId },
-            },
-            key: `${sendResponse.data.txOrderMsg.round}-${sendResponse.data.txOrderMsg.order}`,
-            removeAfterMs: 31536000000,
-          })
-        )
-
-        dispatch(setProgress({ newParam: 4 }))
-
-        return sendResponse
-      },
-      split1: async function split1(
+      prepareSignMessage: async function prepareSignMessage(
         backerIntegrity: boolean,
         nonce: string
       ): Promise<{
         signMessage: any
-        timeLockPuzzleParam: TimeLockPuzzleParam
-        timeLockPuzzleSnarkParam: string
         txNonce: number
         idPath: string
       }> {
-        let timeLockPuzzleParam: TimeLockPuzzleParam | null = await localForage.getItem('time_lock_puzzle_param')
-        let timeLockPuzzleSnarkParam: string | null = await localForage.getItem('time_lock_puzzle_snark_param')
-
-        // if save flag is false or getItem result is null
-        if (!parameters.timeLockPuzzleParam || !timeLockPuzzleParam) {
-          timeLockPuzzleParam = await fetchTimeLockPuzzleParam((newParam: boolean) => {
-            dispatch(setTimeLockPuzzleParam({ newParam }))
-          })
-        }
-
-        if (!parameters.timeLockPuzzleSnarkParam || !timeLockPuzzleSnarkParam) {
-          timeLockPuzzleSnarkParam = await fetchTimeLockPuzzleSnarkParam((newParam: boolean) => {
-            dispatch(setTimeLockPuzzleSnarkParam({ newParam }))
-          })
-        }
-
         const signer = library.getSigner()
         const signAddress = await signer.getAddress()
 
@@ -439,11 +190,9 @@ export default function useSendSwapTransaction(
           availableFrom,
         }
 
-        sigHandler()
-
-        return { signMessage, timeLockPuzzleParam, timeLockPuzzleSnarkParam, txNonce, idPath }
+        return { signMessage, txNonce, idPath }
       },
-      split2: async function split2(signMessage: any): Promise<{ sig: Signature } | null> {
+      userSign: async function userSign(signMessage: any): Promise<{ sig: Signature } | null> {
         const typedData = JSON.stringify({
           types: {
             EIP712Domain: DOMAIN_TYPE,
@@ -463,26 +212,39 @@ export default function useSendSwapTransaction(
           return null
         })
 
-        if (now + 10000 < Date.now()) {
+        if (now + 5000 < Date.now()) {
           return null
         }
 
         return sig ? { sig } : null
       },
-      split3: async function split3(
-        timeLockPuzzleParam: TimeLockPuzzleParam,
-        timeLockPuzzleSnarkParam: string
-      ): Promise<{ timeLockPuzzleData: TimeLockPuzzleResponse }> {
+      getTimeLockPuzzle: async function getTimeLockPuzzle(): Promise<{ timeLockPuzzleData: TimeLockPuzzleResponse }> {
+        let timeLockPuzzleParam: TimeLockPuzzleParam | null = await localForage.getItem('time_lock_puzzle_param')
+        let timeLockPuzzleSnarkParam: string | null = await localForage.getItem('time_lock_puzzle_snark_param')
+
+        // if save flag is false or getItem result is null
+        if (!parameters.timeLockPuzzleParam || !timeLockPuzzleParam) {
+          timeLockPuzzleParam = await fetchTimeLockPuzzleParam((newParam: boolean) => {
+            dispatch(setTimeLockPuzzleParam({ newParam }))
+          })
+        }
+
+        if (!parameters.timeLockPuzzleSnarkParam || !timeLockPuzzleSnarkParam) {
+          timeLockPuzzleSnarkParam = await fetchTimeLockPuzzleSnarkParam((newParam: boolean) => {
+            dispatch(setTimeLockPuzzleSnarkParam({ newParam }))
+          })
+        }
+
         const timeLockPuzzleData = await getTimeLockPuzzleProof(timeLockPuzzleParam, timeLockPuzzleSnarkParam)
         return { timeLockPuzzleData }
       },
-      split4: async function split4(
+      createEncryptProof: async function createEncryptProof(
         timeLockPuzzleData: TimeLockPuzzleResponse,
         txNonce: number,
         signMessage: any,
         idPath: string
       ): Promise<{ txHash: string; mimcHash: string; encryptedSwapTx: any }> {
-        console.log('signMessage', signMessage)
+        console.log('signMessage', signMessage, signMessage.path.length)
         console.log('timeLockPuzzleData', timeLockPuzzleData)
         console.log('idPath', idPath)
         const signer = library.getSigner()
@@ -511,7 +273,7 @@ export default function useSendSwapTransaction(
         console.log('🚀 ~ file: useSendSwapTransaction.tsx:511 ~ returnuseMemo ~ txInfoToHash', txInfoToHash)
 
         const time = Date.now()
-        const encryptData = await poseidonEncryptWithTxHash(
+        const encryptData = await poseidonEncrypt(
           txInfoToHash,
           timeLockPuzzleData.s2_string,
           timeLockPuzzleData.s2_field_hex,
@@ -557,7 +319,7 @@ export default function useSendSwapTransaction(
 
         return { txHash, mimcHash, encryptedSwapTx }
       },
-      split5: async function split5(
+      sendEncryptedTx: async function sendEncryptedTx(
         txHash: string,
         mimcHash: string,
         signMessage: any,
@@ -565,6 +327,7 @@ export default function useSendSwapTransaction(
         sig: Signature,
         operatorAddress: string
       ): Promise<RadiusSwapResponse> {
+        console.log('run sendEncryptedTx', txHash, mimcHash, signMessage, encryptedSwapTx, sig, operatorAddress)
         let input = trade?.inputAmount?.numerator
         let output = trade?.outputAmount?.numerator
         input = !input ? JSBI.BigInt(0) : input
@@ -598,24 +361,10 @@ export default function useSendSwapTransaction(
           setCancel,
           operatorAddress
         )
-
-        console.log(`popup add ${sendResponse.data.txOrderMsg.round}-${sendResponse.data.txOrderMsg.order}`)
-        dispatch(
-          addPopup({
-            content: {
-              title: 'Transaction pending',
-              status: 'pending',
-              data: { readyTxId },
-            },
-            key: `${sendResponse.data.txOrderMsg.round}-${sendResponse.data.txOrderMsg.order}`,
-            removeAfterMs: 31536000000,
-          })
-        )
-
         return sendResponse
       },
     }
-  }, [trade, library, account, chainId, parameters, swapCalls, sigHandler, dispatch])
+  }, [trade, library, account, chainId, parameters, swapCalls, dispatch])
 }
 
 async function fetchWithTimeout(resource: any, options: any, timeout = 1000) {
@@ -802,8 +551,4 @@ export async function sendEIP712Tx(
     })
 
   return sendResponse
-}
-
-function sleep(ms: number) {
-  return new Promise((r) => setTimeout(r, ms))
 }

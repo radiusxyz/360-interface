@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { RowFixed } from 'components/Row'
 import { CHAIN_INFO } from 'constants/chainInfo'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'

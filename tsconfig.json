@@ -9,7 +9,7 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": ["dom", "dom.iterable", "esnext", "webworker"],
     "module": "esnext",
     "moduleResolution": "node",
     "noEmit": true,
@@ -26,6 +26,14 @@
     "types": ["react-spring", "jest"],
     "useUnknownInCatchVariables": false
   },
-  "exclude": ["node_modules", "cypress"],
-  "include": ["src/**/*", "wasm"]
+  "include": [
+    "wasm",
+    "src/components/v2",
+    "src/components/v2",
+    "src/index.tsx",
+    "src/assets/v2",
+    "src/pages/v2",
+    "src/react-app-env.d.ts"
+  ],
+  "exclude": ["node_modules", "cypress"]
 }

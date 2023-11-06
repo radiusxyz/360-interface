@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { Percent } from '@uniswap/sdk-core'
 import styled from 'styled-components/macro'
 

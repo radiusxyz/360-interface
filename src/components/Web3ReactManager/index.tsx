@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { useEffect } from 'react'
 import styled from 'styled-components/macro'
 import { useWeb3React } from 'web3-react-core'

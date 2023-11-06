@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import React, { ErrorInfo } from 'react'
 import ReactGA from 'react-ga4'
 import styled from 'styled-components/macro'

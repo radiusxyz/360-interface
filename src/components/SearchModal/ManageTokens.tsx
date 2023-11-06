@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { Token } from '@uniswap/sdk-core'
 import Card from 'components/Card'
 import Column from 'components/Column'

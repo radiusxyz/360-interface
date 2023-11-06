@@ -1,4 +1,4 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { Token } from '@uniswap/sdk-core'
 import Badge, { BadgeVariant } from 'components/Badge'
 import { transparentize } from 'polished'

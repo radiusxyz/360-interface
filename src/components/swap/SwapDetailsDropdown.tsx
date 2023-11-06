@@ -1,11 +1,10 @@
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { Currency, Percent, TradeType } from '@uniswap/sdk-core'
 import Card, { OutlineCard } from 'components/Card'
 import { AutoColumn } from 'components/Column'
 import { LoadingOpacityContainer } from 'components/Loader/styled'
 import Row, { RowBetween, RowFixed } from 'components/Row'
 import { MouseoverTooltipContent } from 'components/Tooltip'
-import useActiveWeb3React from 'hooks/useActiveWeb3React'
 import { darken } from 'polished'
 import { ChevronDown, Info } from 'react-feather'
 import { BsArrowLeftRight } from 'react-icons/bs'
@@ -129,7 +128,6 @@ export default function SwapDetailsDropdown({
   allowedSlippage,
 }: SwapDetailsInlineProps) {
   const theme = useTheme()
-  const { chainId } = useActiveWeb3React()
   // const [showDetails, setShowDetails] = useState(false)
 
   return (

@@ -2,7 +2,7 @@
 import { BigNumber } from '@ethersproject/bignumber'
 import { Signature } from '@ethersproject/bytes'
 // import { TransactionResponse } from '@ethersproject/providers'
-import { Trans } from '@lingui/macro'
+import { Trans } from 'utils/trans'
 import { Percent } from '@uniswap/sdk-core'
 import { FeeOptions } from '@uniswap/v3-sdk'
 import useActiveWeb3React from 'hooks/useActiveWeb3React'
@@ -12,7 +12,7 @@ import { AnyTrade, useSwapCallArguments } from 'hooks/useSwapCallArguments'
 import { ReactNode, useMemo } from 'react'
 import { ParameterState } from 'state/parameters/reducer'
 
-import { TimeLockPuzzleParam } from '../../../state/parameters/reducer'
+// import { TimeLockPuzzleParam } from '../../../state/parameters/reducer'
 import { TimeLockPuzzleResponse } from '../../../wasm/timeLockPuzzle'
 import useSendSwapTransaction, { RadiusSwapResponse } from './useSendSwapTransaction'
 
@@ -24,29 +24,23 @@ export enum SwapCallbackState {
 
 interface UseSwapCallbackReturns {
   state: SwapCallbackState
-  callback?: () => Promise<RadiusSwapResponse>
-  split1?: (
+  prepareSignMessage?: (
     backerIntegrity: boolean,
     nonce: string
   ) => Promise<{
     signMessage: any
-    timeLockPuzzleParam: TimeLockPuzzleParam
-    timeLockPuzzleSnarkParam: string
     txNonce: number
     idPath: string
   }>
-  split2?: (signMessage: any) => Promise<{ sig: Signature } | null>
-  split3?: (
-    timeLockPuzzleParam: TimeLockPuzzleParam,
-    timeLockPuzzleSnarkParam: string
-  ) => Promise<{ timeLockPuzzleData: TimeLockPuzzleResponse }>
-  split4?: (
+  userSign?: (signMessage: any) => Promise<{ sig: Signature } | null>
+  getTimeLockPuzzle?: () => Promise<{ timeLockPuzzleData: TimeLockPuzzleResponse }>
+  createEncryptProof?: (
     timeLockPuzzleData: TimeLockPuzzleResponse,
     txNonce: number,
     signMessage: any,
     idPath: string
   ) => Promise<{ txHash: string; mimcHash: string; encryptedSwapTx: any }>
-  split5?: (
+  sendEncryptedTx?: (
     txHash: string,
     mimcHash: string,
     signMessage: any,
@@ -64,7 +58,6 @@ interface UseSwapCallbackArgs {
   backerIntegrity: boolean
   deadline: BigNumber | undefined
   feeOptions?: FeeOptions
-  sigHandler: () => void
   parameters: ParameterState
 }
 
@@ -78,7 +71,6 @@ export function useSwapCallback({
   backerIntegrity,
   deadline,
   feeOptions,
-  sigHandler,
   parameters,
 }: UseSwapCallbackArgs): UseSwapCallbackReturns {
   const { account, chainId, library } = useActiveWeb3React()
@@ -92,17 +84,8 @@ export function useSwapCallback({
     deadline,
     feeOptions
   )
-  const { callback, split1, split2, split3, split4, split5 } = useSendSwapTransaction(
-    account,
-    chainId,
-    library,
-    trade,
-    swapCalls,
-    deadline,
-    allowedSlippage,
-    parameters,
-    sigHandler
-  )
+  const { prepareSignMessage, userSign, getTimeLockPuzzle, createEncryptProof, sendEncryptedTx } =
+    useSendSwapTransaction(account, chainId, library, trade, swapCalls, deadline, allowedSlippage, parameters)
 
   const { address: recipientAddress } = useENS(recipientAddressOrName)
   const recipient = recipientAddressOrName === null ? account : recipientAddress
@@ -113,12 +96,11 @@ export function useSwapCallback({
       !library ||
       !account ||
       !chainId ||
-      !callback ||
-      !split1 ||
-      !split2 ||
-      !split3 ||
-      !split4 ||
-      !split5
+      !prepareSignMessage ||
+      !userSign ||
+      !getTimeLockPuzzle ||
+      !createEncryptProof ||
+      !sendEncryptedTx
     ) {
       return { state: SwapCallbackState.INVALID, error: <Trans>Missing dependencies</Trans> }
     }
@@ -132,12 +114,11 @@ export function useSwapCallback({
 
     return {
       state: SwapCallbackState.VALID,
-      callback: async () => callback(),
-      split1: async (a: any, b: any) => split1(a, b),
-      split2: async (a: any) => split2(a),
-      split3: async (a: any, b: any) => split3(a, b),
-      split4: async (a: any, b: any, c: any, d: any) => split4(a, b, c, d),
-      split5: async (a: any, b: any, c: any, d: any, e: any, f: any) => split5(a, b, c, d, e, f),
+      prepareSignMessage: async (a: any, b: any) => prepareSignMessage(a, b),
+      userSign: async (a: any) => userSign(a),
+      getTimeLockPuzzle: async () => getTimeLockPuzzle(),
+      createEncryptProof: async (a: any, b: any, c: any, d: any) => createEncryptProof(a, b, c, d),
+      sendEncryptedTx: async (a: any, b: any, c: any, d: any, e: any, f: any) => sendEncryptedTx(a, b, c, d, e, f),
     }
-  }, [trade, library, account, chainId, callback, recipient, recipientAddressOrName])
+  }, [trade, library, account, chainId, recipient, recipientAddressOrName])
 }
