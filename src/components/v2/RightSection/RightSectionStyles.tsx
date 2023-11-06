@@ -29,7 +29,12 @@ export const HeaderTitle = styled.span`
   color: #000000;
 `
 
-export const Cog = styled.img.attrs({ src: cog, width: 20 })``
+export const Cog = styled.img.attrs({ src: cog, width: 20 })`
+  &: hover {
+    filter: brightness(30%);
+    cursor: pointer;
+  }
+`
 
 export const SlippageOptions = styled.div`
   display: flex;
@@ -39,18 +44,23 @@ export const SlippageOptions = styled.div`
   width: 100%;
 `
 
-export const SlippageOption = styled.button`
+export const SlippageOption = styled.button<{ selected?: boolean }>`
   display: flex;
   justify-content: center;
   align-items: center;
   background-color: transparent;
-  border: 1px solid #ebebeb;
+  border: ${({ selected }) => (selected && '1px solid var(--primary-color, #6b11ff)') || '1px solid #ebebeb'};
   max-width: 52px;
   width: 100%;
   max-height: 20px;
   padding: 3px;
   border-radius: 66px;
-  color: #999999;
+  color: ${({ selected }) => (selected && '#6b11ff') || '#999999'};
+  &:hover {
+    cursor: pointer;
+    color: #6b11ff;
+    border: 1px solid var(--primary-color, #6b11ff);
+  }
 `
 
 export const TopTokenRow = styled.div`
@@ -60,7 +70,7 @@ export const TopTokenRow = styled.div`
   flex-direction: column;
   height: 118px;
   border-bottom: 1px solid #dde0ff;
-  padding: 0 24px 20px 24px;
+  padding: 0 24px 20px 21px;
   position: relative;
 `
 
@@ -93,7 +103,7 @@ export const BottomTokenRow = styled.div`
   min-height: 100px;
   height: 100%;
   border-bottom: 1px solid #dde0ff;
-  padding: 0 24px 20px 24px;
+  padding: 0 24px 20px 21px;
 `
 
 export const ButtonRow = styled.div`
@@ -103,6 +113,7 @@ export const ButtonRow = styled.div`
   height: 100%;
   min-height: 116px;
   padding: 0 24px 12px 24px;
+  position: relative;
 `
 
 export const ButtonAndBalanceWrapper = styled.div`
@@ -110,6 +121,9 @@ export const ButtonAndBalanceWrapper = styled.div`
   flex-direction: column;
   gap: 0px;
   align-items: start;
+  width: 100%;
+  max-width: 129px;
+  position: relative;
 `
 
 export const Balance = styled.span`
@@ -118,6 +132,9 @@ export const Balance = styled.span`
   line-height: 144.52%;
   color: #848484;
   margin-left: 3px;
+  position: absolute;
+  top: 100%;
+  left: 0px;
 `
 
 export const TokenWrapper = styled.div`
@@ -166,6 +183,7 @@ export const ValueAndIconWrapper = styled.div`
   display: flex;
   gap: 8px;
   align-items: center;
+  position: relative;
 `
 
 export const MinimumAmount = styled.span`
@@ -176,15 +194,15 @@ export const MinimumAmount = styled.span`
   color: #000000;
 `
 
-export const ImpactAmount = styled.span`
+export const ImpactAmount = styled.span<{ priceImpactTooHigh: number }>`
   font-weight: 400;
   font-size: 14px;
   line-height: 144.52%;
   text-align: right;
-  color: #000000;
+  color: ${({ priceImpactTooHigh }) => (priceImpactTooHigh ? '#FF0000' : '#000000')};
 `
 
-export const InfoIcon = styled.svg.attrs({
+export const InfoIconSVG = styled.svg.attrs({
   viewBox: '0 0 16 16',
   width: 16,
   height: 16,
@@ -220,3 +238,68 @@ export const ExchangeRate = styled.span`
   text-align: right;
   color: #626262;
 `
+
+export const ErrorMessage = styled.p`
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #ff9c9c;
+  text-align: center;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 144.523%;
+`
+
+export const InfoIcon = () => (
+  <InfoIconSVG>
+    <circle cx="8" cy="8" r="7.5" stroke="#9B9B9B" />
+    <rect x="7.27271" y="7.27271" width="1.45455" height="4.36364" fill="#9B9B9B" />
+    <rect x="7.27271" y="4.36365" width="1.45455" height="1.45455" fill="#9B9B9B" />
+  </InfoIconSVG>
+)
+
+const ToolTipWrapper = styled.div`
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  bottom: 25px;
+  right: 50%;
+  transform: translateX(50%);
+  width: 100%;
+  min-width: 237px;
+  padding: 12px 14px;
+  z-index: 999;
+  background: #fff;
+  border-radius: 4px;
+  border: 1px solid #dde0ff;
+  filter: drop-shadow(0px 4px 21px rgba(90, 18, 61, 0.1));
+  color: #622bff;
+  font-family: Pretendard;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  visibility: hidden;
+  line-height: 144%;
+`
+
+export const InfoIconWrapper = styled.div`
+  position: relative;
+  display: flex;
+  &:hover {
+    ${ToolTipWrapper} {
+      visibility: visible;
+    }
+  }
+`
+
+export const Tooltip = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <ToolTipWrapper>
+      <p>{children}</p>
+    </ToolTipWrapper>
+  )
+}

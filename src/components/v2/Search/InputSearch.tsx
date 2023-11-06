@@ -1,38 +1,34 @@
+import { KeyboardEvent, RefObject } from 'react'
 import magnifier from '../../../assets/v2/images/magnifying_glass.png'
-import { useEffect, useState } from 'react'
-import { Tokens, tokens } from '../../../assets/v2/data'
-import { Input, Paddinger, Search, Wrapper } from './InputSearchStyles'
 
-type Props = { handler: (handler: () => Tokens) => void }
+import { Input, Paddinger, SearchIcon, Wrapper } from './InputSearchStyles'
 
-const InputSearch: React.FC<Props> = ({ handler }: Props) => {
-  const [prompt, setPrompt] = useState('')
-  const handlePrompt = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPrompt(e.target.value)
-  }
-
-  useEffect(() => {
-    const identifier = setTimeout(() => {
-      handler(() => tokens.filter((token) => token.title.toLowerCase().includes(prompt.toLowerCase())))
-    }, 300)
-    return () => {
-      clearTimeout(identifier)
-    }
-  }, [prompt, handler])
-
+const InputSearch = ({
+  searchQuery,
+  inputRef,
+  handleInput,
+  handleEnter,
+}: {
+  searchQuery: string
+  inputRef: RefObject<HTMLInputElement>
+  handleInput: (event: React.ChangeEvent<HTMLInputElement>) => void
+  handleEnter: (e: KeyboardEvent<HTMLInputElement>) => void
+}) => {
   return (
     <Paddinger>
       <Wrapper>
-        <Search>
+        <SearchIcon>
           <img src={magnifier} width="14px" height="14px" alt="magnifier" />
-        </Search>
+        </SearchIcon>
         <Input
-          placeholder="Which token would you like to swap?"
-          onChange={handlePrompt}
-          autoFocus
-          id="search"
-          name="search"
           type="text"
+          id="token-search-input"
+          placeholder={`Which token would you like to swap?`}
+          autoComplete="off"
+          value={searchQuery}
+          ref={inputRef as RefObject<HTMLInputElement>}
+          onChange={handleInput}
+          onKeyDown={handleEnter}
         />
       </Wrapper>
     </Paddinger>

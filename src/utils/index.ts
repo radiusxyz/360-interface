@@ -6,6 +6,12 @@ import {} from '@ethersproject/transactions'
 import { Token } from '@uniswap/sdk-core'
 import { FeeAmount } from '@uniswap/v3-sdk'
 import { ChainTokenMap } from 'lib/hooks/useTokenList/utils'
+import { BigNumber } from 'bignumber.js'
+
+export function token2str(row: { amount: string; decimal: string; token: string }) {
+  const amount = new BigNumber(row.amount).dividedBy(new BigNumber(row.decimal))
+  return amount.toFormat() + ' ' + row.token
+}
 
 // returns the checksummed address if the address is valid, otherwise returns false
 export function isAddress(value: any): string | false {

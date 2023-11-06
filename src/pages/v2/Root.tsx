@@ -1,19 +1,25 @@
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
-import AppBar from 'components/v2/AppBar/AppBar'
+import AppBar from '../../components/v2/AppBar/AppBar'
 import styled from 'styled-components/macro'
-import useActiveWeb3React from 'hooks/useActiveWeb3React'
-import { useRecorderContract, useV2RouterContract } from 'hooks/useContract'
+import useActiveWeb3React from '../../hooks/useActiveWeb3React'
+import { useRecorderContract, useV2RouterContract } from '../../hooks/useContract'
 
-import { CheckPendingTx } from 'lib/utils/watcher'
+import { CheckPendingTx } from '../../lib/utils/watcher'
+import FabItem from '../../components/v2/FAB/FabItem'
 
 const Wrapper = styled.div`
+  display: flex;
+  justify-content: center;
   width: 100%;
   height: 100%;
-  padding-top: 40px;
 `
 
+const MainWrapper = styled.div``
+
 const Root = () => {
+  const currentLocation = useLocation()
+  const isHistoryPage = currentLocation.pathname.includes('/history')
   const { chainId, library } = useActiveWeb3React()
 
   const router = useV2RouterContract()
@@ -27,12 +33,13 @@ const Root = () => {
   }, [chainId, library, router, recorder])
 
   return (
-    <>
+    <MainWrapper>
       <AppBar />
       <Wrapper>
         <Outlet />
       </Wrapper>
-    </>
+      {!isHistoryPage && <FabItem />}
+    </MainWrapper>
   )
 }
 

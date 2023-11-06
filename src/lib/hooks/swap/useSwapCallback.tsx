@@ -47,7 +47,7 @@ interface UseSwapCallbackReturns {
     encryptedSwapTx: any,
     sig: Signature,
     operatorAddress: string
-  ) => Promise<RadiusSwapResponse>
+  ) => Promise<RadiusSwapResponse | undefined>
   error?: ReactNode
 }
 interface UseSwapCallbackArgs {

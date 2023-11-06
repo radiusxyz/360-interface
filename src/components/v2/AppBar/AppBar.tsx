@@ -1,15 +1,6 @@
-import React, { useState } from 'react'
-import {
-  Item,
-  LinkList,
-  Span360,
-  StyledNavLink,
-  Wrapper,
-  Button,
-  MenuIcon,
-  MainWrapper,
-  Backdrop,
-} from './AppBarStyles'
+import { useState } from 'react'
+import { Item, LinkList, Span360, StyledNavLink, Wrapper, MenuIcon, MainWrapper, Backdrop } from './AppBarStyles'
+import Web3Status from 'components/Web3Status'
 
 const AppBar = () => {
   const [displayMenu, setDisplayMenu] = useState(false)
@@ -27,19 +18,16 @@ const AppBar = () => {
             <StyledNavLink to="/">
               <Item>Swap</Item>
             </StyledNavLink>
-            <StyledNavLink to="/about">
+            <StyledNavLink target="_blank" to="https://www.360dex.io/">
               <Item>About</Item>
             </StyledNavLink>
-            <StyledNavLink to="/history">
+            <StyledNavLink to="/history/in-progress">
               <Item>History</Item>
-            </StyledNavLink>
-            <StyledNavLink to="/my-profit">
-              <Item>My Profit</Item>
             </StyledNavLink>
           </LinkList>
         )}
 
-        <Button>Connect</Button>
+        <Web3Status />
 
         {window.innerWidth <= 634 && (
           <MenuIcon onClick={handleMenu}>
@@ -61,9 +49,6 @@ const AppBar = () => {
             </StyledNavLink>
             <StyledNavLink onClick={handleMenu} to="/history">
               <Item>History</Item>
-            </StyledNavLink>
-            <StyledNavLink onClick={handleMenu} to="/my-profit">
-              <Item>My Profit</Item>
             </StyledNavLink>
           </LinkList>
         </>

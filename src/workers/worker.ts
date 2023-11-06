@@ -2,7 +2,6 @@
 const self = globalThis as unknown as DedicatedWorkerGlobalScope
 
 self.addEventListener('message', async (e) => {
-  console.log('raynear4', e.data)
   if (e.data.target === 'encryptor') {
     const poseidon = await import('@radiusxyz/wasm-encryptor-zkp')
     console.log('in encryptor', e, e.data)

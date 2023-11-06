@@ -1,10 +1,8 @@
 // eslint-disable-next-line no-restricted-imports
 import { Trans } from 'utils/trans'
-import { Connector } from '@web3-react/types'
 import { useMemo } from 'react'
 import { Activity } from 'react-feather'
-import styled, { css } from 'styled-components/macro'
-import { AbstractConnector } from 'web3-react-abstract-connector'
+import styled from 'styled-components/macro'
 import { UnsupportedChainIdError, useWeb3React } from 'web3-react-core'
 
 import { NetworkContextName } from '../../constants/misc'
@@ -14,87 +12,24 @@ import { useWalletModalToggle } from '../../state/application/hooks'
 import { isTransactionRecent, useAllTransactions } from '../../state/transactions/hooks'
 import { TransactionDetails } from '../../state/transactions/types'
 import { shortenAddress } from '../../utils'
-import { ButtonSecondary } from '../Button'
-import StatusIcon from '../Identicon/StatusIcon'
 import Loader from '../Loader'
 import { RowBetween } from '../Row'
 import WalletModal from '../WalletModal'
+import { Button } from 'components/v2/AppBar/AppBarStyles'
 
-const IconWrapper = styled.div<{ size?: number }>`
-  ${({ theme }) => theme.flexColumnNoWrap};
-  align-items: center;
-  justify-content: center;
-  & > * {
-    height: ${({ size }) => (size ? size + 'px' : '32px')};
-    width: ${({ size }) => (size ? size + 'px' : '32px')};
-  }
-`
+const Web3StatusGeneric = styled(Button)``
 
-const Web3StatusGeneric = styled(ButtonSecondary)`
-  ${({ theme }) => theme.flexRowNoWrap}
-  width: 100%;
-  align-items: center;
-  padding: 0.5rem;
-  border-radius: 0px;
-  cursor: pointer;
-  user-select: none;
-  height: 36px;
+const Web3StatusError = styled(Web3StatusGeneric)``
 
-  &:focus {
-    border: 0px solid ${({ theme }) => theme.primary3};
-  }
-  &:hover {
-    border: 0px solid ${({ theme }) => theme.primary3};
-  }
-  &:active {
-    border: 0px solid ${({ theme }) => theme.primary3};
-  }
-`
-const Web3StatusError = styled(Web3StatusGeneric)`
-  background-color: ${({ theme }) => theme.red1};
-  // border: 1px solid ${({ theme }) => theme.red1};
-  border: none;
-  color: ${({ theme }) => theme.white};
-  font-weight: 500;
-`
+const Web3StatusConnect = styled(Web3StatusGeneric)``
 
-const Web3StatusConnect = styled(Web3StatusGeneric)<{ faded?: boolean }>`
-  background-color: ${({ theme }) => theme.primary4};
-  border: none;
-
-  color: ${({ theme }) => theme.primaryText1};
-  font-weight: 500;
-
-  ${({ faded }) =>
-    faded &&
-    css`
-      background-color: ${({ theme }) => theme.primary5};
-      border: none;
-      // border: 1px solid ${({ theme }) => theme.primary5};
-      color: ${({ theme }) => theme.primaryText1};
-    `}
-`
-
-const Web3StatusConnected = styled(Web3StatusGeneric)<{ pending?: boolean }>`
-  background-color: ${({ pending, theme }) => (pending ? theme.primary1 : theme.bg1)};
-  // border: 1px solid ${({ pending, theme }) => (pending ? theme.primary1 : theme.bg1)};
-  color: ${({ pending, theme }) => (pending ? theme.white : theme.text1)};
-  font-weight: 500;
-  border: none;
-  &hover: {
-    border: none;
-  }
-`
+const Web3StatusConnected = styled(Web3StatusGeneric)``
 
 const Text = styled.p`
-  flex: 1 1 auto;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  margin: 0 0.5rem 0 0.25rem;
-  font-size: 1rem;
-  width: fit-content;
   font-weight: 500;
+  font-size: 14px;
+  line-height: 17px;
+  color: #ffffff;
 `
 
 const NetworkIcon = styled(Activity)`
@@ -117,19 +52,10 @@ function Sock() {
   )
 }
 
-function WrappedStatusIcon({ connector }: { connector: AbstractConnector | Connector }) {
-  return <> </>
-  return (
-    <IconWrapper size={16}>
-      <StatusIcon connector={connector} />
-    </IconWrapper>
-  )
-}
-
 function Web3StatusInner() {
-  const { account, connector, error } = useWeb3React()
+  const { account, error } = useWeb3React()
 
-  const { ENSName } = useENSName(account ?? undefined)
+  const { ENSName } = useENSName(account ?? 'undefined')
 
   const allTransactions = useAllTransactions()
 
@@ -146,12 +72,12 @@ function Web3StatusInner() {
 
   if (account) {
     return (
-      <Web3StatusConnected id="web3-status-connected" onClick={toggleWalletModal} pending={hasPendingTransactions}>
+      <Web3StatusConnected id="web3-status-connected" onClick={toggleWalletModal}>
         {hasPendingTransactions ? (
           <RowBetween>
             <Text>
               <Trans>{pending?.length} Pending</Trans>
-            </Text>{' '}
+            </Text>
             <Loader stroke="white" />
           </RowBetween>
         ) : (
@@ -160,7 +86,6 @@ function Web3StatusInner() {
             <Text>{ENSName || shortenAddress(account)}</Text>
           </>
         )}
-        {!hasPendingTransactions && connector && <WrappedStatusIcon connector={connector} />}
       </Web3StatusConnected>
     )
   } else if (error) {
@@ -172,9 +97,9 @@ function Web3StatusInner() {
     )
   } else {
     return (
-      <Web3StatusConnect id="connect-wallet" onClick={toggleWalletModal} faded={!account}>
+      <Web3StatusConnect id="connect-wallet" onClick={toggleWalletModal}>
         <Text>
-          <Trans>Connect Wallet</Trans>
+          <Trans>Connect</Trans>
         </Text>
       </Web3StatusConnect>
     )

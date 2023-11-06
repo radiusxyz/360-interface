@@ -1,4 +1,4 @@
-import contracts from '@radiusxyz/threesixty-contracts-mumbai/contracts.json'
+import contracts from '@radiusxyz/threesixty-contracts-polygon/contracts.json'
 
 import { constructSameAddressMap } from '../utils/constructSameAddressMap'
 import { SupportedChainId } from './chains'
