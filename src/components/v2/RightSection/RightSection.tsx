@@ -76,7 +76,7 @@ export const RightSection = () => {
     isBSelected,
   } = swapCTX
 
-  const [accountWhiteList, setAccountWhiteList] = useState<boolean>(false)
+  const [accountWhiteList, setAccountWhiteList] = useState<boolean>(true)
 
   const { account } = useActiveWeb3React()
 
@@ -203,17 +203,17 @@ export const RightSection = () => {
   // Check Account in Whitelist
   ///////////////////////////////
 
-  useEffect(() => {
-    if (account) {
-      fetch(`${process.env.REACT_APP_360_OPERATOR}/whiteList?walletAddress=` + account)
-        .then(async (is) => {
-          const val = await is.text()
-          if (val === 'false') setAccountWhiteList(false)
-          else setAccountWhiteList(true)
-        })
-        .catch((e) => console.error(e))
-    }
-  }, [account, swapParams])
+  // useEffect(() => {
+  //   if (account) {
+  //     fetch(`${process.env.REACT_APP_360_OPERATOR}/whiteList?walletAddress=` + account)
+  //       .then(async (is) => {
+  //         const val = await is.text()
+  //         if (val === 'false') setAccountWhiteList(false)
+  //         else setAccountWhiteList(true)
+  //       })
+  //       .catch((e) => console.error(e))
+  //   }
+  // }, [account, swapParams])
 
   // mark when a user has submitted an approval, reset onTokenSelection for input field
   useEffect(() => {

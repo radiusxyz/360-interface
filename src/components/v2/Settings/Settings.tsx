@@ -1,10 +1,8 @@
-import Switch from '../UI/Switch'
 import { useSetUserSlippageTolerance, useUserSlippageTolerance } from 'state/user/hooks'
 import { InfoIcon, InfoIconWrapper, Tooltip } from '../RightSection/RightSectionStyles'
 import { PrimaryButton } from '../UI/Buttons'
 import {
   Body,
-  BottomDescWrapper,
   Close,
   Description,
   Footer,
@@ -12,7 +10,6 @@ import {
   HeaderTitle,
   Input,
   InputWrapper,
-  MevSettingWrapper,
   Option,
   OptionsRow,
   SlippageSettingWrapper,
@@ -133,12 +130,13 @@ const Settings = ({ isSelected, handleShowSettings, placeholderSlippage }: Props
             <span>%</span>
           </InputWrapper>
         </SlippageSettingWrapper>
+        {/*
         <MevSettingWrapper>
           <BottomDescWrapper>
             <Description>MEV Protection Guarantee</Description>
             <InfoIconWrapper>
               <Tooltip>
-                Protect Your Swap: Turn On for full protection against malicious MEV activity. Your transation may
+                Protect Your Swap: Turn On for full protection against malicious MEV activity. Your transaction may
                 revert if at risk to an attack. Turn OFF to proceed the swap with potential exposure to MEV and
                 lower-price swaps.
               </Tooltip>
@@ -147,6 +145,7 @@ const Settings = ({ isSelected, handleShowSettings, placeholderSlippage }: Props
           </BottomDescWrapper>
           <Switch />
         </MevSettingWrapper>
+        */}
       </Body>
       <Footer>
         <PrimaryButton

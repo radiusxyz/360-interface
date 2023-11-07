@@ -1,10 +1,31 @@
-import tokens from '@radiusxyz/threesixty-contracts-polygon/tokens.json'
+// import tokens from '@radiusxyz/threesixty-contracts-polygon/tokens.json'
 import { createReducer } from '@reduxjs/toolkit'
 import { getVersionUpgrade, TokenList, VersionUpgrade } from '@uniswap/token-lists'
 
 import { DEFAULT_ACTIVE_LIST_URLS, DEFAULT_LIST_OF_LISTS, OPTIMISM_LIST, RADIUS_LIST } from '../../constants/lists'
 import { updateVersion } from '../global/actions'
 import { acceptListUpdate, addList, disableList, enableList, fetchTokenList, removeList } from './actions'
+
+const tokens = [
+  {
+    chainId: 80001,
+    symbol: 'CI',
+    address: '0x0B9373fe8F12df3bBE2342336a20C4D26cb695F2',
+    totalSupply: '115792089237316195423570985008687907853269984665640564039457584007913129639935',
+    decimals: 18,
+    name: 'CI',
+    logoURI: '',
+  },
+  {
+    chainId: 80001,
+    symbol: 'DIA',
+    address: '0xB5D73C9864223197AD8A1de1e743064D340670c7',
+    totalSupply: '115792089237316195423570985008687907853269984665640564039457584007913129639935',
+    decimals: 18,
+    name: 'Diameter',
+    logoURI: '',
+  },
+]
 
 export interface ListsState {
   readonly byUrl: {

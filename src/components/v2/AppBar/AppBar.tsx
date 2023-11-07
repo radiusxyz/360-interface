@@ -18,11 +18,11 @@ const AppBar = () => {
             <StyledNavLink to="/">
               <Item>Swap</Item>
             </StyledNavLink>
-            <StyledNavLink target="_blank" to="https://www.360dex.io/">
-              <Item>About</Item>
-            </StyledNavLink>
             <StyledNavLink to="/history/in-progress">
               <Item>History</Item>
+            </StyledNavLink>
+            <StyledNavLink target="_blank" to="https://www.theradius.xyz/">
+              <Item>Radius</Item>
             </StyledNavLink>
           </LinkList>
         )}
@@ -44,11 +44,11 @@ const AppBar = () => {
             <StyledNavLink onClick={handleMenu} to="/">
               <Item>Swap</Item>
             </StyledNavLink>
-            <StyledNavLink onClick={handleMenu} to="/about">
-              <Item>About</Item>
-            </StyledNavLink>
             <StyledNavLink onClick={handleMenu} to="/history">
               <Item>History</Item>
+            </StyledNavLink>
+            <StyledNavLink onClick={handleMenu} to="/radius">
+              <Item>Radius</Item>
             </StyledNavLink>
           </LinkList>
         </>
