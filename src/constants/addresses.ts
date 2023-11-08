@@ -1,9 +1,16 @@
-import contracts from '@radiusxyz/threesixty-contracts-mumbai/contracts.json'
+// import contracts from '@radiusxyz/threesixty-contracts-mumbai/contracts.json'
 
 import { constructSameAddressMap } from '../utils/constructSameAddressMap'
 import { SupportedChainId } from './chains'
 
 type AddressMap = { [chainId: number]: string }
+
+const contracts = {
+  recorder: '0x8Dcb0760661517978Feeb08878B4F3101723CE51',
+  factory: '0x5757371414417b8c6caad45baef941abc7d3ab32',
+  vault: '0xd5Ed300D388FfFC7e81410d81036C0065d6475eD',
+  router: '0xFcb545473D272E8493C7BE5FbFEB759257a26688',
+}
 
 export const UNI_ADDRESS: AddressMap = constructSameAddressMap('0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984')
 export const MULTICALL_ADDRESS: AddressMap = {

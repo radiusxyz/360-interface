@@ -1,9 +1,13 @@
-import contracts from '@radiusxyz/threesixty-contracts-mumbai/contracts.json'
+// import contracts from '@radiusxyz/threesixty-contracts-mumbai/contracts.json'
 import { Currency, Ether, NativeCurrency, Token, WETH9 } from '@uniswap/sdk-core'
 import invariant from 'tiny-invariant'
 
 import { UNI_ADDRESS } from './addresses'
 import { SupportedChainId } from './chains'
+
+const contracts = {
+  weth: '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270',
+}
 
 export const USDC_MAINNET = new Token(
   SupportedChainId.MAINNET,
