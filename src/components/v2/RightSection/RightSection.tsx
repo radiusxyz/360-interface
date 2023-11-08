@@ -260,8 +260,6 @@ export const RightSection = () => {
     setMaxSelected(false)
     setHalfSelected(false)
     maxInputAmount && onUserInput(Field.INPUT, '')
-    handleLeftSection('welcome')
-    handleSwapParams({ start: false })
   }, [maxInputAmount, onUserInput])
 
   const handleShowSettings = () => {
