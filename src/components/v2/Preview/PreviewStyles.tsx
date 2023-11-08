@@ -10,9 +10,11 @@ export const Wrapper = styled.div`
   border-radius: 4px;
   padding: 60px 30px 36px 30px;
   flex-direction: column;
+  justify-content: center;
   max-width: 500px;
   width: 100%;
   gap: 46px;
+  height: 470px;
 `
 
 export const Description = styled.div`

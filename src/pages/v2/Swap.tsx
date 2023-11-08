@@ -8,7 +8,6 @@ const Wrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: start;
-  height: auto;
   gap: 12px;
   width: 100%;
   height: 100%;

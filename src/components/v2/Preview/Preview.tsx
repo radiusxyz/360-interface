@@ -1,18 +1,7 @@
-import {
-  Description,
-  Details,
-  DetailsRow,
-  InfoIcon,
-  Note,
-  PreviewImg,
-  Property,
-  PropertyName,
-  Value,
-  Wrapper,
-} from './PreviewStyles'
+import { Description, Note, PreviewImg, Wrapper } from './PreviewStyles'
 import { useDerivedSwapInfo } from 'state/swap/hooks'
 import JSBI from 'jsbi'
-import { token2str } from 'utils'
+// import { token2str } from 'utils'
 
 const Preview = () => {
   const {
@@ -40,38 +29,6 @@ const Preview = () => {
         <PreviewImg />
         <Note>Preview the results before clicking the button!</Note>
       </Description>
-      <Details>
-        <DetailsRow>
-          <Property>
-            <InfoIcon />
-            <PropertyName>Protected</PropertyName>
-          </Property>
-          <Value>{token2str(to)}</Value>
-        </DetailsRow>
-        <DetailsRow>
-          <Property>
-            <InfoIcon />
-            <PropertyName>Save your Gas fee</PropertyName>
-          </Property>
-          <Value>No Fee</Value>
-        </DetailsRow>
-        <DetailsRow>
-          <Property>
-            <Property>
-              <InfoIcon />
-              <PropertyName>Extra profit</PropertyName>
-            </Property>
-          </Property>
-          <Value>{}</Value>
-        </DetailsRow>
-        <DetailsRow>
-          <Property>
-            <InfoIcon />
-            <PropertyName>Estimate Time</PropertyName>
-          </Property>
-          <Value>30 sec</Value>
-        </DetailsRow>
-      </Details>
     </Wrapper>
   )
 }
