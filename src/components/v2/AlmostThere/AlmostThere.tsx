@@ -68,14 +68,6 @@ const AlmostThere = () => {
           <PropertyName>Slippage</PropertyName>
           <Value>{allowedSlippage.toSignificant(2)}</Value>
         </DetailsRow>
-        <DetailsRow>
-          <PropertyName>Extra profit</PropertyName>
-          <Value>{}</Value>
-        </DetailsRow>
-        <DetailsRow>
-          <PropertyName>Your save</PropertyName>
-          <Value>{}</Value>
-        </DetailsRow>
       </Details>
     </Wrapper>
   )

@@ -16,7 +16,7 @@ import {
   Wrapper,
 } from './StraightProgressStyles'
 
-const StraightProgress = ({ percentage }: { percentage: number }) => {
+const StraightProgress = ({ percentage, from, to }: { percentage: number; from: string; to: string }) => {
   return (
     <Wrapper>
       <ProgressBarWithStatuses>
@@ -38,9 +38,9 @@ const StraightProgress = ({ percentage }: { percentage: number }) => {
           </FinishCircle>
         </ProgressBar>
         <Statuses>
-          <StartSpan>From</StartSpan>
+          <StartSpan>{from}</StartSpan>
           <MiddleSpan percentage={percentage}>NO FEE</MiddleSpan>
-          <FinishSpan percentage={percentage}>To</FinishSpan>
+          <FinishSpan percentage={percentage}>{to}</FinishSpan>
         </Statuses>
       </ProgressBarWithStatuses>
       {(percentage === 100 && <Note>Your wallet is getting heavier!</Note>) ||

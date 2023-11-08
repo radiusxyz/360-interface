@@ -46,7 +46,7 @@ const PendingTransaction = ({ tx: { status, date, from, to } }: Props) => {
       </TXPreview>
       {isExpanded && (
         <ProgressWrapper>
-          <StraightProgress percentage={progress} />
+          <StraightProgress percentage={progress} from={from} to={to} />
         </ProgressWrapper>
       )}
     </TX>
