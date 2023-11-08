@@ -47,19 +47,18 @@ export function useSortTokensByQuery<T extends Token | TokenInfo>(query: string,
     }
 
     const exactMatches: T[] = []
-    const symbolSubtrings: T[] = []
+    const symbolSubstrings: T[] = []
     const rest: T[] = []
 
     tokens.map((token) => {
-      console.log(token.symbol)
       if (token.symbol?.toLowerCase() === matches[0]) {
         return exactMatches.push(token)
       } else if (token.symbol?.toLowerCase().startsWith(query.toLowerCase().trim())) {
-        return symbolSubtrings.push(token)
+        return symbolSubstrings.push(token)
       } else {
         return rest.push(token)
       }
     })
-    return [...exactMatches, ...symbolSubtrings, ...rest]
+    return [...exactMatches, ...symbolSubstrings, ...rest]
   }, [tokens, query])
 }

@@ -174,8 +174,12 @@ export function useCombinedActiveBList(aTokenAddress: string | null | undefined)
             for (const token of json) {
               if (isInListNoCase(token, Object.keys(allTokens[chainId])))
                 for (const findToken of Object.keys(allTokens[chainId])) {
-                  if (token.toLowerCase() === findToken.toLowerCase())
+                  if (
+                    token.toLowerCase() === findToken.toLowerCase() &&
+                    !isInListNoCase(token, Object.keys(tmpTokens[chainId]))
+                  ) {
                     tmpTokens[chainId][token] = allTokens[chainId][findToken]
+                  }
                 }
             }
             setActiveTokens(tmpTokens)
