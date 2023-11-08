@@ -7,7 +7,15 @@ import {
   TxCompleted,
 } from './CompletedTransactionStyles'
 import { ExplorerDataType, getExplorerLink } from 'utils/getExplorerLink'
-import { Dash, TXDateTime, TXDateTimeAndAmount, TXDetails, TXStatus } from './PendingTransactionStyles'
+import {
+  Dash,
+  TXCommitBox,
+  TXCommitment,
+  TXDateTime,
+  TXDateTimeAndAmount,
+  TXDetails,
+  TXStatus,
+} from './PendingTransactionStyles'
 import ReimbursementModal from './ReimbursementModal'
 import ReimbursementDetailsModal from './ReimbursementDetailsModal'
 import { Status, statusToString } from 'utils/db'
@@ -21,12 +29,14 @@ type Props = {
     date: string
     from: string
     to: string
+    round: number
+    order: number
     reimbursed?: boolean
     tx: any
   }
 }
 
-const CompletedTransaction = ({ tx: { status, hash, date, from, to, reimbursed, tx } }: Props) => {
+const CompletedTransaction = ({ tx: { status, hash, date, from, to, round, order, reimbursed, tx } }: Props) => {
   const { chainId } = useActiveWeb3React()
 
   const [showReimbursementModal, setShowReimbursementModal] = useState(false)
@@ -49,6 +59,17 @@ const CompletedTransaction = ({ tx: { status, hash, date, from, to, reimbursed, 
             <TXStatus status={status === 'Completed' ? 'Completed' : 'Failed'}>
               {status === 'Completed' ? 'Completed' : 'Failed'}
             </TXStatus>
+            <div style={{ display: 'flex', flexDirection: 'row' }}>
+              <TXCommitBox>
+                <TXCommitment>round:</TXCommitment>
+                <TXCommitment>order:</TXCommitment>
+              </TXCommitBox>
+              <TXCommitBox>
+                <TXCommitment>{round}</TXCommitment>
+                <TXCommitment>{order}</TXCommitment>
+              </TXCommitBox>
+            </div>
+
             <TXDateTimeAndAmount>
               <TXDateTime>{date}</TXDateTime>
               <TXAmountCompleted>

@@ -5,6 +5,8 @@ import {
   ProgressWrapper,
   TX,
   TXAmount,
+  TXCommitBox,
+  TXCommitment,
   TXDateTime,
   TXDateTimeAndAmount,
   TXDetails,
@@ -14,9 +16,20 @@ import {
 import StraightProgress from './StraightProgress'
 import { Status, stringToStatus } from 'utils/db'
 
-type Props = { tx: { id: string; status: string; date: string; from: string; to: string; reimbursed?: boolean } }
+type Props = {
+  tx: {
+    id: string
+    status: string
+    date: string
+    from: string
+    to: string
+    round: number
+    order: number
+    reimbursed?: boolean
+  }
+}
 
-const PendingTransaction = ({ tx: { status, date, from, to } }: Props) => {
+const PendingTransaction = ({ tx: { status, date, from, to, round, order } }: Props) => {
   const [isExpanded, setIsExpand] = useState(false)
   const handleExpand = () => {
     setIsExpand((state: boolean) => !state)
@@ -35,6 +48,16 @@ const PendingTransaction = ({ tx: { status, date, from, to } }: Props) => {
       <TXPreview>
         <TXDetails>
           <TXStatus status={status}>{status}</TXStatus>
+          <div style={{ display: 'flex', flexDirection: 'row' }}>
+            <TXCommitBox>
+              <TXCommitment>round:</TXCommitment>
+              <TXCommitment>order:</TXCommitment>
+            </TXCommitBox>
+            <TXCommitBox>
+              <TXCommitment>{round}</TXCommitment>
+              <TXCommitment>{order}</TXCommitment>
+            </TXCommitBox>
+          </div>
           <TXDateTimeAndAmount>
             <TXDateTime>{date}</TXDateTime>
             <TXAmount>

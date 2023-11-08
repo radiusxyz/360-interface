@@ -17,6 +17,8 @@ type Props = {
     date: string
     from: string
     to: string
+    round: number
+    order: number
     reimbursed?: boolean
     tx: any
   }[]

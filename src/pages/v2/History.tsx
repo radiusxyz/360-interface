@@ -88,6 +88,8 @@ const History = () => {
     date: string
     from: string
     to: string
+    round: number
+    order: number
     reimbursed?: boolean
     tx: any
   }[] = []
@@ -98,6 +100,8 @@ const History = () => {
     date: string
     from: string
     to: string
+    round: number
+    order: number
     reimbursed?: boolean
     tx: any
   }[] = []
@@ -111,6 +115,8 @@ const History = () => {
         date: moment(new Date(row.txDate * 1000)).format('DD MMMM YYYY - h:mm A'),
         ...(row.fromResult ? { from: token2str(row.fromResult) } : { from: token2str(row.from as TokenAmount) }),
         ...(row.toResult ? { to: token2str(row.toResult) } : { to: token2str(row.to as TokenAmount) }),
+        round: row.round as number,
+        order: row.order as number,
         tx: row,
       })
     } else if (row.from && row.to && row.sendDate) {
@@ -121,6 +127,8 @@ const History = () => {
         date: moment(new Date(row.sendDate * 1000)).format('DD MMMM YYYY - h:mm A'),
         from: token2str(row.from),
         to: token2str(row.to),
+        round: row.round as number,
+        order: row.order as number,
         tx: row,
       })
     }

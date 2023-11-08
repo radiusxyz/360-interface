@@ -43,12 +43,23 @@ export const TXStatus = styled.div<{ status: string }>`
     (status === 'Pending' && '#6B11FF') || (status === 'Completed' && '#00BF63') || (status === 'Failed' && '#FF4444')};
 `
 
+export const TXCommitBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+`
+export const TXCommitment = styled.span`
+  font-weight: 400;
+  font-size: 13px;
+  line-height: 17px;
+  color: #6b6b6b;
+`
+
 export const TXDateTimeAndAmount = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
 `
-
 export const TXDateTime = styled.span`
   font-weight: 400;
   font-size: 14px;
