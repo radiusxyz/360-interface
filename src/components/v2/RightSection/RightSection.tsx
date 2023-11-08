@@ -9,8 +9,6 @@ import {
   Cog,
   HeaderTitle,
   MainWrapper,
-  SlippageOption,
-  SlippageOptions,
   TokenName,
   TokenWrapper,
   TopTokenRow,
@@ -315,7 +313,7 @@ export const RightSection = () => {
         <Cog onClick={handleShowSettings} />
       </Header>
       <TopTokenRow>
-        {(isASelected || isBSelected) && (
+        {/* {(isASelected || isBSelected) && (
           <SlippageOptions>
             <SlippageOption selected={maxSelected} onClick={handleMaxInput}>
               MAX
@@ -325,7 +323,7 @@ export const RightSection = () => {
             </SlippageOption>
             <SlippageOption onClick={handleClear}>Clear</SlippageOption>
           </SlippageOptions>
-        )}
+        )} */}
         <Aligner>
           <ButtonAndBalanceWrapper>
             <SelectTokenButton isSelected={isASelected} onClick={openInputTokenSelect}>
