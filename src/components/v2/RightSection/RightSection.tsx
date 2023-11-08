@@ -125,6 +125,8 @@ export const RightSection = () => {
     [dependentField, independentField, parsedAmounts, typedValue]
   )
 
+  console.log('swapParams', swapParams)
+
   ///////////////////////////////
   // priceImpact
   ///////////////////////////////
