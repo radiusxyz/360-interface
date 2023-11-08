@@ -10,7 +10,7 @@ import { BigNumber } from 'bignumber.js'
 
 export function token2str(row: { amount: string; decimal: string; token: string }) {
   const amount = new BigNumber(row.amount).dividedBy(new BigNumber(row.decimal))
-  return amount.toFormat() + ' ' + row.token
+  return amount.toFormat(6) + ' ' + row.token
 }
 
 // returns the checksummed address if the address is valid, otherwise returns false
