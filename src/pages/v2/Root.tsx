@@ -28,7 +28,7 @@ const Root = () => {
   useEffect(() => {
     const interval = setInterval(async () => {
       await CheckPendingTx({ chainId, library, router, recorder })
-    }, 10000)
+    }, 3000)
     return () => clearInterval(interval)
   }, [chainId, library, router, recorder])
 

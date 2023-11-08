@@ -260,6 +260,8 @@ export const RightSection = () => {
     setMaxSelected(false)
     setHalfSelected(false)
     maxInputAmount && onUserInput(Field.INPUT, '')
+    handleLeftSection('welcome')
+    handleSwapParams({ start: false })
   }, [maxInputAmount, onUserInput])
 
   const handleShowSettings = () => {
@@ -293,14 +295,14 @@ export const RightSection = () => {
 
   const [isInputGreaterThanBalance, setIsInputGreaterThanBalance] = useState(false)
   useEffect(() => {
-    console.log(
-      'balanceInput',
-      balanceInput,
-      'formAm',
-      formattedAmounts[Field.INPUT],
-      'toSig',
-      balanceInput?.toSignificant(4)
-    )
+    // console.log(
+    //   'balanceInput',
+    //   balanceInput,
+    //   'formAm',
+    //   formattedAmounts[Field.INPUT],
+    //   'toSig',
+    //   balanceInput?.toSignificant(4)
+    // )
     balanceInput && Number(formattedAmounts[Field.INPUT]) > Number(balanceInput.toSignificant(4))
       ? setIsInputGreaterThanBalance(true)
       : setIsInputGreaterThanBalance(false)
