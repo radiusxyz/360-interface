@@ -123,6 +123,7 @@ export const CurvedProgress = ({ percentage, id }: Props) => {
           <Description>Ready to go! Transaction in progress.</Description>
           <Explanation>You can go do other things now! Your swap is still being processed.</Explanation>
         </Info>
+        (tx !== undefined && tx?.status === Status.PENDING &&
         <Button
           onClick={() => {
             swapCTX.handleLeftSection('welcome')
@@ -131,6 +132,7 @@ export const CurvedProgress = ({ percentage, id }: Props) => {
         >
           New Swap
         </Button>
+        )
       </Head>
       <Body>
         <ProgressBarWithSpans>
