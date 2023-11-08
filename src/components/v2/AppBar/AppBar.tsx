@@ -12,7 +12,7 @@ const AppBar = () => {
   return (
     <MainWrapper>
       <Wrapper>
-        <Span360>360°</Span360>
+        <Span360>Curie</Span360>
         {window.innerWidth > 634 && (
           <LinkList>
             <StyledNavLink to="/">
