@@ -38,9 +38,9 @@ const StraightProgress = ({ percentage }: { percentage: number }) => {
           </FinishCircle>
         </ProgressBar>
         <Statuses>
-          <StartSpan>1.006 ETH</StartSpan>
-          <MiddleSpan percentage={percentage}> NO FEE</MiddleSpan>
-          <FinishSpan percentage={percentage}>0.100 DAI</FinishSpan>
+          <StartSpan>From</StartSpan>
+          <MiddleSpan percentage={percentage}>NO FEE</MiddleSpan>
+          <FinishSpan percentage={percentage}>To</FinishSpan>
         </Statuses>
       </ProgressBarWithStatuses>
       {(percentage === 100 && <Note>Your wallet is getting heavier!</Note>) ||
