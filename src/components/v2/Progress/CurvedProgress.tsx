@@ -222,7 +222,7 @@ export const CurvedProgress = ({ percentage, id }: Props) => {
             </Note>
           )) || (
             <Note>
-              Securing tansaction with an encryption and creating a proof
+              Securing transaction with an encryption and creating a proof
               {/* Curious about what&apos;s happening with your transaction?
               <br />
               Here&apos;s what we&apos;re up to! */}

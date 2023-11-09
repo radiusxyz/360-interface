@@ -413,8 +413,9 @@ export const RightSection = () => {
         ) : (
           <PrimaryButton
             disabled={
-              (isASelected && isBSelected && typedValue && false) ||
-              (approvalState === ApprovalState.APPROVED && approvalSubmitted && true)
+              !swapParams.timeLockPuzzleData ||
+              !(isASelected && isBSelected && typedValue) ||
+              !(approvalState === ApprovalState.APPROVED && !approvalSubmitted)
             }
             mrgn="0px 0px 12px 0px"
             onClick={() => {
