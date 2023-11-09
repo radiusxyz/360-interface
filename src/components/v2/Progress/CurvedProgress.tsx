@@ -15,12 +15,15 @@ import {
   Start,
   ProgressBarWithSpans,
 } from './CurvedProgressStyles'
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useContext, useEffect, useState } from 'react'
 import SwapContext from '../../../store/swap-context'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, Status, TokenAmount } from '../../../utils/db'
 import { token2str } from '../../../utils'
+import { Field } from '../../../state/swap/actions'
+
+import { useDerivedSwapInfo, useSwapState } from '../../../state/swap/hooks'
 
 type Props = {
   percentage: number
@@ -29,6 +32,30 @@ type Props = {
 
 export const CurvedProgress = ({ percentage, id }: Props) => {
   const swapCTX = useContext(SwapContext)
+
+  const {
+    trade: { trade },
+    parsedAmount,
+  } = useDerivedSwapInfo()
+
+  const { independentField, typedValue } = useSwapState()
+  const dependentField: Field = independentField === Field.INPUT ? Field.OUTPUT : Field.INPUT
+
+  const parsedAmounts = useMemo(
+    () => ({
+      [Field.INPUT]: independentField === Field.INPUT ? parsedAmount : trade?.inputAmount,
+      [Field.OUTPUT]: independentField === Field.OUTPUT ? parsedAmount : trade?.outputAmount,
+    }),
+    [independentField, parsedAmount, trade?.inputAmount, trade?.outputAmount]
+  )
+
+  const formattedAmounts = useMemo(
+    () => ({
+      [independentField]: typedValue,
+      [dependentField]: parsedAmounts[dependentField]?.toSignificant(6) ?? '',
+    }),
+    [dependentField, independentField, parsedAmounts, typedValue]
+  )
 
   const tx = useLiveQuery(async () => {
     if (id) {
@@ -70,7 +97,7 @@ export const CurvedProgress = ({ percentage, id }: Props) => {
   useEffect(() => {
     switch (tx?.status) {
       case Status.PENDING:
-        setProgress(98)
+        setProgress(95)
         break
       case Status.CANCELED:
         setProgress(100)
@@ -88,7 +115,7 @@ export const CurvedProgress = ({ percentage, id }: Props) => {
         setProgress(100)
         break
       default:
-        setProgress(0)
+        setProgress(60)
     }
   }, [tx?.status])
 
@@ -99,7 +126,7 @@ export const CurvedProgress = ({ percentage, id }: Props) => {
       const identifier = setInterval(() => {
         if (progressDynamic <= progress) setProgressDynamic((prevState) => prevState + 1)
         else return
-      }, 500)
+      }, 50)
       return () => {
         clearInterval(identifier)
       }
@@ -165,9 +192,17 @@ export const CurvedProgress = ({ percentage, id }: Props) => {
             />
           </SVG>
           {(!somethingWrong && <Emoji />) || (somethingWrong && <GrimacingFace />)}
-          <Start passed={!somethingWrong}>{tx !== undefined ? token2str(tx?.from as TokenAmount) : 'from'}</Start>
+          <Start passed={!somethingWrong}>
+            {tx !== undefined
+              ? token2str(tx?.from as TokenAmount)
+              : formattedAmounts[Field.INPUT] + ' ' + parsedAmounts[Field.INPUT]?.currency.symbol}
+          </Start>
           <Middle passed={!somethingWrong}>NO FEE</Middle>
-          <Finish passed={!somethingWrong}>{tx !== undefined ? token2str(tx?.to as TokenAmount) : 'to'}</Finish>
+          <Finish passed={!somethingWrong}>
+            {tx !== undefined
+              ? token2str(tx?.to as TokenAmount)
+              : formattedAmounts[Field.OUTPUT] + ' ' + parsedAmounts[Field.OUTPUT]?.currency.symbol}
+          </Finish>
         </ProgressBarWithSpans>
 
         {(tx !== undefined && tx?.status === Status.COMPLETED && <Note>Your wallet is getting heavier!</Note>) ||
@@ -176,6 +211,8 @@ export const CurvedProgress = ({ percentage, id }: Props) => {
               Almost there!
               <br />
               We&apos;re busy destroying the fees!
+              <br />
+              {'round: ' + tx.round + '  order: ' + tx.order}
             </Note>
           )) ||
           (tx !== undefined && tx?.status && (

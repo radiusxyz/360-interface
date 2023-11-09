@@ -32,7 +32,7 @@ import {
 } from './state/time-lock-puzzling-encryption/hooks'
 import { usePrepareSignMessageFunc, useUserSignFunc } from './state/sign/hooks'
 
-import { useCheckAccountWhiteList } from './state/user/hooks'
+// import { useCheckAccountWhiteList } from './state/user/hooks'
 
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import Worker from 'worker-loader!workers/worker'
@@ -75,7 +75,7 @@ export const TLPEncryptSign = () => {
 
   // Check Account in Whitelist
 
-  useCheckAccountWhiteList(account)
+  // useCheckAccountWhiteList(account)
 
   // mark when a user has submitted an approval, reset onTokenSelection for input field
   useEffect(() => {

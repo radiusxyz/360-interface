@@ -24,7 +24,7 @@ export const LeftSection = () => {
         (leftSection === 'search-table' && <Search onCurrencySelection={onCurrencySelection} />) ||
         (leftSection === 'preview' && <Preview />) ||
         (leftSection === 'almost-there' && <AlmostThere />) ||
-        (leftSection === 'progress' && <CurvedProgress percentage={0} id={id} />)}
+        (leftSection === 'progress' && <CurvedProgress percentage={60} id={id} />)}
     </>
   )
 }
