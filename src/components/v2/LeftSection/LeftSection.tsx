@@ -13,6 +13,8 @@ export const LeftSection = () => {
 
   const { id } = swapCTX.swapParams
 
+  // console.log('swapParams', swapCTX.swapParams)
+
   const { onCurrencySelection } = useSwapActionHandlers()
   const { typedValue } = useSwapState()
 

@@ -27,7 +27,7 @@ const Preview = () => {
     <Wrapper>
       <Description>
         <PreviewImg />
-        <Note>Preview the results before clicking the button!</Note>
+        <Note>Confirm swap amount</Note>
       </Description>
     </Wrapper>
   )

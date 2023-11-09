@@ -42,8 +42,8 @@ const AlmostThere = () => {
     <Wrapper>
       <FoxImg />
       <Note>
-        You&#39;re almost there! <br />
-        <BlueSpan>Sign your wallet</BlueSpan> to send the transaction order.
+        You&#39;re almost done! <br />
+        Just <BlueSpan>sign on your wallet</BlueSpan> to complete the transaction
       </Note>
       <TokenPair>
         <Token>

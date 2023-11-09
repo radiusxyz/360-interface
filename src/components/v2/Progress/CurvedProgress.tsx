@@ -147,8 +147,8 @@ export const CurvedProgress = ({ percentage, id }: Props) => {
     <Wrapper>
       <Head>
         <Info>
-          <Description>Ready to go! Transaction in progress.</Description>
-          <Explanation>You can go do other things now! Your swap is still being processed.</Explanation>
+          <Description>Processing Swap</Description>
+          <Explanation>Your transaction is being processed. Please wait or make a new swap</Explanation>
         </Info>
         {tx !== undefined && (
           <Button
@@ -205,12 +205,10 @@ export const CurvedProgress = ({ percentage, id }: Props) => {
           </Finish>
         </ProgressBarWithSpans>
 
-        {(tx !== undefined && tx?.status === Status.COMPLETED && <Note>Your wallet is getting heavier!</Note>) ||
+        {(tx !== undefined && tx?.status === Status.COMPLETED && <Note>Sending to your wallet now</Note>) ||
           (tx !== undefined && tx?.status === Status.PENDING && (
             <Note>
-              Almost there!
-              <br />
-              We&apos;re busy destroying the fees!
+              Just a little more to go...
               <br />
               {'round: ' + tx.round + '  order: ' + tx.order}
             </Note>
@@ -224,7 +222,7 @@ export const CurvedProgress = ({ percentage, id }: Props) => {
             </Note>
           )) || (
             <Note>
-              Sending
+              Securing tansaction with an encryption and creating a proof
               {/* Curious about what&apos;s happening with your transaction?
               <br />
               Here&apos;s what we&apos;re up to! */}

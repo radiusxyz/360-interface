@@ -18,32 +18,32 @@ const Instruction = ({
   typedValue: string
 }) => {
   const [imgURL, setImgURL] = useState(ferris_wheel)
-  const [message, setMessage] = useState('Welcome to 360°!')
+  const [message, setMessage] = useState('')
   const [background, setBackground] = useState('#ffffff')
 
   useEffect(() => {
     // check for the first render and after 1 second display first instruction
-    if (!isASelected && !isBSelected && message === 'Welcome to 360°!') {
+    if (!isASelected && !isBSelected && message === '') {
       setTimeout(() => {
         setImgURL(finger_right)
-        setMessage('Please enter the trading information you want.')
+        setMessage('Select a token and enter amount')
         setBackground('#fff6f6')
-      }, 1000)
+      }, 2000)
     } else if (!isASelected && !isBSelected) {
       setImgURL(finger_right)
-      setMessage('Please enter the trading information you want.')
+      setMessage('Select a token and enter amount')
       setBackground('#fff6f6')
     }
     // check if one of the tokens is selected, but not both
     else if (!(isASelected && isBSelected) && (isASelected || isBSelected)) {
       setImgURL(clapping_hands)
       setBackground('#fff6f6')
-      setMessage('Great job! Please select the next token.')
+      setMessage('Select the next token')
     }
     //check if both of the tokens are selected, but no numerical input
     else if (isASelected && isBSelected && !typedValue) {
       setImgURL(finger_right)
-      setMessage('Please enter the trading information you want.')
+      setMessage('Enter amount')
       setBackground('#fff6f6')
     }
     // check for all the required info for loading
