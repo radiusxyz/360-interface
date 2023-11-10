@@ -205,7 +205,7 @@ export const CurvedProgress = ({ percentage, id }: Props) => {
           </Finish>
         </ProgressBarWithSpans>
 
-        {(tx !== undefined && tx?.status === Status.COMPLETED && <Note>Sending to your wallet now</Note>) ||
+        {(tx !== undefined && tx?.status === Status.COMPLETED && <Note>Sent to your wallet</Note>) ||
           (tx !== undefined && tx?.status === Status.PENDING && (
             <Note>
               Just a little more to go...
